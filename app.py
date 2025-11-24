@@ -134,6 +134,7 @@ def signup(lan = "english"):
             user_total_followers = 0
             user_admin = 0
             user_is_blocked = 0
+            user_password_reset = 0
             created_at = 0
             updated_at = 0
             deleted_at = 0
@@ -142,10 +143,10 @@ def signup(lan = "english"):
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
-            user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, created_at, updated_at, deleted_at))
+            user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, user_password_reset, created_at, updated_at, deleted_at))
             db.commit()
 
             # send verification email
@@ -490,3 +491,91 @@ def get_data_from_sheet():
         return str(ex)
     finally:
         pass
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    try:
+        # GET to view the template
+        if request.method == "GET":
+             return render_template("forgot_password.html")
+        
+        # POST to begin process of creating new password
+        if request.method == "POST":
+             user_email = x.validate_user_email()
+
+             # uuid to insert on the user_password_reset
+             user_password_reset_key = uuid.uuid4().hex
+
+            # updating the user_password_reset key on the user that matches the email
+             db, cursor = x.db()
+             q = "UPDATE users SET user_password_reset = %s WHERE user_email = %s"
+             cursor.execute(q, (user_password_reset_key, user_email))
+             db.commit()
+
+             # rendering the template that the email is gonna contain
+             email_forgot_password = render_template("_email_forgot_password.html", user_password_reset_key=user_password_reset_key)
+             
+             # passing the email, subject and template to the send_email function.
+             x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
+             
+             toast_ok = render_template("___toast_ok.html", message="Check your email")
+             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
+
+
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+@app.route("/create-new-password", methods=["GET", "POST"])
+def create_new_password():
+    try:
+        # getting the key from the url or the form
+        key = request.args.get("key") or request.form.get("key")
+
+        if not key:
+            return "Invalid reset key", 400
+
+        # We select the user that has the key from the url in user_password_reset
+        db, cursor = x.db()
+        q = "SELECT * FROM users WHERE user_password_reset = %s"
+        cursor.execute(q, (key,))
+        row = cursor.fetchone()
+
+        if not row:
+            return "Invalid reset link", 400
+
+        # on GET, create_new_password.html is shown and we pass the key from the url
+        if request.method == "GET":
+            return render_template("create_new_password.html", key=key)
+        
+        # on POST we update the password
+        if request.method == "POST":
+            user_password = x.validate_user_password()
+
+            user_hashed_password = generate_password_hash(user_password)
+
+            # We update the user_password and set the user_password_reset key back to 0
+            q = """
+            UPDATE users 
+            SET user_password = %s,
+                user_password_reset = 0
+            WHERE user_email = %s
+            """
+            cursor.execute(q, (user_hashed_password, row["user_email"]))
+            db.commit()
+
+            return """<browser mix-redirect="/login"></browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        return "Server error", 500   # ← RETURN SOMETHING HERE
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
+
