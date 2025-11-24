@@ -26,7 +26,7 @@
     },
     "sign_up_to_x": {
         "english": "Sign up to X",
-        "danish": "Opret en koto til X",
+        "danish": "Tilmeld dig til X",
         "spanish": "Regístrate en X"
     },
     "email": {
@@ -53,6 +53,26 @@
         "english": "Password",
         "danish": "Adgangskode",
         "spanish": "Clave"
+    },
+    "your_username_must_be_between": {
+        "english": "Your username must be between",
+        "danish": "Dit brugernavn skal være mellem",
+        "spanish": "Tu nombre de usuario debe estar entre"
+    },
+    "your_first_name_must_be_between": {
+        "english": "Your first name must be between",
+        "danish": "Dit fornavn skal være mellem",
+        "spanish": "Tu nombre debe estar entre"
+    },
+    "your_last_name_must_be_between": {
+        "english": "Your last name must be between",
+        "danish": "Dit efternavn skal være mellem",
+        "spanish": "Tu apellido debe estar entre"
+    },
+    "your_password_must_be_between": {
+        "english": "Your password must be between",
+        "danish": "Din adgangskode skal være mellem",
+        "spanish": "Tu contraseña debe estar entre"
     },
     "to": {
         "english": "to",
@@ -128,6 +148,11 @@
         "english": "Don't have an account",
         "danish": "Har du ikke en konto",
         "spanish": "No tienes cuenta"
+    },
+    "forgot_your_password": {
+        "english": "Forgot your password",
+        "danish": "Glemt din adgangskode",
+        "spanish": "¿Olvidaste tu contraseña"
     },
     "user_not_found": {
         "english": "User not found",
@@ -323,6 +348,31 @@
         "english": "Profile updated successfully",
         "danish": "Profil opdateret med succes",
         "spanish": "Perfil actualizado con éxito"
+    },
+    "profile_picture": {
+        "english": "Profile Picture",
+        "danish": "Profilbillede",
+        "spanish": "Foto de perfil"
+    },
+    "current_avatar": {
+        "english": "Current avatar",
+        "danish": "Nuværende avatar",
+        "spanish": "Avatar actual"
+    },
+    "choose_new_picture": {
+        "english": "Choose new picture",
+        "danish": "Vælg nyt billede",
+        "spanish": "Elegir nuevo avatar"
+    },
+    "upload_avatar": {
+        "english": "Upload",
+        "danish": "Upload",
+        "spanish": "Subir"
+    },
+    "uploading": {
+        "english": "Uploading...",
+        "danish": "Uploader...",
+        "spanish": "Subiendo..."
     },
     "loading": {
         "english": "Loading...",

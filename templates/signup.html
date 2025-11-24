@@ -1,4 +1,3 @@
-
 {% include "_header.html" %}
 
 <main class="x-landing">
@@ -14,71 +13,91 @@
     
     <div class="x-dialog__content">
 
-
-
+      <!-- Select language -->
+      <!-- If a language has been selected, then it will not show the selected language + flag -->
       <div class="d-flex gap-3">
-
         {% if lan != "english": %}
-        <a href="/signup/english">
-          <img src="/static/images/flag_english.png" class="w-5">
-        </a>
+          <a href="/signup/english">
+            <img src="/static/images/flag_english.png" class="w-5">
+          </a>
         {% endif %}
 
         {% if lan != "danish": %}
-        <a href="/signup/danish">
-          <img src="/static/images/flag_danish.png" class="w-5">
-        </a>
+          <a href="/signup/danish">
+            <img src="/static/images/flag_danish.png" class="w-5">
+          </a>
         {% endif %}
 
         {% if lan != "spanish": %}
-        <a href="/signup/spanish">
-          <img src="/static/images/flag_spanish.png" class="w-5">
-        </a>
+          <a href="/signup/spanish">
+            <img src="/static/images/flag_spanish.png" class="w-5">
+          </a>
         {% endif %}        
-
       </div>
 
-        <h2 id="loginTitle">Sign up to X</h2>
-        <form class="x-dialog__form" action="{{ url_for('signup') }}" mix-post autocomplete="off">
+      <!-- Sign up page title -->
+      <h2 id="loginTitle">{{ x.lans("sign_up_to_x") }}</h2> <!-- Should the id be different, maybe a class instead -->
+      
+      <!-- Login form -->
+      <form class="x-dialog__form" action="/signup/{{ lan }}" mix-post autocomplete="off">
 
-            <div>
-              <label for="user_email">
-                <span>
-                  {{ x.lans("email") }}
-                </span>
-              </label>
-              <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}">
-            </div>
-            <div>
-              <label for="user_username">
-                <span>{{ x.lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} to {{ x.USER_USERNAME_MAX }} characters
-              </label>
-              <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}">
-            </div>
-            <div>
-              <label for="user_first_name">
-                <span>{{ x.lans("first_name") }}</span> - {{ x.USER_FIRST_NAME_MIN }} to {{ x.USER_FIRST_NAME_MAX }} characters
-              </label>
-              <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}">
-            </div>            
-            <div>
-              <label for="password">
-                <span>{{ x.lans("password") }}</span> - {{ x.USER_PASSWORD_MIN }} to {{ x.USER_PASSWORD_MAX }} characters
-              </label>              
-              <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
-            </div>
-            <button class="x-dialog__btn" 
-            mix-default="Sign up" 
-            mix-await="Signing up...">
-                Sign up
-            </button>
+        <!-- Email -->
+        <div>
+          <label for="user_email">{{ x.lans("email") }}</label>
+          <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}">
+        </div>
+        
+        <!-- Username -->
+        <div>
+          <label for="user_username">{{ x.lans("username") }}</label>
+          <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}">
+          <p class="validation_rules">{{ x.lans("your_username_must_be_between") }}  {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }} {{ x.USER_USERNAME_MAX }} {{ x.lans("characters") }}</p>
+        </div>
+    
+        <div class="frm_side_by_side">
+          <!-- First name -->
+          <div>
+            <label for="user_first_name">{{ x.lans("first_name") }}</label>
+            <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}">
+            <p class="validation_rules">{{ x.lans("your_first_name_must_be_between") }} {{ x.USER_FIRST_NAME_MIN }} {{ x.lans("to") }} {{ x.USER_FIRST_NAME_MAX }} {{ x.lans("characters") }}</p>
+          </div>
+          
+          <!-- Last name --> <!-- Have not done yet -->
+          <!-- <div>
+            <label for="user_last_name">{{ x.lans("last_name") }}</label>
+            <input name="user_last_name" id="user_last_name" type="text" mix-check="{{ x.REGEX_USER_LAST_NAME }}">
+            <p class="validation_rules">{{ x.lans("your_last_name_must_be_between") }} {{ x.USER_LAST_NAME_MIN }} {{ x.lans("to") }} {{ x.USER_LAST_NAME_MAX }} {{ x.lans("characters") }}</p>
+          </div> -->
+        </div>
+
+        <div class="frm_side_by_side">
+          <!-- Password -->
+          <div>
+            <label for="password">{{ x.lans("password") }}</label>              
+            <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
+            <p class="validation_rules">{{ x.lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ x.lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ x.lans("characters") }}</p>
+          </div>
+          
+          <!-- Repeat Password --> <!-- Have not done yet -->
+          <!-- <div>
+            <label for="password">Repeat {{ x.lans("password") }}</label>              
+            <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
+            <p class="validation_rules">{{ x.lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ x.lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ x.lans("characters") }}</p>
+          </div> -->
+        </div>
+
+        <!-- Button -->
+        <button class="x-dialog__btn" mix-default="Sign up" mix-await="{{ x.lans('signing_up') }}...">
+            {{ x.lans("sign_up") }}
+        </button>
         </form>
+        
+        <!-- Have an account -->
         <p class="x-dialog__alt">
-            Have an account? 
-            <a href="{{ url_for('login') }}">Log in</a>
+            {{ x.lans("have_an_account") }}? 
+            <a href="/login/{{ lan }}">{{ x.lans("log_in") }}</a>
         </p>
     </div>
-
 
   </div>
 

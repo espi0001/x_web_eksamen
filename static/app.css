@@ -594,15 +594,26 @@ p{
   flex-direction: column;
   gap: 0.8rem;
   width: 100%;
+
+  
 }
 
 .x-dialog__form div {
   width: 100%;
   label{
-    color: rgb(150,150,150);
-    span{
-      color: rgb(0,0,0);
-    }
+    color: rgb(0,0,0);
+  }
+
+  .validation_rules {
+    color: rgb(150, 150, 150);
+    /* margin-top: 0; */ /* only want margin top 0 on the last one - the rest no margin */
+    margin: 0;
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+
+  .frm_side_by_side {
+    display: flex;
   }
 }
 
@@ -612,6 +623,12 @@ p{
   border: 1px solid #ccc;
   border-radius: 0.5rem;
   font-size: 1rem;
+}
+
+/* If we want two of the inputs to be side by side */
+.x-dialog__form .frm_side_by_side {
+  display: flex;
+  gap: 1rem;
 }
 
 .x-dialog__btn {
