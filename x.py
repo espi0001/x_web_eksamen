@@ -131,7 +131,7 @@ def validate_post(post = ""):
 
 
 ##############################
-def send_email(to_email, subject, template):
+def send_email(user_email, subject, template):
     try:
         # Create a gmail fullflaskdemomail
         # Enable (turn on) 2 step verification/factor in the google account manager
@@ -139,16 +139,16 @@ def send_email(to_email, subject, template):
         # Copy the key : pdru ctfd jdhk xxci
 
         # Email and password of the sender's Gmail account
-        sender_email = ""
-        password = ""  # If 2FA is on, use an App Password instead
+        sender_email = "webdevxclone@gmail.com"
+        password = "hmpv qlnn rqzc ytrg"  # If 2FA is on, use an App Password instead
 
         # Receiver email address
-        receiver_email = to_email
+        receiver_email = user_email
         
         # Create the email message
         message = MIMEMultipart()
         message["From"] = "X clone"
-        message["To"] = to_email
+        message["To"] = user_email
         message["Subject"] = subject
 
         # Body of the email
