@@ -7,6 +7,7 @@
         <img id="current_avatar" src="{{ user.user_avatar_path }}" alt="Current avatar">
     </div>
 
+
     <form action="{{ url_for('api_upload_avatar') }}" method="POST" enctype="multipart/form-data" mix-post>
         <div>
             <label for="avatar">Choose new avatar</label>
