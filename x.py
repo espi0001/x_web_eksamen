@@ -14,6 +14,8 @@ import json
 from icecream import ic
 ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
+# set 
+ALLOWED_IMAGE_UPLOAD = {'png', 'jpg', 'jpeg', 'webp' }
 UPLOAD_ITEM_FOLDER = './images'
 
 ##############################
@@ -21,6 +23,35 @@ allowed_languages = ["english", "danish", "spanish"]
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 default_language = "english"
 
+##############################
+def validate_avatar_upload():
+    """
+    checks if there is uploaded a file and if it's a valide image
+    """ 
+    # get file from request 
+    if 'avatar' not in request.files:
+        raise Exception("No file uploaded", 400)
+    
+    file = request.files['avatar']
+
+    # checks if the user actually chose a file
+    if file.filename == '':
+        raise Exception("No file selected", 400)
+    
+    # checks if the file is a valid type > contains a dot
+    if '.' not in file.filename:
+        raise Exception("Invalid file - no extension", 400)
+    
+    # split the filename at the last dot to get the file extension and make it lowercase for consistency.
+    file_extension = file.filename.rsplit('.', 1)[1].lower()
+
+    # check if the file type is allowed
+    if file_extension not in ALLOWED_IMAGE_UPLOAD:
+        raise Exception(f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_UPLOAD)}", 400)
+    
+    return file, file_extension
+
+##############################
 def lans(key):
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -131,7 +162,7 @@ def validate_post(post = ""):
 
 
 ##############################
-def send_email(to_email, subject, template):
+def send_email(user_email, subject, template):
     try:
         # Create a gmail fullflaskdemomail
         # Enable (turn on) 2 step verification/factor in the google account manager
@@ -139,16 +170,16 @@ def send_email(to_email, subject, template):
         # Copy the key : pdru ctfd jdhk xxci
 
         # Email and password of the sender's Gmail account
-        sender_email = ""
-        password = ""  # If 2FA is on, use an App Password instead
+        sender_email = "webdevxclone@gmail.com"
+        password = "hmpv qlnn rqzc ytrg"  # If 2FA is on, use an App Password instead
 
         # Receiver email address
-        receiver_email = to_email
+        receiver_email = user_email
         
         # Create the email message
         message = MIMEMultipart()
         message["From"] = "X clone"
-        message["To"] = to_email
+        message["To"] = user_email
         message["Subject"] = subject
 
         # Body of the email
