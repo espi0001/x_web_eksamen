@@ -127,21 +127,31 @@ def signup(lan = "english"):
             user_last_name = ""
             user_avatar_path = "https://avatar.iran.liara.run/public/40"
             user_verification_key = uuid.uuid4().hex
+            user_birthday = 0
             user_verified_at = 0
+            user_bio = ""
+            user_total_follows = 0
+            user_total_followers = 0
+            user_admin = 0
+            user_is_blocked = 0
+            created_at = 0
+            updated_at = 0
+            deleted_at = 0
+
 
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
-            user_first_name, user_last_name, user_avatar_path, user_verification_key, user_verified_at))
+            user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, created_at, updated_at, deleted_at))
             db.commit()
 
             # send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
-            x.send_email(user_email, "Verify your account", email_verify_account)
+            # x.send_email(user_email, "Verify your account", email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
         except Exception as ex:
@@ -306,13 +316,20 @@ def api_create_post():
     try:
         user = session.get("user", "")
         if not user: return "invalid user"
-        user_pk = user["user_pk"]        
-        post = x.validate_post(request.form.get("post", ""))
+        post_user_fk = user["user_pk"]        
+        post_message = x.validate_post(request.form.get("post", ""))
         post_pk = uuid.uuid4().hex
-        post_image_path = ""
+        post_media_path = ""
+        post_total_likes = 0
+        post_total_bookmarks = 0
+        post_is_blocked = 0
+        created_at = 0
+        updated_at = 0
+        deleted_at = 0
+
         db, cursor = x.db()
-        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s)"
-        cursor.execute(q, (post_pk, user_pk, post, 0, post_image_path))
+        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(q, (post_pk, post_user_fk, post_message, post_total_likes, post_total_bookmarks, post_media_path, post_is_blocked, created_at, updated_at, deleted_at))
         db.commit()
         toast_ok = render_template("___toast_ok.html", message="The world is reading your post !")
         tweet = {
@@ -320,7 +337,7 @@ def api_create_post():
             "user_last_name": user["user_last_name"],
             "user_username": user["user_username"],
             "user_avatar_path": user["user_avatar_path"],
-            "post_message": post,
+            "post_message": post_message,
         }
         html_post_container = render_template("___post_container.html")
         html_post = render_template("_tweet.html", tweet=tweet)
