@@ -151,7 +151,7 @@ def signup(lan = "english"):
             # send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
-            # x.send_email(user_email, "Verify your account", email_verify_account)
+            x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
         except Exception as ex:
