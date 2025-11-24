@@ -123,7 +123,7 @@ def login(lan = "english"):
         if g.user: 
             return redirect(url_for("home"))
         
-        return render_template("login.html", lan=lan)
+        return render_template("login.html", lan=lan) # Question: skal vi stadig have lan=lan???
 
     if request.method == "POST":
         try:
@@ -179,13 +179,15 @@ def login(lan = "english"):
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
+    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
+    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan
-        return render_template("signup.html", lan=lan)
+        x.default_language = lan # Question: Skal vi have det her med = lan??
+        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
 
     if request.method == "POST":
         try:
@@ -230,12 +232,13 @@ def signup(lan = "english"):
 
             x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
 
+            # Question: skal det her være udkommenteret??
             # Uncomment when email is configured:
             # x.send_email(user_email, "Verify your account", email_verify_account)
 
 
             # Redirect to login page
-            return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200
+            return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200 # Question: skal lan=lan være her??
             
         except Exception as ex:
             ic(ex)
@@ -268,9 +271,15 @@ def signup(lan = "english"):
 
 
 ############## HOME ################
+# Question: hvad gør vi med language her??
 @app.get("/home")
-@x.no_cache
+@x.no_cache # Question: hvad er det her for?
+# @app.route("/home/<lan>") 
 def home():
+    # Validate language parameter
+    # if lan not in x.allowed_languages: 
+    #     lan = "english"
+
     try:
         # Check if user is logged in (g.user set by @app.before_request)
         if not g.user: 
