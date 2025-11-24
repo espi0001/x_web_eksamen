@@ -226,12 +226,12 @@ def signup(lan = "english"):
             email_verify_account = render_template("_email_verify_account.html", 
                                                    user_verification_key=user_verification_key)
             ic(email_verify_account)
-<<<<<<< HEAD
+
             x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
-=======
+
             # Uncomment when email is configured:
             # x.send_email(user_email, "Verify your account", email_verify_account)
->>>>>>> 12959e2789ce14f8bf794f8d6f99ea347548905a
+
 
             # Redirect to login page
             return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200

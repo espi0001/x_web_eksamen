@@ -597,7 +597,7 @@ aside {
 
 .x-dialog__form div {
   width: 100%;
-<<<<<<< HEAD
+
   label{
     color: rgb(0,0,0);
   }
@@ -612,16 +612,8 @@ aside {
 
   .frm_side_by_side {
     display: flex;
-=======
-  label {
-    color: rgb(150, 150, 150);
-    span {
-      color: rgb(0, 0, 0);
-    }
->>>>>>> 12959e2789ce14f8bf794f8d6f99ea347548905a
   }
 }
-
 .x-dialog__form input {
   width: 100%;
   padding: 0.7rem;
