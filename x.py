@@ -14,6 +14,8 @@ import json
 from icecream import ic
 ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
+# set 
+ALLOWED_IMAGE_UPLOAD = {'png', 'jpg', 'jpeg', 'webp' }
 UPLOAD_ITEM_FOLDER = './images'
 
 ##############################
@@ -21,6 +23,35 @@ allowed_languages = ["english", "danish", "spanish"]
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 default_language = "english"
 
+##############################
+def validate_avatar_upload():
+    """
+    checks if there is uploaded a file and if it's a valide image
+    """ 
+    # get file from request 
+    if 'avatar' not in request.files:
+        raise Exception("No file uploaded", 400)
+    
+    file = request.files['avatar']
+
+    # checks if the user actually chose a file
+    if file.filename == '':
+        raise Exception("No file selected", 400)
+    
+    # checks if the file is a valid type > contains a dot
+    if '.' not in file.filename:
+        raise Exception("Invalid file - no extension", 400)
+    
+    # split the filename at the last dot to get the file extension and make it lowercase for consistency.
+    file_extension = file.filename.rsplit('.', 1)[1].lower()
+
+    # check if the file type is allowed
+    if file_extension not in ALLOWED_IMAGE_UPLOAD:
+        raise Exception(f"Invalid file type. Allowed: {', '.join(ALLOWED_IMAGE_UPLOAD)}", 400)
+    
+    return file, file_extension
+
+##############################
 def lans(key):
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
