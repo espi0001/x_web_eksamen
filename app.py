@@ -410,10 +410,43 @@ def profile():
         db, cursor = x.db()
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
+        q = """
+        SELECT posts.*, users.user_username, users.user_first_name, users.user_last_name, users.user_avatar_path
+        FROM posts
+        JOIN users ON posts.post_user_fk = users.user_pk
+        WHERE posts.post_user_fk = %s AND posts.deleted_at = 0
+        ORDER BY posts.created_at DESC
+        """
+        cursor.execute(q, (g.user["user_pk"],))
+        posts = cursor.fetchall()
+        # Render profile template
+        profile_html = render_template("_profile.html", row=row, posts=posts)
+        return f"""<browser mix-update="main">{ profile_html }</browser>"""
+        
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############### EDIT PROFILE ###############
+@app.get("/edit_profile")
+def edit_profile():
+    try:
+        # Check if user is logged in
+        if not g.user: 
+            return "error"
+        
+        # Fetch fresh user data from database
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        db, cursor = x.db()
+        cursor.execute(q, (g.user["user_pk"],))
+        row = cursor.fetchone()
         
         # Render profile template
-        profile_html = render_template("_profile.html", row=row)
-        return f"""<browser mix-update="main">{ profile_html }</browser>"""
+        edit_profile_html = render_template("_edit_profile.html", row=row)
+        return f"""<browser mix-update="main">{ edit_profile_html }</browser>"""
         
     except Exception as ex:
         ic(ex)
