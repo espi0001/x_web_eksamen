@@ -20,10 +20,13 @@ app = Flask(__name__)
 # Set the maximum file size to 1 MB
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
 
+
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
-##############################
+
+
+############################## FORKLAR DENNE
 # Load logged-in user before each request
 # Runs automatically before every route
 @app.before_request
@@ -59,7 +62,9 @@ def load_logged_in_user():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## GLOBAL PROCESSOR     ################
 # Context processor - makes variables available in ALL templates
 # You don't need to pass these variables manually to each render_template()
 @app.context_processor
@@ -88,7 +93,9 @@ def _____USER_____(): pass
 def view_index():
     return render_template("index.html")
 
-##############################
+
+
+############### IMAGES ############### FORKLAR DENNE
 # Serve images from images folder
 # Required for avatar images to display
 @app.route('/images/<path:filename>')
@@ -99,7 +106,7 @@ def serve_image(filename):
     """
     return send_from_directory('images', filename)
 
-##############################
+############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
 @x.no_cache
@@ -116,7 +123,7 @@ def login(lan = "english"):
         if g.user: 
             return redirect(url_for("home"))
         
-        return render_template("login.html", lan=lan)
+        return render_template("login.html", lan=lan) # Question: skal vi stadig have lan=lan???
 
     if request.method == "POST":
         try:
@@ -166,17 +173,21 @@ def login(lan = "english"):
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
 
-##############################
+
+
+############## SIGNUP ################
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
+    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
+    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan
-        return render_template("signup.html", lan=lan)
+        x.default_language = lan # Question: Skal vi have det her med = lan??
+        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
 
     if request.method == "POST":
         try:
@@ -200,6 +211,7 @@ def signup(lan = "english"):
             user_total_followers = 0
             user_admin = 0
             user_is_blocked = 0
+            user_password_reset = 0
             created_at = int(time.time())
             updated_at = 0
             deleted_at = 0
@@ -207,34 +219,26 @@ def signup(lan = "english"):
             # Hash password before storing (NEVER store plain text passwords!)
             user_hashed_password = generate_password_hash(user_password)
 
-            # Insert new user into database
-            q = """INSERT INTO users VALUES(
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, %s, %s, %s
-            )"""
+            # Connect to the database
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
-            cursor.execute(q, (
-                user_pk, user_email, user_hashed_password, user_username, 
-                user_first_name, user_last_name, user_birthday, user_avatar_path, 
-                user_verification_key, user_verified_at, user_bio, user_total_follows, 
-                user_total_followers, user_admin, user_is_blocked, created_at, 
-                updated_at, deleted_at
-            ))
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
+            user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, user_password_reset, created_at, updated_at, deleted_at))
             db.commit()
 
             # Send verification email
-            email_verify_account = render_template("_email_verify_account.html", 
-                                                   user_verification_key=user_verification_key)
+            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
 
             x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
 
+            # Question: skal det her være udkommenteret??
             # Uncomment when email is configured:
             # x.send_email(user_email, "Verify your account", email_verify_account)
 
 
             # Redirect to login page
-            return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200
+            return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200 # Question: skal lan=lan være her??
             
         except Exception as ex:
             ic(ex)
@@ -263,10 +267,19 @@ def signup(lan = "english"):
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
 
-##############################
+
+
+
+############## HOME ################
+# Question: hvad gør vi med language her??
 @app.get("/home")
-@x.no_cache
+@x.no_cache # Question: hvad er det her for?
+# @app.route("/home/<lan>") 
 def home():
+    # Validate language parameter
+    # if lan not in x.allowed_languages: 
+    #     lan = "english"
+
     try:
         # Check if user is logged in (g.user set by @app.before_request)
         if not g.user: 
@@ -302,7 +315,10 @@ def home():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+
+############## VERIFY ACCOUNT ################
 @app.route("/verify-account", methods=["GET"])
 def verify_account():
     try:
@@ -337,7 +353,9 @@ def verify_account():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## LOGOUT ################
 @app.get("/logout")
 def logout():
     try:
@@ -350,7 +368,9 @@ def logout():
     finally:
         pass
 
-##############################
+
+
+############## HOME COMP ################
 @app.get("/home-comp")
 def home_comp():
     try:
@@ -375,7 +395,9 @@ def home_comp():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############### PROFILE ###############
 @app.get("/profile")
 def profile():
     try:
@@ -400,7 +422,9 @@ def profile():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## LIKE TWEET ################
 @app.patch("/like-tweet")
 @x.no_cache
 def api_like_tweet():
@@ -419,7 +443,9 @@ def api_like_tweet():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############### API CREATE POST ###############
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
@@ -494,7 +520,9 @@ def api_create_post():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## API UPDATE PROFILE ################
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
@@ -549,7 +577,9 @@ def api_update_profile():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
 def api_upload_avatar():
     """
@@ -620,15 +650,16 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", 
-                                     message=f"Could not upload avatar: {str(ex)}")
+        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############## API SEARCH ################
 @app.post("/api-search")
 def api_search():
     try:
@@ -657,7 +688,9 @@ def api_search():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-##############################
+
+
+############# GET DATA FROM SHEET #################
 @app.get("/get-data-from-sheet")
 def get_data_from_sheet():
     try:
@@ -686,7 +719,7 @@ def get_data_from_sheet():
         json_data = json.dumps(data, ensure_ascii=False, indent=4)
         with open("dictionary.json", 'w', encoding='utf-8') as f:
             f.write(json_data)
- 
+
         return "ok"
         
     except Exception as ex:
@@ -694,4 +727,91 @@ def get_data_from_sheet():
         return str(ex)
     finally: 
         pass
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    try:
+        # GET to view the template
+        if request.method == "GET":
+            return render_template("forgot_password.html")
+        
+        # POST to begin process of creating new password
+        if request.method == "POST":
+            user_email = x.validate_user_email()
+
+            # uuid to insert on the user_password_reset
+            user_password_reset_key = uuid.uuid4().hex
+
+            # updating the user_password_reset key on the user that matches the email
+            db, cursor = x.db()
+            q = "UPDATE users SET user_password_reset = %s WHERE user_email = %s"
+            cursor.execute(q, (user_password_reset_key, user_email))
+            db.commit()
+
+            # rendering the template that the email is gonna contain
+            email_forgot_password = render_template("_email_forgot_password.html", user_password_reset_key=user_password_reset_key)
+            
+            # passing the email, subject and template to the send_email function.
+            x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
+            
+            toast_ok = render_template("___toast_ok.html", message="Check your email")
+            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
+
+
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+@app.route("/create-new-password", methods=["GET", "POST"])
+def create_new_password():
+    try:
+        # getting the key from the url or the form
+        key = request.args.get("key") or request.form.get("key")
+
+        if not key:
+            return "Invalid reset key", 400
+
+        # We select the user that has the key from the url in user_password_reset
+        db, cursor = x.db()
+        q = "SELECT * FROM users WHERE user_password_reset = %s"
+        cursor.execute(q, (key,))
+        row = cursor.fetchone()
+
+        if not row:
+            return "Invalid reset link", 400
+
+        # on GET, create_new_password.html is shown and we pass the key from the url
+        if request.method == "GET":
+            return render_template("create_new_password.html", key=key)
+        
+        # on POST we update the password
+        if request.method == "POST":
+            user_password = x.validate_user_password()
+
+            user_hashed_password = generate_password_hash(user_password)
+
+            # We update the user_password and set the user_password_reset key back to 0
+            q = """
+            UPDATE users 
+            SET user_password = %s,
+                user_password_reset = 0
+            WHERE user_email = %s
+            """
+            cursor.execute(q, (user_hashed_password, row["user_email"]))
+            db.commit()
+
+            return """<browser mix-redirect="/login"></browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        return "Server error", 500   # ← RETURN SOMETHING HERE
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
 
