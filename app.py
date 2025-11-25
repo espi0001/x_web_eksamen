@@ -155,7 +155,7 @@ def login(lan = "english"):
             session["lan"] = lan
             
             # Redirect to home page
-            return f"""<browser mix-redirect="/home/{lan}"></browser>"""
+            return f"""<browser mix-redirect="/home"></browser>"""
 
         except Exception as ex:
             ic(ex)
@@ -272,13 +272,13 @@ def signup(lan = "english"):
 
 ############## HOME ################
 # Question: hvad gør vi med language her??
-@app.route("/home", methods=["GET"])
-@app.route("/home/<lan>", methods=["GET"]) 
-@x.no_cache # prevents showing cached content after logout / "back" button
-def home(lan = "english"):
+@app.get("/home")
+@x.no_cache # Question: hvad er det her for?
+# @app.route("/home/<lan>") 
+def home():
     # Validate language parameter
-    if lan not in x.allowed_languages: 
-        lan = "english"
+    # if lan not in x.allowed_languages: 
+    #     lan = "english"
 
     try:
         # Check if user is logged in (g.user set by @app.before_request)
