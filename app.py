@@ -628,9 +628,16 @@ def api_upload_avatar():
         
         # Send success response and redirect
         toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
+
+        avatar_url = f"/images/{filename}"
+        # finding the element with the id #current_avatar
+        # replaces it with the new <img> tag that has the updated src (the new image)
+        # mix-replace="#nav_avatar" > finds the element with the id nav_avatar
+        # replaces it with the new <img> tag
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-redirect="/home"></browser>
+            <browser mix-replace="#current_avatar"><img id="current_avatar" src="{avatar_url}" alt="Current avatar"></browser>
+            <browser mix-replace="#nav_avatar"><img src="/{filepath}" alt="Profile" id="nav_avatar"></browser>
         """, 200
         
     except Exception as ex:
