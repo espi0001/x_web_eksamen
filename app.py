@@ -95,16 +95,16 @@ def view_index():
 
 
 
-############### IMAGES ############### FORKLAR DENNE
-# Serve images from images folder
+############### IMAGES (AVATARS) ############### FORKLAR DENNE
+## Serve images from static/images/avatars folder
 # Required for avatar images to display
-@app.route('/images/<path:filename>')
+@app.route('/images/avatars/<path:filename>')
 def serve_image(filename):
     """
-    Serves images from the images folder
-    Example: /images/abc123_1732447200.jpg
+   Serves avatar images from the static/images/avatars folder
+    Example: /images/avatars/a1b2c3d4e5f6.jpg
     """
-    return send_from_directory('images', filename)
+    return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
@@ -594,15 +594,22 @@ def api_upload_avatar():
         file, file_extension = x.validate_avatar_upload()
         
         # Create unique filename > we could make it a uuid instead
-        timestamp = int(time.time())
-        filename = f"{g.user['user_pk']}_{timestamp}.{file_extension}"
-        
+        # timestamp = int(time.time())
+        # filename = f"{g.user['user_pk']}_{timestamp}.{file_extension}"
+    
+        # Create unique filename with UUID
+        unique_id = uuid.uuid4().hex
+        filename = f"{unique_id}.{file_extension}"
+
         # Build filepath
-        filepath = os.path.join('images', filename)
+        # Creating the avatar folder inside static / images  
+        filepath = os.path.join('static','images','avatars', filename)
         
-        # Ensure images folder exists
-        if not os.path.exists('images'):
-            os.makedirs('images')
+       # Ensure avatars folder exists
+        avatar_folder = os.path.join('static', 'images', 'avatars')
+        
+        if not os.path.exists(avatar_folder):
+            os.makedirs(avatar_folder)
         
         # Delete old avatar if it exists (not external URL)
         if g.user["user_avatar_path"] and not g.user["user_avatar_path"].startswith("http"):
@@ -628,9 +635,16 @@ def api_upload_avatar():
         
         # Send success response and redirect
         toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
+
+        avatar_url = f"/static/images/avatars/{filename}"
+        # finding the element with the id #current_avatar
+        # replaces it with the new <img> tag that has the updated src (the new image)
+        # mix-replace="#nav_avatar" > finds the element with the id nav_avatar
+        # replaces it with the new <img> tag
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-redirect="/home"></browser>
+            <browser mix-replace="#current_avatar"><img id="current_avatar" src="{avatar_url}" alt="Current avatar"></browser>
+            <browser mix-replace="#nav_avatar"><img src="/{filepath}" alt="Profile" id="nav_avatar"></browser>
         """, 200
         
     except Exception as ex:
