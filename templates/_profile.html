@@ -1,52 +1,67 @@
-<h1>
-    {{ x.lans("profile") }}
-</h1>
-<section class="avatar-section">
-    <h2>Profile Picture</h2>
+<div class="profile-container">
+    <div class="profile-header">
+        <i class="fa-solid fa-arrow-left"></i>
+        <div>
+            <h2>{{ user.user_first_name }}</h2>
+            <p class="handle">{{ posts|length }} posts</p>
+        </div>
+    </div>
+    <div class="profile-banner"></div>
+
     <div class="avatar-container">
         <img id="current_avatar" src="{{ user.user_avatar_path }}" alt="Current avatar">
     </div>
 
 
-    <form action="{{ url_for('api_upload_avatar') }}" method="POST" enctype="multipart/form-data" mix-post>
-        <div>
-            <label for="avatar">Choose new avatar</label>
-            <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
-        </div>
-        <button class="x-dialog__btn" mix-default="Upload Avatar" mix-await="Uploading...">
-            Upload
-        </button>
-    </form>
-</section>
+    <div class="profile-names">
+        <div class="profile-name">{{ user.user_first_name }}</div>
+        <div class="profile-username">@{{ user.user_username }}</div>
+        <p class="post-count">{{ posts|length }} posts</p>
+    </div>
+    <div class="profile-tabs">
+        <button class="tab-btn active">Posts</button>
+        <button class="tab-btn">Media</button>
+        <button class="tab-btn">Likes</button>
+    </div>
+    <div class="posts">
+        <div id="profile-posts">
+            {% if posts|length == 0: %}
+            <div class="no-posts">
+                <p>No posts yet</p>
+            </div>
+            {% else: %}
+            {% for post in posts: %}
+            <article class="post" mix-fade-in="5000">
+                <img src="{{ user.user_avatar_path }}" alt="Profile Picture" class="w-8 h-8 rounded-full">
+                <div class="post-content">
+                    <div class="post-header">
+                        <span class="name">
+                            {{ post.user_first_name }}
+                            {{ post.user_last_name }}
+                        </span>
+                        <span class="handle">@{{ post.user_username }}</span> · <span class="time">{{ post.created_at
+                            }}</span>
+                    </div>
+                    <p class="text">
+                        {{ post.post_message }}
+                    </p>
+                    {% if post.post_media_path: %}
+                    <img src="{{ url_for('static', filename='images/' ~ post.post_media_path) }}" alt="Post image"
+                        class="w-80">
+                    {% endif %}
 
-<form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
-    <div>
-        <label for="user_email">
-            <span>{{ x.lans("email") }}</span>
-        </label>
-        <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}"
-            value="{{ user.user_email }}">
+                    <div class="post-actions">
+                        <span class="action"><i class="fa-regular fa-comment"></i> 0</span>
+                        <span class="action"><i class="fa-solid fa-retweet"></i> 0</span>
+                        <span class="action"><i class="fa-regular fa-heart"></i> {{ post.post_total_likes }}</span>
+                        <span class="action"><i class="fa-solid fa-chart-simple"></i> 0</span>
+                        <span class="action"><i class="fa-solid fa-share"></i></span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+            {% endif %}
+        </div>
     </div>
-    <div>
-        <label for="user_username">
-            <span>{{ x.lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }}
-            {{ x.USER_USERNAME_MAX }}
-            {{ x.lans("characters") }}
-        </label>
-        <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
-            value="{{ user.user_username }}">
-    </div>
-    <div>
-        <label for="user_first_name">
-            <span>{{ x.lans("first_name") }}</span> - {{ x.USER_FIRST_NAME_MIN }} {{ x.lans("to") }} {{
-            x.USER_FIRST_NAME_MAX }}
-            {{ x.lans("characters") }}
-        </label>
-        <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}"
-            value="{{ user.user_first_name }}">
-    </div>
-    <button class="x-dialog__btn" mix-default="{{ x.lans('update_profile') }}"
-        mix-await="{{ x.lans('updating_profile') }}">
-        {{ x.lans("update_profile") }}
-    </button>
-</form>
+    <a href="/edit_profile" mix-get>Edit profile</a>
+</div>
