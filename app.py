@@ -534,9 +534,9 @@ def api_update_profile():
         lan = g.user["user_language"]
 
         # Validate inputs
-        user_email = x.validate_user_email(lan)
-        user_username = x.validate_user_username(lan)
-        user_first_name = x.validate_user_first_name(lan)
+        user_email = x.validate_user_email()
+        user_username = x.validate_user_username()
+        user_first_name = x.validate_user_first_name()
 
         # Update database
         q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s WHERE user_pk = %s"
