@@ -591,15 +591,13 @@ aside {
   flex-direction: column;
   gap: 0.8rem;
   width: 100%;
-
-  
 }
 
 .x-dialog__form div {
   width: 100%;
 
-  label{
-    color: rgb(0,0,0);
+  label {
+    color: rgb(0, 0, 0);
   }
 
   .validation_rules {
@@ -683,4 +681,23 @@ aside {
   display: block;
   margin: 0.5rem 0;
   padding: 0.5rem;
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-wrapper:focus-within .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: none;
+  min-width: 120px;
 }
