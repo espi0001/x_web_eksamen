@@ -591,15 +591,13 @@ aside {
   flex-direction: column;
   gap: 0.8rem;
   width: 100%;
-
-  
 }
 
 .x-dialog__form div {
   width: 100%;
 
-  label{
-    color: rgb(0,0,0);
+  label {
+    color: rgb(0, 0, 0);
   }
 
   .validation_rules {
@@ -683,4 +681,24 @@ aside {
   display: block;
   margin: 0.5rem 0;
   padding: 0.5rem;
+}
+.tab-btn {
+  flex: 1;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgb(110, 109, 109);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.2s;
+}
+
+.tab-btn:hover {
+  background-color: rgb(247, 249, 249);
+}
+
+.tab-btn.active {
+  color: rgb(15, 15, 15);
+  border-bottom: 2px solid rgb(29, 155, 240);
+  font-weight: bold;
 }
