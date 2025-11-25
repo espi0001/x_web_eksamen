@@ -451,7 +451,7 @@ def api_create_post():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "invalid user"
+            return "invalid user" # Question: mangler den end http code? f.eks. 400??
         
         # Get user ID and validate post
         user_pk = g.user["user_pk"]        
@@ -469,6 +469,8 @@ def api_create_post():
 
         # Insert post into database
         db, cursor = x.db()
+
+        # Question: hvorfor er der tre """??
         q = """INSERT INTO posts VALUES(
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
@@ -605,7 +607,7 @@ def api_upload_avatar():
         # Creating the avatar folder inside static / images  
         filepath = os.path.join('static','images','avatars', filename)
         
-       # Ensure avatars folder exists
+        # Ensure avatars folder exists
         avatar_folder = os.path.join('static', 'images', 'avatars')
         
         if not os.path.exists(avatar_folder):
@@ -743,6 +745,8 @@ def get_data_from_sheet():
         pass
 
 
+
+############# FORGOT PASSWORD #################
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     try:
@@ -779,6 +783,8 @@ def forgot_password():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+############# CREATE NEW PASSWORD #################
 @app.route("/create-new-password", methods=["GET", "POST"])
 def create_new_password():
     try:
@@ -829,3 +835,85 @@ def create_new_password():
 
 
 
+############# SOFT DELETE USER #################
+@app.route("/delete-user", methods=["POST"])
+def delete_user():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+
+        # Get user PK and validate post
+        user_pk = g.user["user_pk"]
+
+        # Generate data for timestamp
+        deleted_at_time_now = int(time.time())
+
+        # Insert it into the database
+        db, cursor = x.db()
+        
+        # 1) Soft-delete user (rest should be done in the trigger)
+        q = "UPDATE users SET deleted_at = %s WHERE user_pk = %s"
+        cursor.execute(q,(deleted_at_time_now, user_pk)
+        )
+
+        db.commit()
+
+        # Send success response
+        # toast_ok = render_template("___toast_ok.html", message="Your profile have been deleted")
+
+        # log brugeren ud
+        session.clear()
+
+        return redirect(url_for("login"))
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############# SOFT DELETE POST #################
+@app.route("/delete-post", methods=["POST"])
+def delete_post():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+
+        # Get post PK and validate post
+        post_pk = request.form.get("post_pk", "")
+        if not post_pk:
+            return "missing post_pk", 400
+
+        # Generate data for timestamp
+        deleted_at_time_now = int(time.time())
+
+        # Insert it into the database
+        db, cursor = x.db()
+
+        # Soft delete the post 
+        cursor.execute(
+            "UPDATE posts SET deleted_at = %s WHERE post_pk = %s AND post_user_fk = %s",
+            (deleted_at_time_now, post_pk, g.user["user_pk"])
+        )
+
+        db.commit()
+
+        # Send success response
+        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted")
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+        """, 200
+    
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
