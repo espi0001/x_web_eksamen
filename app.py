@@ -192,10 +192,10 @@ def signup(lan = "english"):
     if request.method == "POST":
         try:
             # Validate all user inputs
-            user_email = x.validate_user_email(lan)
-            user_password = x.validate_user_password(lan)
-            user_username = x.validate_user_username(lan)
-            user_first_name = x.validate_user_first_name(lan)
+            user_email = x.validate_user_email()
+            user_password = x.validate_user_password()
+            user_username = x.validate_user_username()
+            user_first_name = x.validate_user_first_name()
 
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
