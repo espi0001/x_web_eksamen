@@ -12,6 +12,9 @@ import csv
 import json
 import dictionary
 
+import traceback
+# traceback.print_exc()
+
 from icecream import ic
 ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
@@ -101,7 +104,7 @@ def view_index():
 @app.route('/images/avatars/<path:filename>')
 def serve_image(filename):
     """
-   Serves avatar images from the static/images/avatars folder
+    Serves avatar images from the static/images/avatars folder
     Example: /images/avatars/a1b2c3d4e5f6.jpg
     """
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
@@ -221,6 +224,7 @@ def signup(lan = "english"):
 
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            # q = "INSERT INTO users VALUES(%s, %s, %s, %s, None, None, None, None, %s, None, %s, %s, %s, %s, %s, None, %s, None, None)"
             db, cursor = x.db()
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
             user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, user_password_reset, created_at, updated_at, deleted_at))
@@ -250,13 +254,11 @@ def signup(lan = "english"):
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
-                toast_error = render_template("___toast_error.html", 
-                                            message=x.lans("email_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered", lan))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
-                toast_error = render_template("___toast_error.html", 
-                                            message=x.lans("username_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered", lan))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # System or developer error
