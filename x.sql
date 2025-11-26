@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mariadb
--- Generation Time: Nov 25, 2025 at 08:50 AM
+-- Generation Time: Nov 25, 2025 at 03:53 PM
 -- Server version: 10.6.20-MariaDB-ubu2004
 -- PHP Version: 8.2.27
 
@@ -30,7 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `bookmarks` (
   `bookmark_user_fk` char(32) NOT NULL,
   `bookmark_post_fk` char(32) NOT NULL,
-  `created_at` bigint(20) UNSIGNED NOT NULL
+  `created_at` bigint(20) UNSIGNED NOT NULL,
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -47,7 +48,7 @@ CREATE TABLE `comments` (
   `comment_is_blocked` tinyint(1) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
   `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -59,7 +60,8 @@ CREATE TABLE `comments` (
 CREATE TABLE `follows` (
   `follow_user_fk` char(32) NOT NULL,
   `followed_user_fk` char(32) NOT NULL,
-  `created_at` bigint(20) UNSIGNED NOT NULL
+  `created_at` bigint(20) UNSIGNED NOT NULL,
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -71,7 +73,8 @@ CREATE TABLE `follows` (
 CREATE TABLE `likes` (
   `like_user_fk` char(32) NOT NULL,
   `like_post_fk` char(32) NOT NULL,
-  `created_at` bigint(20) UNSIGNED NOT NULL
+  `created_at` bigint(20) UNSIGNED NOT NULL,
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -84,23 +87,24 @@ CREATE TABLE `posts` (
   `post_pk` char(32) NOT NULL,
   `post_user_fk` char(32) NOT NULL,
   `post_message` varchar(200) NOT NULL,
-  `post_total_likes` bigint(20) UNSIGNED NOT NULL,
-  `post_total_bookmarks` bigint(20) UNSIGNED NOT NULL,
-  `post_media_path` varchar(50) NOT NULL,
+  `post_total_comments` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `post_total_likes` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `post_total_bookmarks` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `post_media_path` varchar(255) NOT NULL,
   `post_is_blocked` tinyint(1) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
   `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `posts`
 --
 
-INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_likes`, `post_total_bookmarks`, `post_media_path`, `post_is_blocked`, `created_at`, `updated_at`, `deleted_at`) VALUES
-('4773a75ec2f543419efb132ce3a5a82c', '8f234d16daf24cb19243d18e1183f4c1', 'post', 0, 0, '', 0, 0, 0, 0),
-('72e1f5bca95b4ad598a445f095b1b99a', '0cd10bd6ed6947de91a9bc060b1f7856', 'hej', 0, 0, '', 0, 0, 0, 0),
-('c6aa4f460e944c37892538e447e942c0', '8f234d16daf24cb19243d18e1183f4c1', 'helllo', 0, 0, '', 0, 0, 0, 0);
+INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_comments`, `post_total_likes`, `post_total_bookmarks`, `post_media_path`, `post_is_blocked`, `created_at`, `updated_at`, `deleted_at`) VALUES
+('4773a75ec2f543419efb132ce3a5a82c', '8f234d16daf24cb19243d18e1183f4c1', 'post', 0, 0, 0, '', 0, 0, 0, 0),
+('72e1f5bca95b4ad598a445f095b1b99a', '0cd10bd6ed6947de91a9bc060b1f7856', 'hej', 0, 0, 0, '', 0, 0, 0, 0),
+('c6aa4f460e944c37892538e447e942c0', '8f234d16daf24cb19243d18e1183f4c1', 'helllo', 0, 0, 0, '', 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -139,7 +143,7 @@ CREATE TABLE `users` (
   `user_password_reset` char(32) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
   `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL
+  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
