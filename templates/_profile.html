@@ -16,6 +16,8 @@
     <div class="profile-names">
         <div class="profile-name">{{ user.user_first_name }}</div>
         <div class="profile-username">@{{ user.user_username }}</div>
+        <p class="handle"><i class="fa-regular fa-calendar"></i> Joined {{ user.created_at }}</p>
+
         <p class="post-count">{{ posts|length }} posts</p>
     </div>
     <div class="profile-tabs">

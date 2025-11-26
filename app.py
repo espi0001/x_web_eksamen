@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory
 from flask_session import Session
+from datetime import datetime
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 import x 
@@ -24,6 +25,15 @@ app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
+
+##############################
+# {{ user.created_at|timestamp_to_date }} > use it like this in templates
+@app.template_filter('timestamp_to_date')
+def timestamp_to_date(timestamp):
+    if timestamp == 0:
+        return "Unknown"
+    # formatterer datetime objektet til en læsbar string
+    return datetime.fromtimestamp(timestamp).strftime('%B %Y')  # f.eks "November 2025"
 
 
 ############################## FORKLAR DENNE
