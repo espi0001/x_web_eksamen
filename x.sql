@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mariadb
--- Generation Time: Nov 25, 2025 at 03:53 PM
+-- Generation Time: Nov 26, 2025 at 04:48 PM
 -- Server version: 10.6.20-MariaDB-ubu2004
 -- PHP Version: 8.2.27
 
@@ -31,7 +31,7 @@ CREATE TABLE `bookmarks` (
   `bookmark_user_fk` char(32) NOT NULL,
   `bookmark_post_fk` char(32) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -45,10 +45,10 @@ CREATE TABLE `comments` (
   `comment_user_fk` char(32) NOT NULL,
   `comment_post_fk` char(32) NOT NULL,
   `comment_message` varchar(200) NOT NULL,
-  `comment_is_blocked` tinyint(1) NOT NULL,
+  `comment_is_blocked` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `updated_at` bigint(20) UNSIGNED DEFAULT NULL,
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -61,7 +61,7 @@ CREATE TABLE `follows` (
   `follow_user_fk` char(32) NOT NULL,
   `followed_user_fk` char(32) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -74,7 +74,7 @@ CREATE TABLE `likes` (
   `like_user_fk` char(32) NOT NULL,
   `like_post_fk` char(32) NOT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -90,11 +90,11 @@ CREATE TABLE `posts` (
   `post_total_comments` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `post_total_likes` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `post_total_bookmarks` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `post_media_path` varchar(255) NOT NULL,
-  `post_is_blocked` tinyint(1) NOT NULL,
+  `post_media_path` varchar(255) DEFAULT NULL,
+  `post_is_blocked` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `updated_at` bigint(20) UNSIGNED DEFAULT NULL,
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -130,27 +130,27 @@ CREATE TABLE `users` (
   `user_password` varchar(255) NOT NULL,
   `user_username` varchar(20) NOT NULL,
   `user_first_name` varchar(20) NOT NULL,
-  `user_last_name` varchar(20) NOT NULL,
-  `user_birthday` bigint(20) UNSIGNED NOT NULL,
-  `user_avatar_path` varchar(255) NOT NULL,
+  `user_last_name` varchar(20) DEFAULT NULL,
+  `user_birthday` bigint(20) DEFAULT NULL,
+  `user_avatar_path` varchar(255) DEFAULT NULL,
   `user_verification_key` char(32) NOT NULL,
-  `user_verified_at` bigint(20) UNSIGNED NOT NULL,
-  `user_bio` varchar(200) NOT NULL,
+  `user_verified_at` bigint(20) UNSIGNED DEFAULT NULL,
+  `user_bio` varchar(200) DEFAULT NULL,
   `user_total_follows` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `user_total_followers` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `user_admin` tinyint(1) NOT NULL,
-  `user_is_blocked` tinyint(1) NOT NULL,
-  `user_password_reset` char(32) NOT NULL,
+  `user_admin` tinyint(1) NOT NULL DEFAULT 0,
+  `user_is_blocked` tinyint(1) NOT NULL DEFAULT 0,
+  `user_password_reset_key` char(32) DEFAULT NULL,
   `created_at` bigint(20) UNSIGNED NOT NULL,
-  `updated_at` bigint(20) UNSIGNED NOT NULL,
-  `deleted_at` bigint(20) UNSIGNED NOT NULL DEFAULT 0
+  `updated_at` bigint(20) UNSIGNED DEFAULT NULL,
+  `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_pk`, `user_email`, `user_password`, `user_username`, `user_first_name`, `user_last_name`, `user_birthday`, `user_avatar_path`, `user_verification_key`, `user_verified_at`, `user_bio`, `user_total_follows`, `user_total_followers`, `user_admin`, `user_is_blocked`, `user_password_reset`, `created_at`, `updated_at`, `deleted_at`) VALUES
+INSERT INTO `users` (`user_pk`, `user_email`, `user_password`, `user_username`, `user_first_name`, `user_last_name`, `user_birthday`, `user_avatar_path`, `user_verification_key`, `user_verified_at`, `user_bio`, `user_total_follows`, `user_total_followers`, `user_admin`, `user_is_blocked`, `user_password_reset_key`, `created_at`, `updated_at`, `deleted_at`) VALUES
 ('0cd10bd6ed6947de91a9bc060b1f7856', 'c@c.com', 'scrypt:32768:8:1$uLFfrcMweEKGgDd1$7640a5f9aceee055de586e86484d3489ac19c0a3740c39371424b875586af7d4cff984ae89047ff573b7f7b43376fec30183dd7a6a3efc44350c0059d6c085a7', 'cname', 'Marcuss', '', 0, 'https://avatar.iran.liara.run/public/40', '', 43254235, '', 0, 0, 0, 0, '', 0, 0, 0),
 ('1', 'daniel@gmail.com', 'password', 'daniel', 'Daniel', 'Jensen', 0, 'avatar.jpg', 'c29fa5894f224964953801c925a7cac5', 0, '', 0, 0, 1, 1, '', 1763829454, 0, 0),
 ('2', 'a@aaa.com', 'password', 'santi', 'Santiago', 'Donso', 0, 'avatar.jpg', '', 455656, '', 0, 0, 0, 0, '', 455656, 0, 0),
@@ -198,6 +198,7 @@ ALTER TABLE `posts`
   ADD PRIMARY KEY (`post_pk`),
   ADD UNIQUE KEY `post_pk` (`post_pk`),
   ADD KEY `post_user_fk` (`post_user_fk`);
+ALTER TABLE `posts` ADD FULLTEXT KEY `post_message` (`post_message`);
 
 --
 -- Indexes for table `trends`
@@ -213,7 +214,10 @@ ALTER TABLE `users`
   ADD PRIMARY KEY (`user_pk`),
   ADD UNIQUE KEY `user_pk` (`user_pk`),
   ADD UNIQUE KEY `user_email` (`user_email`),
-  ADD UNIQUE KEY `user_username` (`user_username`);
+  ADD UNIQUE KEY `user_username` (`user_username`),
+  ADD KEY `user_first_name` (`user_first_name`),
+  ADD KEY `user_last_name` (`user_last_name`);
+ALTER TABLE `users` ADD FULLTEXT KEY `user_bio` (`user_bio`);
 
 --
 -- AUTO_INCREMENT for dumped tables
