@@ -864,7 +864,7 @@ def admin_block_user(user_pk):
             x.send_email(user_email=user_email, subject="You have been unblocked from X", template=email_user_is_unblocked)     
 
         block_unblock_html = render_template("___block_unblock_user.html", row=row)
-        return f"""<browser mix-replace="#block_unblock_user">{block_unblock_html}</browser>"""
+        return f"""<browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>"""
     except Exception as ex:
         ic(ex)
         return "error"
@@ -881,8 +881,25 @@ def admin_block_post(post_pk):
        q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
        cursor.execute(q, (post_pk,))
        db.commit()
-       
-       return "ok"
+
+       q = "SELECT * FROM posts WHERE post_pk = %s"
+       cursor.execute(q, (post_pk,))
+       tweet = cursor.fetchone()
+
+       q = "SELECT * FROM users WHERE user_pk = %s"
+       cursor.execute(q, (tweet["post_user_fk"],))
+       row = cursor.fetchone()
+
+
+       user_email = row["user_email"]
+
+       email_post_is_blocked = render_template("_email_post_is_blocked.html")
+
+       if tweet["post_is_blocked"]:
+           x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+
+       block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
+       return f"""<browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>"""
     except Exception as ex:
         ic(ex)
         return "error"
