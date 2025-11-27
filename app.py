@@ -47,7 +47,8 @@ def load_logged_in_user():
     # Fetch user from database
     try:
         db, cursor = x.db()
-        cursor.execute("SELECT * FROM users WHERE user_pk = %s", (user_pk,))
+        # a user that has been deleted (soft-deleted) cannot log in
+        cursor.execute("SELECT * FROM users WHERE user_pk = %s AND deleted_at IS NULL", (user_pk,))
         user = cursor.fetchone()
         
         if user:
@@ -109,6 +110,8 @@ def serve_image(filename):
     """
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
+
+
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
@@ -134,9 +137,9 @@ def login(lan = "english"):
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
             
-            # Query database for user
-            q = "SELECT * FROM users WHERE user_email = %s"
-            db, cursor = x.db()
+            # Query database for user -> deleted user cannot log in
+            q = "SELECT * FROM users WHERE user_email = %s AND deleted_at IS NULL"
+            db, cursor = x.db() # Question: burde den her linje ikke være over q?
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
             
@@ -204,30 +207,30 @@ def signup(lan = "english"):
             user_pk = uuid.uuid4().hex
             
             # Set default values for new user
-            user_last_name = ""
-            user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            # user_last_name = ""
+            # user_avatar_path = "https://avatar.iran.liara.run/public/40"
             user_verification_key = uuid.uuid4().hex
-            user_birthday = 0
-            user_verified_at = 0
-            user_bio = ""
+            # user_birthday = 0
+            # user_verified_at = 0
+            # user_bio = ""
             user_total_follows = 0
             user_total_followers = 0
             user_admin = 0
             user_is_blocked = 0
-            user_password_reset = 0
+            # user_password_reset = 0
             created_at = int(time.time())
-            updated_at = 0
-            deleted_at = 0
+            # updated_at = 0
+            # deleted_at = 0
 
             # Hash password before storing (NEVER store plain text passwords!)
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            # q = "INSERT INTO users VALUES(%s, %s, %s, %s, None, None, None, None, %s, None, %s, %s, %s, %s, %s, None, %s, None, None)"
             db, cursor = x.db()
+            # All the values that has NULL in the DB is now None here
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
-            user_first_name, user_last_name, user_birthday, user_avatar_path, user_verification_key, user_verified_at, user_bio, user_total_follows, user_total_followers, user_admin, user_is_blocked, user_password_reset, created_at, updated_at, deleted_at))
+            user_first_name, None, None, None, user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
             # Send verification email
@@ -290,6 +293,7 @@ def home(lan = "english"):
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
+        # TODO = Only show the posts from users / posts that are not deleted
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk ORDER BY RAND() LIMIT 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
@@ -381,6 +385,7 @@ def home_comp():
             return "error"
         
         db, cursor = x.db()
+        # TODO = Only show the posts from users / posts that are not deleted
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk ORDER BY RAND() LIMIT 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
@@ -431,6 +436,8 @@ def profile():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+
 
 ############### EDIT PROFILE ###############
 @app.get("/edit_profile")
@@ -494,25 +501,23 @@ def api_create_post():
         
         # Generate post data
         post_pk = uuid.uuid4().hex
-        post_media_path = ""
+        # post_media_path = ""
+        post_total_comments = 0
         post_total_likes = 0
         post_total_bookmarks = 0
         post_is_blocked = 0
         created_at = int(time.time())
-        updated_at = 0
-        deleted_at = 0
+        # updated_at = 0
+        # deleted_at = 0
 
         # Insert post into database
         db, cursor = x.db()
 
         # Question: hvorfor er der tre """??
-        q = """INSERT INTO posts VALUES(
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-        )"""
+        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cursor.execute(q, (
-            post_pk, user_pk, post_message, post_total_likes, 
-            post_total_bookmarks, post_media_path, post_is_blocked, 
-            created_at, updated_at, deleted_at
+            post_pk, user_pk, post_message, post_total_comments, post_total_likes, 
+            post_total_bookmarks, None, post_is_blocked, created_at, None, None
         ))
         db.commit()
         
@@ -545,8 +550,7 @@ def api_create_post():
 
         # User validation error
         if "x-error post" in str(ex):
-            toast_error = render_template("___toast_error.html", 
-                                        message=f"Post - {x.POST_MIN_LEN} to {x.POST_MAX_LEN} characters")
+            toast_error = render_template("___toast_error.html", message=f"Post - {x.POST_MIN_LEN} to {x.POST_MAX_LEN} characters")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>"""
 
         # System error
@@ -882,14 +886,14 @@ def delete_user():
         user_pk = g.user["user_pk"]
 
         # Generate data for timestamp
-        deleted_at_time_now = int(time.time())
+        deleted_at_time = int(time.time())
 
         # Insert it into the database
         db, cursor = x.db()
         
         # 1) Soft-delete user (rest should be done in the trigger)
         q = "UPDATE users SET deleted_at = %s WHERE user_pk = %s"
-        cursor.execute(q,(deleted_at_time_now, user_pk)
+        cursor.execute(q,(deleted_at_time, user_pk)
         )
 
         db.commit()
@@ -925,7 +929,7 @@ def delete_post():
             return "missing post_pk", 400
 
         # Generate data for timestamp
-        deleted_at_time_now = int(time.time())
+        deleted_at_time = int(time.time())
 
         # Insert it into the database
         db, cursor = x.db()
@@ -933,7 +937,7 @@ def delete_post():
         # Soft delete the post 
         cursor.execute(
             "UPDATE posts SET deleted_at = %s WHERE post_pk = %s AND post_user_fk = %s",
-            (deleted_at_time_now, post_pk, g.user["user_pk"])
+            (deleted_at_time, post_pk, g.user["user_pk"])
         )
 
         db.commit()

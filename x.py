@@ -99,7 +99,7 @@ def validate_user_email(lan = "en"):
 USER_USERNAME_MIN = 2
 USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
-def validate_user_username():
+def validate_user_username(lan = "en"):
     user_username = request.form.get("user_username", "").strip()
     error = f"username min {USER_USERNAME_MIN} max {USER_USERNAME_MAX} characters"
     if len(user_username) < USER_USERNAME_MIN: raise Exception(error, 400)
@@ -110,7 +110,7 @@ def validate_user_username():
 USER_FIRST_NAME_MIN = 2
 USER_FIRST_NAME_MAX = 20
 REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
-def validate_user_first_name():
+def validate_user_first_name(lan = "en"):
     user_first_name = request.form.get("user_first_name", "").strip()
     error = f"first name min {USER_FIRST_NAME_MIN} max {USER_FIRST_NAME_MAX} characters"
     if not re.match(REGEX_USER_FIRST_NAME, user_first_name): raise Exception(error, 400)
