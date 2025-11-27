@@ -583,6 +583,8 @@ def api_update_profile():
         user_username = x.validate_user_username()
         user_first_name = x.validate_user_first_name()
 
+        updated_at = int(time.time())
+
         # Update database
         q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s WHERE user_pk = %s"
         db, cursor = x.db()
