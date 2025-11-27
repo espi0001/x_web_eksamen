@@ -55,7 +55,10 @@
                     </a>
                 </li>
 
-                <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>More</span></a></li>
+                <!-- <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>More</span></a></li> -->
+                <li><a href="#" onclick="document.getElementById('more_menu').classList.add('active'); return false;">
+                        <i class="fa-solid fa-ellipsis"></i><span>More</span></a>
+                </li>
                 <li><a href="{{ url_for('logout') }}"><i
                             class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
             </ul>
@@ -118,6 +121,7 @@
                 </div>
         </aside>
     </div>
+    {% include "_more_menu.html" %}
 
     <script src="{{ url_for('static', filename='mixhtml.js') }}"></script>
 
