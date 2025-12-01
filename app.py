@@ -206,21 +206,13 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            # Set default values for new user
-            # user_last_name = ""
-            # user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            user_avatar_path = "https://avatar.iran.liara.run/public/40"
             user_verification_key = uuid.uuid4().hex
-            # user_birthday = 0
-            # user_verified_at = 0
-            # user_bio = ""
             user_total_follows = 0
             user_total_followers = 0
             user_admin = 0
             user_is_blocked = 0
-            # user_password_reset = 0
             created_at = int(time.time())
-            # updated_at = 0
-            # deleted_at = 0
 
             # Hash password before storing (NEVER store plain text passwords!)
             user_hashed_password = generate_password_hash(user_password)
@@ -229,8 +221,8 @@ def signup(lan = "english"):
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             # All the values that has NULL in the DB is now None here
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
-            user_first_name, None, None, None, user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_first_name, None, None, user_avatar_path, 
+            user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
             # Send verification email
@@ -501,14 +493,12 @@ def api_create_post():
         
         # Generate post data
         post_pk = uuid.uuid4().hex
-        # post_media_path = ""
+        # post_media_path = "" # TODO: skal kunne tilføje et medie (jpg, png, etc.)
         post_total_comments = 0
         post_total_likes = 0
         post_total_bookmarks = 0
         post_is_blocked = 0
         created_at = int(time.time())
-        # updated_at = 0
-        # deleted_at = 0
 
         # Insert post into database
         db, cursor = x.db()
