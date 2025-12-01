@@ -702,3 +702,22 @@ aside {
   border-bottom: 2px solid rgb(29, 155, 240);
   font-weight: bold;
 }
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-wrapper:focus-within .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: none;
+  min-width: 120px;
+}

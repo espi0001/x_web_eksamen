@@ -784,8 +784,7 @@ def get_data_from_sheet():
         pass
 
 
-
-############# FORGOT PASSWORD #################
+############# FORGOT PASSWORD#################
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     try:
@@ -874,6 +873,94 @@ def create_new_password():
 
 
 
+############# ADMIN #################
+@app.get("/admin")
+def view_admin():
+    try:
+        
+        db, cursor = x.db()
+        q = "SELECT * FROM users"
+        cursor.execute(q)
+        rows = cursor.fetchall()
+
+        admin_html = render_template("_admin.html", rows=rows)
+        return f"""<browser mix-update="main">{ admin_html }</browser>"""
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############# ADMIN-BLOCK-USER #################
+@app.post("/admin-block-user/<user_pk>")
+def admin_block_user(user_pk):
+    try:
+        db, cursor = x.db()
+        q = "UPDATE users SET user_is_blocked = NOT user_is_blocked WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        db.commit()
+
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        row = cursor.fetchone()
+        ic(row)
+
+        user_email = row["user_email"]
+
+        
+        email_user_is_blocked = render_template("_email_user_is_blocked.html")
+        email_user_is_unblocked = render_template("_email_user_is_unblocked.html")
+        
+        if row["user_is_blocked"]:
+            x.send_email(user_email=user_email, subject="You have been blocked from X", template=email_user_is_blocked)
+        else:
+            x.send_email(user_email=user_email, subject="You have been unblocked from X", template=email_user_is_unblocked)     
+
+        block_unblock_html = render_template("___block_unblock_user.html", row=row)
+        return f"""<browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>"""
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############# ADMIN-BLOCK-POST #################
+@app.post("/admin-block-post/<post_pk>")
+def admin_block_post(post_pk):
+    try:
+       db, cursor = x.db()
+       q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
+       cursor.execute(q, (post_pk,))
+       db.commit()
+
+       q = "SELECT * FROM posts WHERE post_pk = %s"
+       cursor.execute(q, (post_pk,))
+       tweet = cursor.fetchone()
+
+       q = "SELECT * FROM users WHERE user_pk = %s"
+       cursor.execute(q, (tweet["post_user_fk"],))
+       row = cursor.fetchone()
+
+
+       user_email = row["user_email"]
+
+       email_post_is_blocked = render_template("_email_post_is_blocked.html")
+
+       if tweet["post_is_blocked"]:
+           x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+
+       block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
+       return f"""<browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>"""
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()    
 ############# SOFT DELETE USER #################
 @app.route("/delete-user", methods=["POST"])
 def delete_user():
