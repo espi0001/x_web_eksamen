@@ -27,6 +27,21 @@ google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 default_language = "english"
 
 ##############################
+def format_timestamp(timestamp):
+    """
+    Convert Unix timestamp to readable date format
+    Example: 1732829454 -> "Nov 2023"
+    """
+    if not timestamp or timestamp == 0:
+        return "Unknown"
+    
+    try:
+        date = datetime.fromtimestamp(timestamp)
+        return date.strftime("%B %Y")  # "November 2023"
+    except:
+        return "Unknown"
+    
+##############################
 def validate_avatar_upload():
     """
     checks if there is uploaded a file and if it's a valide image
