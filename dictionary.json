@@ -214,6 +214,11 @@
         "danish": "Kan ikke sende e-mail",
         "spanish": "No se puede enviar el correo"
     },
+    "click_here_to_get_verified": {
+        "english": "Click here to get verified",
+        "danish": "Klik her for at blive bekræftet",
+        "spanish": "Haz clic aquí para verificarte"
+    },
     "fresh_news": {
         "english": "Fresh news",
         "danish": "Friske nyheder",
@@ -279,6 +284,11 @@
         "danish": "Log ud",
         "spanish": "Cerrar sesión"
     },
+    "admin_panel": {
+        "english": "Admin panel",
+        "danish": "Administrationspanel",
+        "spanish": "Panel de administración"
+    },
     "post": {
         "english": "Post",
         "danish": "Del",
@@ -330,7 +340,7 @@
         "spanish": "Seguir"
     },
     "show_more": {
-        "english": "Show more",
+        "english": "Se mere",
         "danish": "Vis mere",
         "spanish": "Mostrar más"
     },
@@ -394,6 +404,79 @@
         "danish": "Ingen opslag",
         "spanish": "Aún no hay publicaciones"
     },
+<<<<<<< HEAD
+=======
+    "delete_profile": {
+        "english": "Delete profile",
+        "danish": "Slet profil",
+        "spanish": "Eliminar perfill"
+    },
+    "are_you_sure": {
+        "english": "Are you sure you want to delete your profile?",
+        "danish": "Er du sikker på at du vil slette din profil?",
+        "spanish": "¿Estás seguro de que quieres eliminar tu perfill?"
+    },
+    "yes_delete_my_profile": {
+        "english": "Yes - Delete my profile",
+        "danish": "Ja - slet min profil",
+        "spanish": "Sí - eliminar mi perfil"
+    },
+    "deleting_profile": {
+        "english": "Deleting profile",
+        "danish": "Sletter profil",
+        "spanish": "Eliminando prefil"
+    },
+    "no_cancel": {
+        "english": "No - Cancel",
+        "danish": "Nej - annullér",
+        "spanish": "No - cancelar"
+    },
+    "you_have_been_blocked": {
+        "english": "You have been blocked from X",
+        "danish": "Du er blevet blokeret fra X",
+        "spanish": "Has sido bloqueado de X"
+    },
+    "you_have_been_blocked_text": {
+        "english": "You have been blocked from X and therefore you can no longer login to your account.",
+        "danish": "Du er blevet blokeret fra X og kan derfor ikke længere logge ind på din konto.",
+        "spanish": "Has sido bloqueado de X y por lo tanto ya no puedes iniciar sesión en tu cuenta."
+    },
+    "you_have_been_unblocked": {
+        "english": "You have been unblocked from X",
+        "danish": "Du er blevet ophævet blokeringen fra X",
+        "spanish": "Has sido desbloqueado de X"
+    },
+    "you_have_been_unblocked_text": {
+        "english": "You have been unblocked from X and can now login to your account again.",
+        "danish": "Du er blevet ophævet blokeringen fra X og kan nu logge ind på din konto igen.",
+        "spanish": "Has sido desbloqueado de X"
+    },
+    "post_has_been_blocked": {
+        "english": "Your post has been blocked from X",
+        "danish": "Dit opslag er blevet blokeret fra X",
+        "spanish": "Tu publicación ha sido bloqueada de X"
+    },
+    "post_has_been_blocked_text": {
+        "english": "Your post has crossed our guidelines and have been blocked from X.",
+        "danish": "Dit opslag har overtrådt vores retningslinjer og er blevet blokeret fra X.",
+        "spanish": "Tu publicación ha violado nuestras directrices y ha sido bloqueada de X."
+    },
+    "update_password": {
+        "english": "Update your password",
+        "danish": "Opdater din adgangskode",
+        "spanish": "Actualiza tu contraseña"
+    },
+    "create_new_password": {
+        "english": "Create a new password",
+        "danish": "Opret en ny adgangskode",
+        "spanish": "Crea una nueva contraseña"
+    },
+    "click_to_update_password": {
+        "english": "Click here update your password",
+        "danish": "Klik her for at opdatere din adgangskode",
+        "spanish": "Haz clic aquí para actualizar tu contraseña"
+    },
+>>>>>>> home-translate-ester
     "system_under_maintenance": {
         "english": "System under maintenance",
         "danish": "Systemet er under vedligeholdelse",

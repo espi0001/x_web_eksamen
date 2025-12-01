@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mariadb
--- Generation Time: Dec 01, 2025 at 02:24 PM
+-- Generation Time: Dec 01, 2025 at 02:38 PM
 -- Server version: 10.6.20-MariaDB-ubu2004
 -- PHP Version: 8.2.27
 
@@ -114,6 +114,8 @@ INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_comm
 ('04d09e45ceb311f0afe4fa830ee49cd3', '1a7115179a4e44508a606bec39d5db83', 'Laura igen – sidste test for nu!', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
 ('0e801399426641b4a0826e2bf362d3f7', '9e23d463c46343b7b612af70925db7be', 'Lotteeee', 0, 0, 0, NULL, 0, 1764181475, NULL, NULL),
 ('240f9b6fc0a04387bd211c2619fede52', '9e23d463c46343b7b612af70925db7be', '1 december!', 0, 0, 0, NULL, 0, 1764590376, NULL, 0),
+('404affc8f2aa492aac0e5925c6683967', '41cf8bb0b67a4e44b54297dde497d69b', 'yyy', 0, 0, 0, NULL, 0, 1764599842, NULL, NULL),
+('4658d2d81f53439ebece7c8eebebc364', '41cf8bb0b67a4e44b54297dde497d69b', 'HIII', 0, 0, 0, NULL, 0, 1764599824, NULL, NULL),
 ('4773a75ec2f543419efb132ce3a5a82c', '8f234d16daf24cb19243d18e1183f4c1', 'post', 0, 0, 0, '', 0, 0, 0, 0),
 ('6257e7f2c00c40d995a9f1ee5cf8a953', '9e23d463c46343b7b612af70925db7be', 'HELLO d', 0, 0, 0, NULL, 0, 1764590166, NULL, NULL),
 ('64b1ea0fc4ac4623ae426c076bfec939', '9e23d463c46343b7b612af70925db7be', 'Hi', 0, 0, 0, NULL, 0, 1764181285, NULL, NULL),
@@ -182,8 +184,7 @@ INSERT INTO `users` (`user_pk`, `user_email`, `user_password`, `user_username`, 
 ('329c600778234351aa3b7209b51d04ee', 'nora@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'nora', 'Nora', NULL, NULL, 'https://avatar.iran.liara.run/public/3', '', 43254235, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
 ('3485e0fa88794a16a6af683e0eae7d99', 'emma@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'emma', 'Emma', NULL, NULL, 'https://avatar.iran.liara.run/public/4', '', 324234, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
 ('3d64bc9339fc4ecbb0a4716bb0e6fc1c', 'user10@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'user10', 'User10', NULL, NULL, 'https://avatar.iran.liara.run/public/5', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
-('3d7dc1ca16694b9b9c14d0b16cf60beb', 'p@p.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'pp', 'pp', '', 0, 'https://avatar.iran.liara.run/public/6', '', 1764598994, '', 0, 0, 0, 0, '0', 1764178352, 0, NULL),
-('41cf8bb0b67a4e44b54297dde497d69b', 'o@o.com', 'scrypt:32768:8:1$ic1ywz4n0hFmlnd6$a7301eb587cb10c0b23b64e672c194eb217cc8bbe3cd29ee81e3704f14eac5fb56ba51aa49cf35f9823749c2f591de40f4008f2109b635656819fcbc646ee943', 'oo', 'oo', NULL, NULL, NULL, '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764178906, NULL, NULL),
+('41cf8bb0b67a4e44b54297dde497d69b', 'o@o.com', 'scrypt:32768:8:1$ic1ywz4n0hFmlnd6$a7301eb587cb10c0b23b64e672c194eb217cc8bbe3cd29ee81e3704f14eac5fb56ba51aa49cf35f9823749c2f591de40f4008f2109b635656819fcbc646ee943', 'oooo123', 'OLE', NULL, NULL, NULL, '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764178906, 1764599867, NULL),
 ('570eb207e22e4d158723d18d04195ec2', 'user6@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'user6', 'User6', NULL, NULL, 'https://avatar.iran.liara.run/public/8', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
 ('6dbe73b305ec45a8b3653f751c02ac83', 'tobias.madsen@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'tobiasm', 'Tobias', 'Madsen', NULL, 'https://avatar.iran.liara.run/public/9', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
 ('7c5e351716e241f885e86595eb0845ff', 'user2@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'user2', 'User2', NULL, NULL, 'https://avatar.iran.liara.run/public/10', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
