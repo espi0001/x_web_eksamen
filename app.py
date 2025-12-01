@@ -922,12 +922,13 @@ def admin_block_user(user_pk):
         cursor.execute(q)
         blocked_rows = cursor.fetchall()
 
-        # SQL query to fetch the updated data for the specific user
+        # SQL query to fetch the updated data for the specific user 
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         row = cursor.fetchone()
         ic(row)
 
+        # GET the user's email from the fetched row
         user_email = row["user_email"]
 
         
