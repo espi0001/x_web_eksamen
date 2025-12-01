@@ -421,7 +421,7 @@ def profile():
         SELECT posts.*, users.user_username, users.user_first_name, users.user_last_name, users.user_avatar_path
         FROM posts
         JOIN users ON posts.post_user_fk = users.user_pk
-        WHERE posts.post_user_fk = %s AND posts.deleted_at = 0
+        WHERE posts.post_user_fk = %s
         ORDER BY posts.created_at DESC
         """
         cursor.execute(q, (g.user["user_pk"],))
@@ -806,7 +806,7 @@ def get_data_from_sheet():
         pass
 
 
-############# FORGOT PASSWORD#################
+############# FORGOT PASSWORD #################
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     try:
