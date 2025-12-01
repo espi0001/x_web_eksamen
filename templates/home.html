@@ -72,7 +72,7 @@
             <button class="post-btn">Post</button>
 
             <div id="profile_tag">
-                <img src="/{{ user.user_avatar_path }}" alt="Profile" id="nav_avatar">
+                <img src="{{ user.user_avatar_path | avatar }}" alt="Profile" id="nav_avatar">
                 <div>
                     <div class="name">
                         {{ user.user_first_name }}

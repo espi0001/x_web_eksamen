@@ -1,6 +1,8 @@
 <div class="profile-container">
     <div class="profile-header">
-        <i class="fa-solid fa-arrow-left"></i>
+        <a href="/home" mix-get>
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
         <div>
             <h2>{{ user.user_first_name }}</h2>
             <p class="handle">{{ posts|length }} posts</p>
@@ -9,7 +11,7 @@
     <div class="profile-banner"></div>
 
     <div class="avatar-container">
-        <img id="current_avatar" src="{{ user.user_avatar_path }}" alt="Current avatar">
+        <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar">
     </div>
 
 
@@ -32,7 +34,7 @@
             {% else: %}
             {% for post in posts: %}
             <article class="post" mix-fade-in="5000">
-                <img src="{{ user.user_avatar_path }}" alt="Profile Picture" class="w-8 h-8 rounded-full">
+                <img src="{{ user.user_avatar_path | avatar }}" alt="Avatar" class="w-8 h-8 rounded-full">
                 <div class="post-content">
                     <div class="post-header">
                         <span class="name">

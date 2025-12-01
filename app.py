@@ -579,10 +579,13 @@ def api_update_profile():
         user_username = x.validate_user_username()
         user_first_name = x.validate_user_first_name()
 
+        # timestamp for when the profile updates
+        updated_at = int(time.time())
+
         # Update database
-        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s WHERE user_pk = %s"
+        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, updated_at = %s WHERE user_pk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_first_name, g.user["user_pk"]))
+        cursor.execute(q, (user_email, user_username, user_first_name, updated_at, g.user["user_pk"]))
         db.commit()
 
         # Send success response
@@ -712,7 +715,26 @@ def api_upload_avatar():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-
+@app.template_filter('avatar')
+def avatar_filter(avatar_path):
+    """
+    Ensures avatar path works in HTML
+   - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
+   - Ingen kompliceret if/else logik i templates
+    """
+    # returnerer default billede hvis ingen avatar
+    if not avatar_path:
+        return "https://avatar.iran.liara.run/public/40"
+    
+    # håndterer eksterne URLs (fra tredjeparts services)
+    if avatar_path.startswith("http"):
+        return avatar_path
+    
+    # tilføjer '/' til lokale filer
+    if not avatar_path.startswith("/"):
+        return f"/{avatar_path}"
+    
+    return avatar_path
 
 ############## API SEARCH ################
 @app.post("/api-search")
