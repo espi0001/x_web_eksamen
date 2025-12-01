@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory 
+# Question: Hvorfor har vi send_from_directory og hvad er det?
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
@@ -98,7 +99,7 @@ def view_index():
     return render_template("index.html")
 
 
-
+# TODO: RYK HEN TIL PROFILE
 ############### IMAGES (AVATARS) ############### FORKLAR DENNE
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
@@ -115,7 +116,7 @@ def serve_image(filename):
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
-@x.no_cache
+@x.no_cache 
 def login(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
@@ -145,15 +146,15 @@ def login(lan = "english"):
             
             # Check if user exists
             if not user: 
-                raise Exception(x.lans("user_not_found", lan), 400)
+                raise Exception(x.lans("user_not_found", lan), 400) # TODO: oversæt
 
             # Verify password hash
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans("invalid_credentials", lan), 400)
+                raise Exception(x.lans("invalid_credentials", lan), 400) # TODO: oversæt
 
             # Check if user has verified email
             if user["user_verification_key"] != "":
-                raise Exception(x.lans("user_not_verified", lan), 400)
+                raise Exception(x.lans("user_not_verified", lan), 400) # TODO: oversæt
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
@@ -612,6 +613,37 @@ def api_update_profile():
         if "db" in locals(): db.close()
 
 
+############## API DELETE PROFILE ################
+@app.route("/api-delete-profile", methods=["GET", "DELETE"])
+def api_delete_profile():
+    try:
+        # Check if user is logged in
+        if not g.user: 
+            return "invalid user"
+        # Delete user from database
+        db, cursor = x.db()
+        q = "DELETE FROM users WHERE user_pk = %s"
+        cursor.execute(q, (g.user["user_pk"],))
+        db.commit()
+
+        # Send success response
+        toast_ok = render_template("___toast_ok.html", message="Profile deleted successfully")
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-redirect="/login"></browser>
+        """, 200
+    
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
 
 ############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
@@ -725,6 +757,7 @@ def avatar_filter(avatar_path):
         return f"/{avatar_path}"
     
     return avatar_path
+
 
 ############## API SEARCH ################
 @app.post("/api-search")
