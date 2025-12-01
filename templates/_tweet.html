@@ -15,8 +15,9 @@
                 <div class="post-header">
                     <span class="name">
                         {{ tweet.user_first_name }}
-                        <!-- {{ tweet.user_last_name }} -->
-                        <!-- removed for now because not everyone has a last name -->
+                        {% if tweet.user_last_name %}
+                        {{ tweet.user_last_name }}
+                        {% endif %}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">1d</span>
                 </div>

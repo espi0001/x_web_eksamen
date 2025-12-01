@@ -931,10 +931,11 @@ def admin_block_user(user_pk):
         # GET the user's email from the fetched row
         user_email = row["user_email"]
 
-        
+        # render templates for emails
         email_user_is_blocked = render_template("_email_user_is_blocked.html")
         email_user_is_unblocked = render_template("_email_user_is_unblocked.html")
         
+        # Send an email to the user depending on their new blocked status
         if row["user_is_blocked"]:
             x.send_email(user_email=user_email, subject="You have been blocked from X", template=email_user_is_blocked)
         else:
@@ -963,6 +964,7 @@ def admin_block_post(post_pk):
        cursor.execute(q, (post_pk,))
        db.commit()
 
+        # SQL query to fetch a specific post along with data on the user who created the post.
        q = """SELECT 
         posts.*,
         users.user_first_name,
@@ -976,15 +978,17 @@ def admin_block_post(post_pk):
        cursor.execute(q, (post_pk,))
        tweet = cursor.fetchone()
 
+        # SQL query to select the user who created the post, in order to get their email
        q = "SELECT * FROM users WHERE user_pk = %s"
        cursor.execute(q, (tweet["post_user_fk"],))
        row = cursor.fetchone()
 
-
+        # The users email
        user_email = row["user_email"]
 
        email_post_is_blocked = render_template("_email_post_is_blocked.html")
 
+        # Send an email to the user
        if tweet["post_is_blocked"]:
            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
 
