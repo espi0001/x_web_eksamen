@@ -1,5 +1,5 @@
 <div class="d-flex a-items-center dropdown-wrapper">
-    <img src="{{ url_for('static', filename='images/' ~ (row.user_avatar_path if row.user_avatar_path else 'unknown.jpg')) }}"
+    <img src="{{ url_for('static', filename='images/avatars' ~ (row.user_avatar_path if row.user_avatar_path else 'unknown.jpg')) }}"
         class="w-8 h-8 rounded-full" alt="Profile Picture">
     <div class="w-full ml-2">
         <p class="">
