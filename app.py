@@ -879,11 +879,20 @@ def view_admin():
     try:
         
         db, cursor = x.db()
-        q = "SELECT * FROM users"
-        cursor.execute(q)
+        # SQL query to select all users who are NOT blocked
+        q = "SELECT * FROM users WHERE user_is_blocked != 1"  
+        cursor.execute(q) 
         rows = cursor.fetchall()
+        
+        # SQL query to select all users who ARE blocked
+        q = "SELECT * FROM users WHERE user_is_blocked = 1"  
+        cursor.execute(q) 
+        blocked_rows = cursor.fetchall()
 
-        admin_html = render_template("_admin.html", rows=rows)
+        # Render the template with both Blocked and Unblocked users
+        admin_html = render_template("_admin.html", rows=rows, blocked_rows=blocked_rows)
+        
+        # Go to the admin panel
         return f"""<browser mix-update="main">{ admin_html }</browser>"""
     except Exception as ex:
         ic(ex)
@@ -898,10 +907,22 @@ def view_admin():
 def admin_block_user(user_pk):
     try:
         db, cursor = x.db()
+        # SQL query to toggle the 'user_is_blocked' status for a specific user
         q = "UPDATE users SET user_is_blocked = NOT user_is_blocked WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         db.commit()
 
+        # SQL query to fetch all users who are NOT blocked
+        q = "SELECT * FROM users WHERE user_is_blocked != 1"
+        cursor.execute(q)
+        rows = cursor.fetchall()
+
+        # SQL query to fetch all users who are blocked
+        q = "SELECT * FROM users WHERE user_is_blocked = 1"
+        cursor.execute(q)
+        blocked_rows = cursor.fetchall()
+
+        # SQL query to fetch the updated data for the specific user
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         row = cursor.fetchone()
@@ -919,7 +940,11 @@ def admin_block_user(user_pk):
             x.send_email(user_email=user_email, subject="You have been unblocked from X", template=email_user_is_unblocked)     
 
         block_unblock_html = render_template("___block_unblock_user.html", row=row)
-        return f"""<browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>"""
+        admin_html = render_template("_admin.html", rows=rows, blocked_rows=blocked_rows)
+        return f"""
+        <browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>
+        <browser mix-update="main">{ admin_html }</browser>
+        """
     except Exception as ex:
         ic(ex)
         return "error"
@@ -937,7 +962,16 @@ def admin_block_post(post_pk):
        cursor.execute(q, (post_pk,))
        db.commit()
 
-       q = "SELECT * FROM posts WHERE post_pk = %s"
+       q = """SELECT 
+        posts.*,
+        users.user_first_name,
+        users.user_last_name,
+        users.user_username,
+        users.user_avatar_path
+        FROM posts
+        JOIN users ON posts.post_user_fk = users.user_pk
+        WHERE posts.post_pk = %s"""
+       
        cursor.execute(q, (post_pk,))
        tweet = cursor.fetchone()
 
@@ -954,13 +988,19 @@ def admin_block_post(post_pk):
            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
 
        block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
-       return f"""<browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>"""
+       tweet_html = render_template("_tweet.html", tweet=tweet)
+       return f"""
+       <browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>
+       <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+       """
     except Exception as ex:
         ic(ex)
         return "error"
     finally:
         if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()    
+        if "db" in locals(): db.close()  
+
+
 ############# SOFT DELETE USER #################
 @app.route("/delete-user", methods=["POST"])
 def delete_user():
