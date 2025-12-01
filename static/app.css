@@ -654,55 +654,127 @@ aside {
   text-decoration: underline;
 }
 
-/* styling to avatar / profile page */
-.avatar-section {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+/* Profile Container (bruges på begge sider) */
+.profile-container {
+  max-width: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.avatar-container {
-  margin: 1rem 0;
+/* Profile Header (bruges på begge sider) */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgb(230, 230, 230);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.avatar-container img {
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  color: rgb(15, 15, 15);
+  text-decoration: none;
+}
+
+.back-button:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-info h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.post-count {
+  font-size: 0.8rem;
+  color: rgb(110, 109, 109);
+  margin: 0;
+}
+
+/* Profile Banner */
+.profile-banner {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, rgb(29, 155, 240), rgb(91, 112, 131));
+  border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+/* Profile Avatar Wrapper (på profile siden) */
+.profile-avatar-wrapper {
+  position: relative;
+  margin-top: -75px;
+  padding: 0 1rem;
+  z-index: 5;
+}
+
+.profile-avatar {
   width: 150px;
   height: 150px;
   border-radius: 50%;
+  border: 4px solid #fff;
   object-fit: cover;
+  background: #fff;
 }
 
-.avatar-section form {
-  margin-top: 1rem;
+/* Edit Profile Button */
+.edit-profile-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+  margin-top: -50px;
+  position: relative;
+  z-index: 10;
 }
 
-.avatar-section input[type="file"] {
-  display: block;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-}
-.tab-btn {
-  flex: 1;
-  padding: 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgb(110, 109, 109);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: background-color 0.2s;
-}
-
-.tab-btn:hover {
-  background-color: rgb(247, 249, 249);
-}
-
-.tab-btn.active {
-  color: rgb(15, 15, 15);
-  border-bottom: 2px solid rgb(29, 155, 240);
+.edit-profile-btn {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
+  border-radius: 2rem;
+  background-color: rgb(15, 15, 15);
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.2s;
+  display: inline-block;
 }
 
+.edit-profile-btn:hover {
+  background-color: rgb(240, 240, 240);
+  color: rgb(15, 15, 15);
+  border: 1px solid rgb(200, 200, 200);
+}
+
+/* Profile Names and Info */
+.profile-names {
+  padding: 0.5rem 1rem 1rem;
+}
+
+.profile-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* admin */
 .dropdown-wrapper {
   position: relative;
 }

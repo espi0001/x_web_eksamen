@@ -379,10 +379,20 @@
         "danish": "Uploader...",
         "spanish": "Subiendo..."
     },
+    "joined": {
+        "english": "Joined",
+        "danish": "Medlem siden",
+        "spanish": "Unido"
+    },
     "loading": {
         "english": "Loading...",
         "danish": "Loader...",
         "spanish": "Cargando..."
+    },
+    "no_posts_yet": {
+        "english": "No posts yet",
+        "danish": "Ingen opslag",
+        "spanish": "Aún no hay publicaciones"
     },
     "system_under_maintenance": {
         "english": "System under maintenance",
