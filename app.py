@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory
+from crypt import methods
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory 
+# Question: Hvorfor har vi send_from_directory og hvad er det?
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
@@ -98,7 +100,7 @@ def view_index():
     return render_template("index.html")
 
 
-
+# TODO: RYK HEN TIL PROFILE
 ############### IMAGES (AVATARS) ############### FORKLAR DENNE
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
@@ -115,7 +117,7 @@ def serve_image(filename):
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
-@x.no_cache
+@x.no_cache 
 def login(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
@@ -138,22 +140,22 @@ def login(lan = "english"):
             user_password = x.validate_user_password(lan)
             
             # Query database for user -> deleted user cannot log in
-            q = "SELECT * FROM users WHERE user_email = %s AND deleted_at IS NULL"
+            q = "SELECT * FROM users WHERE user_email = %s"
             db, cursor = x.db() # Question: burde den her linje ikke være over q?
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
             
             # Check if user exists
             if not user: 
-                raise Exception(x.lans("user_not_found", lan), 400)
+                raise Exception(x.lans("user_not_found", lan), 400) 
 
             # Verify password hash
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans("invalid_credentials", lan), 400)
+                raise Exception(x.lans("invalid_credentials", lan), 400) 
 
             # Check if user has verified email
             if user["user_verification_key"] != "":
-                raise Exception(x.lans("user_not_verified", lan), 400)
+                raise Exception(x.lans("user_not_verified", lan), 400) 
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
@@ -206,21 +208,13 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            # Set default values for new user
-            # user_last_name = ""
-            # user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            user_avatar_path = "https://avatar.iran.liara.run/public/40"
             user_verification_key = uuid.uuid4().hex
-            # user_birthday = 0
-            # user_verified_at = 0
-            # user_bio = ""
             user_total_follows = 0
             user_total_followers = 0
             user_admin = 0
             user_is_blocked = 0
-            # user_password_reset = 0
             created_at = int(time.time())
-            # updated_at = 0
-            # deleted_at = 0
 
             # Hash password before storing (NEVER store plain text passwords!)
             user_hashed_password = generate_password_hash(user_password)
@@ -229,8 +223,8 @@ def signup(lan = "english"):
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             # All the values that has NULL in the DB is now None here
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, 
-            user_first_name, None, None, None, user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_first_name, None, None, user_avatar_path, 
+            user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
             # Send verification email
@@ -245,7 +239,7 @@ def signup(lan = "english"):
 
 
             # Redirect to login page
-            return f"""<mixhtml mix-redirect="{ url_for('login', lan=lan) }"></mixhtml>""", 200 # Question: skal lan=lan være her??
+            return f"""<browser mix-redirect="{ url_for('login', lan=lan) }"></browser>""", 200 # Question: skal lan=lan være her??
             
         except Exception as ex:
             ic(ex)
@@ -276,7 +270,6 @@ def signup(lan = "english"):
 
 
 ############## HOME ################
-# Question: hvad gør vi med language her??
 @app.route("/home", methods=["GET"])
 @app.route("/home/<lan>", methods=["GET"]) 
 @x.no_cache # prevents showing cached content after logout / "back" button
@@ -465,6 +458,75 @@ def edit_profile():
         if "db" in locals(): db.close()
 
 
+        
+############### DELETE PROFILE ###############
+@app.route("/delete-profile", methods=["GET"])
+@app.route("/delete-profile/<lan>", methods=["GET"])
+def delete_profile(lan = "english"):
+    # Validate language parameter
+    if lan not in x.allowed_languages: 
+        lan = "english"
+    
+    try:
+        # Check if user is logged in
+        if not g.user: 
+            return "error"
+        
+        # Fetch fresh user data from database
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        db, cursor = x.db()
+        cursor.execute(q, (g.user["user_pk"],))
+        row = cursor.fetchone()
+
+        # Render delete profile template
+        delete_profile_html = render_template("___delete_profile.html", row=row)
+        return f"""<browser mix-update="main">{ delete_profile_html }</browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## API DELETE PROFILE ################
+@app.route("/api-delete-profile", methods=["GET", "DELETE"])
+@app.route("/api-delete-profile/<lan>", methods=["GET", "DELETE"])
+def api_delete_profile(lan = "english"):
+    # Validate language parameter
+    if lan not in x.allowed_languages: 
+        lan = "english"
+
+    try:
+        # Check if user is logged in
+        if not g.user: 
+            return "invalid user"
+        
+        # Delete user from database
+        q = "DELETE FROM users WHERE user_pk = %s"
+        db, cursor = x.db()
+        cursor.execute(q, (g.user["user_pk"],))
+        db.commit()
+
+        session.clear()
+
+        # Redirect to index page
+        return f"""<browser mix-redirect="/"></browser>"""
+    
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
 
 ############## LIKE TWEET ################
 @app.patch("/like-tweet")
@@ -501,14 +563,12 @@ def api_create_post():
         
         # Generate post data
         post_pk = uuid.uuid4().hex
-        # post_media_path = ""
+        # post_media_path = "" # TODO: skal kunne tilføje et medie (jpg, png, etc.)
         post_total_comments = 0
         post_total_likes = 0
         post_total_bookmarks = 0
         post_is_blocked = 0
         created_at = int(time.time())
-        # updated_at = 0
-        # deleted_at = 0
 
         # Insert post into database
         db, cursor = x.db()
@@ -735,6 +795,7 @@ def avatar_filter(avatar_path):
         return f"/{avatar_path}"
     
     return avatar_path
+
 
 ############## API SEARCH ################
 @app.post("/api-search")
