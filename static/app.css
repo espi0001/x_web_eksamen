@@ -721,3 +721,20 @@ aside {
   display: none;
   min-width: 120px;
 }
+.post_container {
+  display: grid;
+
+  > * {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+  }
+}
+
+.blocked_post_overlay {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(231, 231, 231, 0.849);
+  width: 100%;
+  z-index: 100;
+}

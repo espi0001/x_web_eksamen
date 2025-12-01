@@ -3,8 +3,18 @@
 </h1>
 
 <section>
-    <h2>All users</h2>
-    {% for row in rows: %}
-    {% include "_user.html" %}
-    {% endfor %}
+    <h2>Active users</h2>
+    <div id="unblocked_user_list">
+        {% for row in rows: %}
+        {% include "_user.html" %}
+        {% endfor %}
+    </div>
+
+    <div id="blocked_user_list">
+        <h2>Blocked users</h2>
+        {% for row in blocked_rows: %}
+        {% include "_user.html" %}
+        {% endfor %}
+    </div>
+
 </section>
