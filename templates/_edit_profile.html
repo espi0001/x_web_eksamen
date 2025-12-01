@@ -2,7 +2,7 @@
     {{ x.lans("profile") }}
 </h1>
 <section class="avatar-section">
-    <h2>Profile Picture</h2>
+    <h2>{{ x.lans("profile_picture") }}</h2>
     <div class="avatar-container">
         <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar">
     </div>
@@ -10,11 +10,11 @@
 
     <form action="{{ url_for('api_upload_avatar') }}" method="POST" enctype="multipart/form-data" mix-post>
         <div>
-            <label for="avatar">Choose new avatar</label>
+            <label for="avatar">{{ x.lans("choose_new_picture") }}</label>
             <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
         </div>
         <button class="x-dialog__btn" mix-default="Upload Avatar" mix-await="Uploading...">
-            Upload
+            {{ x.lans("upload_avatar") }}
         </button>
     </form>
 </section>

@@ -334,6 +334,11 @@
         "danish": "Vis mere",
         "spanish": "Mostrar más"
     },
+    "edit_profile": {
+        "english": "Edit profile",
+        "danish": "Rediger profil",
+        "spanish": "Editar perfil"
+    },
     "update_profile": {
         "english": "Update profile",
         "danish": "Opdater profil",
