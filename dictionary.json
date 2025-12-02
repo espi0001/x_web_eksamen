@@ -154,6 +154,11 @@
         "danish": "Glemt din adgangskode",
         "spanish": "¿Olvidaste tu contraseña"
     },
+    "next": {
+        "english": "Next",
+        "danish": "Videre",
+        "spanish": "Próximo"
+    },
     "user_not_found": {
         "english": "User not found",
         "danish": "Bruger ikke fundet",
@@ -163,11 +168,6 @@
         "english": "Invalid credentials",
         "danish": "Ugyldige loginoplysninger",
         "spanish": "Información incorrecta"
-    },
-    "invalid_password": {
-        "english": "Invalid password",
-        "danish": "Ugyldig adgangskode",
-        "spanish": "Clave inválida"
     },
     "user_not_verified": {
         "english": "User not verified. Please check your email",
@@ -288,6 +288,41 @@
         "english": "Admin panel",
         "danish": "Administrationspanel",
         "spanish": "Panel de administración"
+    },
+    "active_users": {
+        "english": "Active users",
+        "danish": "Aktive brugere",
+        "spanish": "Usuarios activos"
+    },
+    "blocked_users": {
+        "english": "Blocked users",
+        "danish": "Blokerede brugere",
+        "spanish": "Usuarios bloqueados"
+    },
+    "block_user": {
+        "english": "Block user",
+        "danish": "Bloker bruger",
+        "spanish": "Bloquear usuario"
+    },
+    "unblock_user": {
+        "english": "Unblock User",
+        "danish": "Fjern blokering af bruger",
+        "spanish": "Desbloquear usuario"
+    },
+    "blocking": {
+        "english": "Blocking",
+        "danish": "Blokerer",
+        "spanish": "Bloqueando"
+    },
+    "unblocking": {
+        "english": "Unblocking",
+        "danish": "Fjerner blokering",
+        "spanish": "Desbloqueando"
+    },
+    "this_post_is_blocked": {
+        "english": "This post is blocked",
+        "danish": "Dette opslag er blokeret",
+        "spanish": "Esta publicación está bloqueada"
     },
     "post": {
         "english": "Post",

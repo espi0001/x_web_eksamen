@@ -23,7 +23,7 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 app = Flask(__name__)
 
 # Set the maximum file size to 1 MB
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
 
 
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -277,7 +277,7 @@ def forgot_password():
 
             # updating the user_password_reset key on the user that matches the email
             db, cursor = x.db()
-            q = "UPDATE users SET user_password_reset = %s WHERE user_email = %s"
+            q = "UPDATE users SET user_password_reset_key = %s WHERE user_email = %s"
             cursor.execute(q, (user_password_reset_key, user_email))
             db.commit()
 
@@ -302,6 +302,7 @@ def forgot_password():
 @app.route("/create-new-password", methods=["GET", "POST"])
 def create_new_password():
     try:
+
         # getting the key from the url or the form
         key = request.args.get("key") or request.form.get("key")
 
@@ -310,7 +311,7 @@ def create_new_password():
 
         # We select the user that has the key from the url in user_password_reset
         db, cursor = x.db()
-        q = "SELECT * FROM users WHERE user_password_reset = %s"
+        q = "SELECT * FROM users WHERE user_password_reset_key = %s"
         cursor.execute(q, (key,))
         row = cursor.fetchone()
 
@@ -331,7 +332,7 @@ def create_new_password():
             q = """
             UPDATE users 
             SET user_password = %s,
-                user_password_reset = 0
+                user_password_reset_key = 0
             WHERE user_email = %s
             """
             cursor.execute(q, (user_hashed_password, row["user_email"]))
@@ -810,49 +811,89 @@ def api_create_post():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "invalid user" # Question: mangler den end http code? f.eks. 400??
+            return "invalid user", 400
         
-        # Get user ID and validate post
-        user_pk = g.user["user_pk"]        
-        post_message = x.validate_post(request.form.get("post", ""))
+        user_pk = g.user["user_pk"]
+        
+        # Get post text (CAN BE EMPTY if there's media)
+        post_message = request.form.get("post", "").strip()
+        
+        # Validate uploaded media (if any)
+        file = None
+        file_extension = None
+        post_media_path = None
+        
+        if 'post_media' in request.files:
+            uploaded_file = request.files['post_media']
+            if uploaded_file.filename != '':
+                file, file_extension = x.validate_post_media()
+        
+        # Must have either text or media
+        if not post_message and not file:
+            toast_error = render_template("___toast_error.html", message="Post must contain text or media")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
+        
+        # Validate text ONLY if there is text
+        # allow_empty=True because we already checked above that we have media if no text
+        if post_message:
+            post_message = x.validate_post(post_message, allow_empty=False)
+        else:
+            # No text, but we have media (already validated above)
+            post_message = x.validate_post(post_message, allow_empty=True)
         
         # Generate post data
         post_pk = uuid.uuid4().hex
-        # post_media_path = "" # TODO: skal kunne tilføje et medie (jpg, png, etc.)
         post_total_comments = 0
         post_total_likes = 0
         post_total_bookmarks = 0
         post_is_blocked = 0
         created_at = int(time.time())
-
+        
+        # Handle file upload if present
+        if file and file_extension:
+            unique_id = uuid.uuid4().hex
+            filename = f"{unique_id}.{file_extension}"
+            
+            media_folder = os.path.join('static', 'images', 'posts')
+            filepath = os.path.join(media_folder, filename)
+            
+            if not os.path.exists(media_folder):
+                os.makedirs(media_folder)
+            
+            file.save(filepath)
+            post_media_path = f"images/posts/{filename}"
+        
         # Insert post into database
         db, cursor = x.db()
-
-        # Question: hvorfor er der tre """??
-        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        q = """INSERT INTO posts VALUES(
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )"""
         cursor.execute(q, (
-            post_pk, user_pk, post_message, post_total_comments, post_total_likes, 
-            post_total_bookmarks, None, post_is_blocked, created_at, None, None
+            post_pk, user_pk, post_message, post_total_comments, 
+            post_total_likes, post_total_bookmarks, post_media_path, 
+            post_is_blocked, created_at, None, None
         ))
         db.commit()
         
-        # Prepare response data
+        # Prepare response
         toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
         
-        # Create tweet object for template
         tweet = {
+            "post_pk": post_pk,
             "user_first_name": g.user["user_first_name"],
             "user_last_name": g.user["user_last_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "post_message": post_message,
+            "post_media_path": post_media_path,
+            "post_is_blocked": 0,
+            "post_total_likes": 0,
+            "post_total_comments": 0
         }
         
-        # Render templates
         html_post_container = render_template("___post_container.html")
         html_post = render_template("_tweet.html", tweet=tweet, user=user_pk) # passing user so delete post will show us as soon as its posted
         
-        # Return multiple updates to browser
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#posts">{html_post}</browser>
@@ -861,21 +902,30 @@ def api_create_post():
         
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        ic(traceback.format_exc())
+        
+        # Cleanup uploaded file on error
+        if 'filepath' in locals() and os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except:
+                pass
+        
+        if "db" in locals(): 
+            db.rollback()
 
         # User validation error
-        if "x-error post" in str(ex):
-            toast_error = render_template("___toast_error.html", message=f"Post - {x.POST_MIN_LEN} to {x.POST_MAX_LEN} characters")
-            return f"""<browser mix-bottom="#toast">{toast_error}</browser>"""
+        if len(ex.args) > 1 and ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
 
         # System error
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=f"Error: {str(ex)}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
 
 ############### API DELETE POST ###############
 # @app.route("/api-delete-post", methods=["GET", "DELETE"])
