@@ -49,7 +49,7 @@ MAX_IMAGE_UPLOAD_SIZE = 1 * 1024 * 1024  # 1 MB
 
 # Post media (images + videos + gifs)
 ALLOWED_POST_MEDIA = ALLOWED_IMAGE_UPLOAD | {'gif', 'mp4', 'mov'}
-MAX_POST_MEDIA_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_POST_MEDIA_SIZE = 30 * 1024 * 1024  # 30 MB
 
 # Max image dimensions (like Instagram)
 MAX_IMAGE_WIDTH = 1080

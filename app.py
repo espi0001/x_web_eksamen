@@ -23,7 +23,7 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 app = Flask(__name__)
 
 # Set the maximum file size to 1 MB
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
 
 
 app.config['SESSION_TYPE'] = 'filesystem'
