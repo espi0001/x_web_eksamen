@@ -8,7 +8,7 @@
     <div class="post_container">
         {% if tweet.post_is_blocked %}
         <div class="blocked_post_overlay">
-            <p>This post is unavailable</p>
+            <p>{{ x.lans("this_post_is_blocked") }}</p>
         </div>
         {% endif %}
 
