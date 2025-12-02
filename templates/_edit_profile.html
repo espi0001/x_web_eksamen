@@ -1,8 +1,8 @@
 <h1>
-    {{ x.lans("profile") }}
+    {{ lans("profile") }}
 </h1>
 <section class="avatar-section">
-    <h2>{{ x.lans("profile_picture") }}</h2>
+    <h2>{{ lans("profile_picture") }}</h2>
     <div class="avatar-container">
         <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar" class="profile-avatar">
     </div>
@@ -10,11 +10,12 @@
 
     <form action="{{ url_for('api_upload_avatar') }}" method="POST" enctype="multipart/form-data" mix-post>
         <div>
-            <label for="avatar">{{ x.lans("choose_new_picture") }}</label>
+            <label for="avatar">{{ lans("choose_new_picture") }}</label>
             <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
         </div>
-        <button class="edit-profile-btn" mix-default="Upload Avatar" mix-await="Uploading...">
-            {{ x.lans("upload_avatar") }}
+        <button class="edit-profile-btn" mix-default="{{ lans('upload_avatar') }}" mix-await="{{ lans('uploading') }}...">
+            {{ lans("upload_avatar") }}
+            
         </button>
     </form>
 </section>
@@ -22,14 +23,14 @@
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
     <div>
         <label for="user_email">
-            <span>{{ x.lans("email") }}</span>
+            <span>{{ lans("email") }}</span>
         </label>
         <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}"
             value="{{ user.user_email }}">
     </div>
     <div>
         <label for="user_username">
-            <span>{{ x.lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }}
+            <span>{{ lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }}
             {{ x.USER_USERNAME_MAX }}
             {{ x.lans("characters") }}
         </label>
@@ -38,21 +39,21 @@
     </div>
     <div>
         <label for="user_first_name">
-            <span>{{ x.lans("first_name") }}</span> - {{ x.USER_FIRST_NAME_MIN }} {{ x.lans("to") }} {{
+            <span>{{ lans("first_name") }}</span> - {{ x.USER_FIRST_NAME_MIN }} {{ lans("to") }} {{
             x.USER_FIRST_NAME_MAX }}
-            {{ x.lans("characters") }}
+            {{ lans("characters") }}
         </label>
         <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}"
             value="{{ user.user_first_name }}">
     </div>
-    <button class="edit-profile-btn" mix-default="{{ x.lans('update_profile') }}"
-        mix-await="{{ x.lans('updating_profile') }}">
-        {{ x.lans("update_profile") }}
+    <button class="edit-profile-btn" mix-default="{{ lans('update_profile') }}"
+        mix-await="{{ lans('updating_profile') }}">
+        {{ lans("update_profile") }}
     </button>
 </form>
 
 <div class="py-8 d-flex flex-col a-items-center">
     <a href="/delete-profile" mix-get class="text-c-red" hover="cursor-pointer">
-        Delete account
+        {{ lans("delete_profile") }}
     </a>
 </div>

@@ -295,9 +295,9 @@
         "spanish": "Compartir"
     },
     "what_is_new": {
-        "english": "What is new",
-        "danish": "Hvad er nyt",
-        "spanish": "Qué hay de nuevo"
+        "english": "What is new?",
+        "danish": "Hvad er nyt?",
+        "spanish": "Qué hay de nuevo?"
     },
     "posting": {
         "english": "Posting",
@@ -409,9 +409,24 @@
         "danish": "Loader...",
         "spanish": "Cargando..."
     },
+    "posts": {
+        "english": "Posts",
+        "danish": "Opslag",
+        "spanish": "Publicaciones"
+    },
+    "media": {
+        "english": "Media",
+        "danish": "Medier",
+        "spanish": "Medios"
+    },
+    "likes": {
+        "english": "Likes",
+        "danish": "Likes",
+        "spanish": "Me gusta"
+    },
     "no_posts_yet": {
         "english": "No posts yet",
-        "danish": "Ingen opslag",
+        "danish": "Ingen opslag endnu",
         "spanish": "Aún no hay publicaciones"
     },
     "delete_profile": {
