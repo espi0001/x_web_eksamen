@@ -1,11 +1,7 @@
-<div class="d-flex flex-row ma-2">
-    <div class="w-auto">
-        <img src="{{ user.user_avatar_path | avatar }}" alt="Profile Picture" class="w-8 rounded-full"
-            id="sidebar_avatar">
-    </div>
-    {% include "___post_container.html" %}
-</div>
+<!-- Create post section -->
+{% include "___post_container.html" %}
 
+<!-- Posts feed -->
 <div id="posts">
     {% for tweet in tweets: %}
     {% include "_tweet.html" %}

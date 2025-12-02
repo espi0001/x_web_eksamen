@@ -857,3 +857,119 @@ aside {
   width: 100%;
   z-index: 100;
 }
+
+/* ==================== CREATE POST FORM ==================== */
+
+.post-container-wrapper {
+  border-bottom: 1px solid #2f3336;
+}
+
+.create-post-form {
+  padding: 16px;
+  width: 100%;
+}
+
+/* ==================== TOP SECTION ==================== */
+
+.post-form-top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.post-form-textarea {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  color: #2f3336;
+  font-size: 20px;
+  resize: none;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  padding: 0;
+}
+
+.post-form-textarea::placeholder {
+  color: #71767b;
+}
+
+/* ==================== BOTTOM SECTION ==================== */
+
+.post-form-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgb(200, 200, 200);
+  margin-left: 60px;
+}
+
+.media-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background-color: transparent;
+  color: #1d9bf0;
+  border: 1px solid rgba(29, 155, 240, 0.5);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.media-btn:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  border-color: #1d9bf0;
+}
+
+.media-btn i {
+  font-size: 18px;
+}
+
+.submit-post-btn {
+  background-color: #1d9bf0;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-post-btn:hover {
+  background-color: #1a8cd8;
+}
+
+.submit-post-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Preview area styling */
+#media_preview_area {
+  margin-left: 52px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+#media_preview_area img,
+#media_preview_area video {
+  max-width: 100%;
+  max-height: 300px;
+  display: block;
+}
+
+.post-media {
+  max-width: 100%;
+  max-height: 300px;
+  width: auto;
+  border-radius: 1rem;
+  object-fit: cover;
+  display: block;
+}
