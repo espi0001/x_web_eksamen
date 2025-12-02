@@ -224,6 +224,19 @@ def validate_post(post="", allow_empty=False):
     return post
 
 
+# ==================== COMMENT VALIDATION ====================
+def validate_comment(comment_message):
+    comment_message = comment_message.strip()
+
+    if len (comment_message) < 1:
+        raise Exception("Comment must be at least 1 character", 400)
+    
+    if len (comment_message) > 250:
+        raise Exception("Comment must be at least 1 and 250 characters", 400)
+
+    return comment_message
+
+
 # ==================== FILE UPLOAD VALIDATION ====================
 def validate_avatar_upload():
     """

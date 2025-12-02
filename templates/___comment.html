@@ -1,0 +1,13 @@
+<article class="post comment">
+    <img src="{{ comment.user_avatar_path | avatar }}" alt="" class="max-w-8 max-h-8">
+    <div class="post-content">
+        <div class="post-header">
+            <span class="name">
+                {{ comment.user_first_name }}
+            </span>
+            <span class="handle">@{{ comment.user_username }}</span>
+            <!-- TODO: add timestamp -->
+        </div>
+        <p class="text">{{ comment.comment_message }}</p>
+    </div>
+</article>
