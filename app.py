@@ -172,11 +172,11 @@ def signup(lan = "english"):
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # System or developer error
@@ -222,15 +222,15 @@ def login(lan = "english"):
             
             # Check if user exists
             if not user: 
-                raise Exception(x.lans("user_not_found", lan), 400) 
+                raise Exception(x.lans("user_not_found"), 400) 
 
             # Verify password hash
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans("invalid_credentials", lan), 400) 
+                raise Exception(x.lans("invalid_credentials"), 400) 
 
             # Check if user has verified email
             if user["user_verification_key"] != "":
-                raise Exception(x.lans("user_not_verified", lan), 400) 
+                raise Exception(x.lans("user_not_verified"), 400) 
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
@@ -249,7 +249,7 @@ def login(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
             # System or developer error (database down, etc.)
-            toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance", lan))
+            toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance"))
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         
         finally:
@@ -371,7 +371,10 @@ def home(lan = "english"):
         # Get random posts with user data (JOIN)
         # TODO = Only show the posts from users / posts that are not deleted
        
-        q = """
+        is_admin = g.user["user_admin"]
+
+        # Base query (same for everyone)
+        base_query = """
         SELECT 
             users.*,
             posts.*,
@@ -382,13 +385,18 @@ def home(lan = "english"):
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk 
-            AND likes.like_user_fk = %s
-        ORDER BY RAND()
-        LIMIT 5
+        ON likes.like_post_fk = posts.post_pk
+        AND likes.like_user_fk = %s
         """
 
-        cursor.execute(q, (g.user["user_pk"],))
+        # Add condition ONLY if user is not admin
+        if not is_admin:
+            base_query += " WHERE posts.post_is_blocked = 0"
+
+        # Random order + limit
+        base_query += " ORDER BY RAND() LIMIT 5"
+
+        cursor.execute(base_query, (g.user["user_pk"],))
         tweets = cursor.fetchall()
 
         # Get random trends
@@ -472,12 +480,13 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
+# Question: mangler vi language og methods?
 @app.get("/profile")
 def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "error" # Question: mangler den end http code? f.eks. 400??
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -793,7 +802,7 @@ def api_delete_profile(lan = "english"):
 
 
 
-# -------------------- CREATE POST -------------------- #
+# -------------------- POST/TWEET -------------------- #
 
 ############### API CREATE POST ###############
 @app.route("/api-create-post", methods=["POST"])
@@ -841,7 +850,7 @@ def api_create_post():
         
         # Render templates
         html_post_container = render_template("___post_container.html")
-        html_post = render_template("_tweet.html", tweet=tweet)
+        html_post = render_template("_tweet.html", tweet=tweet, user=user_pk) # passing user so delete post will show us as soon as its posted
         
         # Return multiple updates to browser
         return f"""
@@ -868,9 +877,91 @@ def api_create_post():
         if "db" in locals(): db.close()
 
 
+############### API DELETE POST ###############
+# @app.route("/api-delete-post", methods=["GET", "DELETE"])
+# question: skal vi have language her??
+@app.route("/api-delete-post/<post_pk>", methods=["DELETE"])
+def api_delete_post(post_pk):
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
 
-# -------------------- LIKE TWEET -------------------- #
-############## LIKE TWEET ################
+        db, cursor = x.db()
+
+
+        # Delete post from database IF its the users post
+        q = "DELETE FROM posts WHERE post_pk = %s and post_user_fk = %s"
+        cursor.execute(q, (post_pk, g.user["user_pk"],))
+        db.commit()
+
+        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted") #TODO: Translate
+        
+        # Remove the post from the DOM + show toast
+        # return "ok"
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-remove="#post_container_{post_pk}"></browser>
+        """, 200
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
+    finally: 
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
+############## SINGLE POST/TWEET ################
+# TODO: Translate
+@app.get("/single-post/<post_pk>")
+def view_singe_post(post_pk):
+    try:
+        if not g.user:
+            return redirect(url_for("login"))
+
+        db, cursor = x.db()
+
+        q = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk 
+            AND likes.like_user_fk = %s
+        WHERE posts.post_pk = %s
+        """
+        cursor.execute(q, (g.user["user_pk"], post_pk))
+        tweet = cursor.fetchone()
+
+        if not tweet:
+            return "Post not found", 404
+
+        single_post_html = render_template("_single_post.html", tweet=tweet)
+        return f"""<browser mix-update="main">{ single_post_html }</browser>"""
+    except Exception as ex:
+        return "error", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############## COMMENT POST/TWEET ################
+
+
+
+
+
+############## LIKE POST/TWEET ################
 @app.patch("/like-tweet/<post_pk>")
 @x.no_cache
 def api_like_tweet(post_pk):
@@ -1066,13 +1157,13 @@ def admin_block_user(user_pk):
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
     try:
-       db, cursor = x.db()
-       q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
-       cursor.execute(q, (post_pk,))
-       db.commit()
+        db, cursor = x.db()
+        q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        db.commit()
 
         # SQL query to fetch a specific post along with data on the user who created the post.
-       q = """SELECT 
+        q = """SELECT 
         posts.*,
         users.user_first_name,
         users.user_last_name,
@@ -1081,30 +1172,30 @@ def admin_block_post(post_pk):
         FROM posts
         JOIN users ON posts.post_user_fk = users.user_pk
         WHERE posts.post_pk = %s"""
-       
-       cursor.execute(q, (post_pk,))
-       tweet = cursor.fetchone()
+
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
 
         # SQL query to select the user who created the post, in order to get their email
-       q = "SELECT * FROM users WHERE user_pk = %s"
-       cursor.execute(q, (tweet["post_user_fk"],))
-       row = cursor.fetchone()
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (tweet["post_user_fk"],))
+        row = cursor.fetchone()
 
         # The users email
-       user_email = row["user_email"]
+        user_email = row["user_email"]
 
-       email_post_is_blocked = render_template("_email_post_is_blocked.html")
+        email_post_is_blocked = render_template("_email_post_is_blocked.html")
 
         # Send an email to the user
-       if tweet["post_is_blocked"]:
-           x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+        if tweet["post_is_blocked"]:
+            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
 
-       block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
-       tweet_html = render_template("_tweet.html", tweet=tweet)
-       return f"""
-       <browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>
-       <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
-       """
+        block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
+        tweet_html = render_template("_tweet.html", tweet=tweet)
+        return f"""
+        <browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>
+        <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+        """
     except Exception as ex:
         ic(ex)
         return "error"

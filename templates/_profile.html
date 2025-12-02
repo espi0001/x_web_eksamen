@@ -5,7 +5,7 @@
         </a>
         <div class="header-info">
             <h2>{{ user.user_first_name }}</h2>
-            <p class="post-count">{{ posts|length }} posts</p>
+            <p class="post-count">{{ posts|length }} {{ lans("posts") }}</p>
         </div>
     </div>
     <div class="profile-banner"></div>
@@ -16,7 +16,7 @@
     <!-- Edit Profile Button -->
     <div class="edit-profile-wrapper">
         <a href="/edit_profile" mix-get class="edit-profile-btn">
-            {{ x.lans("edit_profile") }}
+            {{ lans("edit_profile") }}
         </a>
     </div>
 
@@ -30,8 +30,8 @@
         <!-- Joined Date -->
         <div class="profile-meta">
             <i class="fa-regular fa-calendar"></i>
-            <span>{{ x.lans("joined") }} {{ x.format_timestamp(user.created_at) }}</span>
-        </div>
+            <span>{{ lans("joined") }} {{ x.format_timestamp(user.created_at) }}</span>
+        </div> <!-- TODO: mangler translate på timestamp -->
         <!-- Followers and Following Stats -->
         <div class="profile-stats">
 
@@ -39,48 +39,20 @@
         </div>
     </div>
     <div class="profile-tabs">
-        <button class="tab-btn active">Posts</button>
-        <button class="tab-btn">Media</button>
-        <button class="tab-btn">Likes</button>
+        <button class="tab-btn active">{{ lans("posts") }}</button>
+        <button class="tab-btn">{{ lans("media") }}</button>
+        <button class="tab-btn">{{ lans("likes") }}</button>
     </div>
     <div class="posts">
         <div id="profile-posts">
             {% if posts|length == 0: %}
             <div class="no-posts">
-                <p>{{ x.lans("no_posts_yet") }}</p>
+                <p>{{ lans("no_posts_yet") }}</p>
             </div>
             {% else: %}
-            {% for post in posts: %}
-            <article class="post" mix-fade-in="5000">
-                <img src="{{ user.user_avatar_path | avatar }}" alt="Avatar" class="avatar">
-                <div class="post-content">
-                    <div class="post-header">
-                        <span class="name">
-                            {{ post.user_first_name }}
-                            {% if post.user_last_name %}
-                            {{ post.user_last_name }}
-                            {% endif %}
-                        </span>
-                        <span class="handle">@{{ post.user_username }}</span> · <span class="time">{{ post.created_at
-                            }}</span>
-                    </div>
-                    <p class="text">
-                        {{ post.post_message }}
-                    </p>
-                    {% if post.post_media_path: %}
-                    <img src="{{ url_for('static', filename='images/' ~ post.post_media_path) }}" alt="Post image"
-                        class="post-image">
-                    {% endif %}
+                {% for tweet in posts: %}
+            {% include "_tweet.html" %}
 
-                    <div class="post-actions">
-                        <span class="action"><i class="fa-regular fa-comment"></i> 0</span>
-                        <span class="action"><i class="fa-solid fa-retweet"></i> 0</span>
-                        <span class="action"><i class="fa-regular fa-heart"></i> {{ post.post_total_likes }}</span>
-                        <span class="action"><i class="fa-solid fa-chart-simple"></i> 0</span>
-                        <span class="action"><i class="fa-solid fa-share"></i></span>
-                    </div>
-                </div>
-            </article>
             {% endfor %}
             {% endif %}
         </div>
