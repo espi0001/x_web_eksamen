@@ -472,12 +472,13 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
+# Question: mangler vi language og methods?
 @app.get("/profile")
 def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "error" # Question: mangler den end http code? f.eks. 400??
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
