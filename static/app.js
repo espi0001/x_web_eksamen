@@ -62,3 +62,68 @@ burger.addEventListener("click", () => {
   // toggle icon
   burger.classList.toggle("open");
 });
+
+// ==================== POST MEDIA PREVIEW ====================
+document.addEventListener("DOMContentLoaded", function () {
+  const fileInput = document.getElementById("post_media_input");
+  const previewArea = document.getElementById("media_preview_area");
+  const textarea = document.getElementById("post_textarea");
+  const submitBtn = document.getElementById("post_submit_btn");
+
+  // Enable/disable post button based on content
+  if (textarea && submitBtn) {
+    textarea.addEventListener("input", function () {
+      submitBtn.disabled = textarea.value.trim().length === 0;
+    });
+  }
+
+  // Handle file selection
+  if (fileInput && previewArea) {
+    fileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Clear previous preview
+      previewArea.innerHTML = "";
+
+      const fileURL = URL.createObjectURL(file);
+      const fileType = file.type;
+
+      // Create preview wrapper
+      const wrapper = document.createElement("div");
+      wrapper.className = "preview-wrapper";
+
+      // Create media element
+      if (fileType.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.src = fileURL;
+        img.alt = "Preview";
+        wrapper.appendChild(img);
+      } else if (fileType.startsWith("video/")) {
+        const video = document.createElement("video");
+        video.src = fileURL;
+        video.controls = true;
+        wrapper.appendChild(video);
+      }
+
+      // Create remove button
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "×";
+      removeBtn.className = "remove-preview-btn";
+      removeBtn.type = "button";
+      removeBtn.title = "Remove";
+      removeBtn.onclick = function () {
+        previewArea.innerHTML = "";
+        fileInput.value = "";
+      };
+
+      wrapper.appendChild(removeBtn);
+      previewArea.appendChild(wrapper);
+
+      // Enable post button if textarea has content or file is selected
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+});

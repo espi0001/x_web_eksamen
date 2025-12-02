@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mariadb
--- Generation Time: Dec 01, 2025 at 02:38 PM
+-- Generation Time: Dec 02, 2025 at 11:44 AM
 -- Server version: 10.6.20-MariaDB-ubu2004
 -- PHP Version: 8.2.27
 
@@ -77,6 +77,31 @@ CREATE TABLE `likes` (
   `deleted_at` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `likes`
+--
+
+INSERT INTO `likes` (`like_user_fk`, `like_post_fk`, `created_at`, `deleted_at`) VALUES
+('41cf8bb0b67a4e44b54297dde497d69b', '04d09b96ceb311f0afe4fa830ee49cd3', 1764666542, NULL);
+
+--
+-- Triggers `likes`
+--
+DELIMITER $$
+CREATE TRIGGER `decrease_total_likes` AFTER DELETE ON `likes` FOR EACH ROW UPDATE posts
+
+SET post_total_likes = post_total_likes - 1
+
+WHERE post_pk = OLD.like_post_fk
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `increase_total_likes` AFTER INSERT ON `likes` FOR EACH ROW UPDATE posts
+SET post_total_likes = post_total_likes + 1
+WHERE post_pk = NEW.like_post_fk
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -102,6 +127,7 @@ CREATE TABLE `posts` (
 --
 
 INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_comments`, `post_total_likes`, `post_total_bookmarks`, `post_media_path`, `post_is_blocked`, `created_at`, `updated_at`, `deleted_at`) VALUES
+('04bf12c7b49a466b8a62ba0a1382f451', '41cf8bb0b67a4e44b54297dde497d69b', 'cool', 0, 0, 0, NULL, 0, 1764671458, NULL, NULL),
 ('04d0830aceb311f0afe4fa830ee49cd3', '9d6741b46a8841faba64d527fa59a407', 'Hello world from Laura!', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
 ('04d09b01ceb311f0afe4fa830ee49cd3', '3485e0fa88794a16a6af683e0eae7d99', 'Det her er min første post!', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
 ('04d09b96ceb311f0afe4fa830ee49cd3', '7cc3586578584e0ab1259d523d450cfa', 'Magnus tester systemet 🔥', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
@@ -113,14 +139,20 @@ INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_comm
 ('04d09e10ceb311f0afe4fa830ee49cd3', '0f219527b0fc475091408a004ed5e3f7', 'Mathias her – alt virker fint!', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
 ('04d09e45ceb311f0afe4fa830ee49cd3', '1a7115179a4e44508a606bec39d5db83', 'Laura igen – sidste test for nu!', 0, 0, 0, NULL, 0, 1764592872, NULL, NULL),
 ('0e801399426641b4a0826e2bf362d3f7', '9e23d463c46343b7b612af70925db7be', 'Lotteeee', 0, 0, 0, NULL, 0, 1764181475, NULL, NULL),
+('0f9c49eb89014c5a9323078ff62a6e34', '41cf8bb0b67a4e44b54297dde497d69b', 'Hi', 0, 0, 0, NULL, 0, 1764671445, NULL, NULL),
 ('240f9b6fc0a04387bd211c2619fede52', '9e23d463c46343b7b612af70925db7be', '1 december!', 0, 0, 0, NULL, 0, 1764590376, NULL, 0),
-('404affc8f2aa492aac0e5925c6683967', '41cf8bb0b67a4e44b54297dde497d69b', 'yyy', 0, 0, 0, NULL, 0, 1764599842, NULL, NULL),
-('4658d2d81f53439ebece7c8eebebc364', '41cf8bb0b67a4e44b54297dde497d69b', 'HIII', 0, 0, 0, NULL, 0, 1764599824, NULL, NULL),
 ('4773a75ec2f543419efb132ce3a5a82c', '8f234d16daf24cb19243d18e1183f4c1', 'post', 0, 0, 0, '', 0, 0, 0, 0),
+('623516d412ae4dbeba44f59e6c06c506', '41cf8bb0b67a4e44b54297dde497d69b', 'hhhh', 0, 0, 0, NULL, 0, 1764670868, NULL, NULL),
 ('6257e7f2c00c40d995a9f1ee5cf8a953', '9e23d463c46343b7b612af70925db7be', 'HELLO d', 0, 0, 0, NULL, 0, 1764590166, NULL, NULL),
 ('64b1ea0fc4ac4623ae426c076bfec939', '9e23d463c46343b7b612af70925db7be', 'Hi', 0, 0, 0, NULL, 0, 1764181285, NULL, NULL),
 ('72e1f5bca95b4ad598a445f095b1b99a', '0cd10bd6ed6947de91a9bc060b1f7856', 'hej', 0, 0, 0, '', 0, 0, 0, 0),
-('c6aa4f460e944c37892538e447e942c0', '8f234d16daf24cb19243d18e1183f4c1', 'helllo', 0, 0, 0, '', 0, 0, 0, 0);
+('844b1265cada489586b33166523f4716', '41cf8bb0b67a4e44b54297dde497d69b', 'day', 0, 0, 0, NULL, 0, 1764671461, NULL, NULL),
+('85dc0223dacd4e078c7c361e9e6b4837', '41cf8bb0b67a4e44b54297dde497d69b', 'HEEEEEEELOOOOOOOOOO', 0, 0, 0, NULL, 0, 1764671702, NULL, NULL),
+('a5b9b7ed39104e389c2d986e64396cde', '41cf8bb0b67a4e44b54297dde497d69b', 'Ester', 0, 0, 0, NULL, 0, 1764671785, NULL, NULL),
+('aea52ac28ce24bb3a87de89b3de243e6', '41cf8bb0b67a4e44b54297dde497d69b', 'ggg', 0, 0, 0, NULL, 0, 1764671454, NULL, NULL),
+('c6aa4f460e944c37892538e447e942c0', '8f234d16daf24cb19243d18e1183f4c1', 'helllo', 0, 0, 0, '', 0, 0, 0, 0),
+('e56ad2e74c2c4a1b84e55e5892028d5b', '41cf8bb0b67a4e44b54297dde497d69b', 'HIIIIIILLO', 0, 0, 0, NULL, 0, 1764671004, NULL, NULL),
+('e748d791fac6424790026ba333b7caa0', '41cf8bb0b67a4e44b54297dde497d69b', 'is', 0, 0, 0, NULL, 0, 1764671452, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -200,7 +232,7 @@ INSERT INTO `users` (`user_pk`, `user_email`, `user_password`, `user_username`, 
 ('b3f8298b28874536aa328d1612f7856c', 'oliver.holm@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'oliverh', 'Oliver', 'Holm', NULL, 'https://avatar.iran.liara.run/public/17', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
 ('b71f5fd99f73446c8a6dc441552f26a1', 'anna@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'anna', 'Anna', NULL, NULL, 'https://avatar.iran.liara.run/public/18', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592377, NULL, NULL),
 ('d65322b178c34012a26965e934eccabf', 'user4@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'user4', 'User4', NULL, NULL, 'https://avatar.iran.liara.run/public/40', '', 1764598994, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
-('d6dd42af83f444d09e7ddcbdda1fdc81', 'freja@example.com', 'Test1234!', 'freja', 'Freja', NULL, NULL, 'https://avatar.iran.liara.run/public/40', '78787b5dceb211f0afe4fa830ee49cd3', NULL, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
+('d6dd42af83f444d09e7ddcbdda1fdc81', 'freja@example.com', 'scrypt:32768:8:1$Thqx02CZK3oD7iGt$6a48563bb7f81721c7c2b228dd89153169fa745980e08f5c2970f2acdf7f70b3fcc7956d90af875ba6c8d3b860023a8b8d5dd289209ab17382c9599b69137a67', 'freja', 'Freja', NULL, NULL, 'https://avatar.iran.liara.run/public/40', '', 1764663154, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL),
 ('d744ff489af94aeea1e399a2a1248744', 'user7@example.com', 'password', 'user7', 'User7', NULL, NULL, 'https://avatar.iran.liara.run/public/40', '4cc9521aceb211f0afe4fa830ee49cd3', NULL, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
 ('def17f3b86b54ad59afc8b8ad907752e', 'user8@example.com', 'password', 'user8', 'User8', NULL, NULL, 'https://avatar.iran.liara.run/public/40', '4cc9528fceb211f0afe4fa830ee49cd3', NULL, NULL, 0, 0, 0, 0, NULL, 1764592563, NULL, NULL),
 ('eff6c97024774275a2c97fbbd7dcc155', 'victor.henriksen@example.com', 'Test1234!', 'victorh', 'Victor', 'Henriksen', NULL, 'https://avatar.iran.liara.run/public/40', '78787d7bceb211f0afe4fa830ee49cd3', NULL, NULL, 0, 0, 0, 0, NULL, 1764592636, NULL, NULL);

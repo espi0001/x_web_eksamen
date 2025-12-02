@@ -54,13 +54,12 @@
                         <span class="pointer-e-none">{{ lans("profile") }}</span>
                     </a>
                 </li>
+                <!-- TODO: Missing translation -->
 
                 <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a></li>
-                <!-- <li><a href="#" onclick="document.getElementById('more_menu').classList.add('active'); return false;">
-                        <i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a>
-                </li> -->
-                <li><a href="{{ url_for('logout') }}"><i
-                            class="fa-solid fa-right-from-bracket"></i><span>{{ lans("logout") }}</span></a></li>
+
+                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{
+                            lans("logout") }}</span></a></li>
 
                 {% if user.user_admin %}
                 <li>
@@ -97,7 +96,9 @@
                     oninput="get_search_results('/api-search', 'post', '#search_form', 'parse_search_results')">
                 <button class="cursor-pointer">{{ lans("search") }}</button>
 
-                <div id="search_results" class="d-none p-absolute top-8 left-0 w-full bg-c-white h-50 pa-4 border-1 border-c-gray:+50 rounded-sm"></div>
+                <div id="search_results"
+                    class="d-none p-absolute top-8 left-0 w-full bg-c-white h-50 pa-4 border-1 border-c-gray:+50 rounded-sm">
+                </div>
             </form>
 
             <div class="border-1 border-c-gray:+50 rounded-md pa-3">

@@ -51,6 +51,10 @@ MAX_IMAGE_UPLOAD_SIZE = 1 * 1024 * 1024  # 1 MB
 ALLOWED_POST_MEDIA = ALLOWED_IMAGE_UPLOAD | {'gif', 'mp4', 'mov'}
 MAX_POST_MEDIA_SIZE = 10 * 1024 * 1024  # 10 MB
 
+# Max image dimensions (like Instagram)
+MAX_IMAGE_WIDTH = 1080
+MAX_IMAGE_HEIGHT = 1080
+
 
 # ==================== DATABASE ====================
 def db():
@@ -202,14 +206,21 @@ def validate_user_password_confirm():
 
 
 # ==================== POST VALIDATION ====================
-def validate_post(post=""):
+def validate_post(post="", allow_empty=False):
     """
     Validate post/tweet message
     
     """
     post = post.strip()
+    
+    # Allow empty if allow_empty=True (for posts with only media)
+    if allow_empty and not post:
+        return post
+    
+    # Validate length (min 2, max 250 characters)
     if not re.match(REGEX_POST, post): 
-        raise Exception("x-error post", 400)
+        raise Exception(f"Post must be between {POST_MIN_LEN} and {POST_MAX_LEN} characters", 400)
+    
     return post
 
 
@@ -253,17 +264,15 @@ def validate_avatar_upload():
 def validate_post_media():
     """
     Validate post media upload (images and videos)
+    - NO auto-resize (requires Pillow)
+    - Only checks file type and size
     
     Returns:
         tuple: (file_object, file_extension) or (None, None) if no file
     Raises:
         Exception: If file is invalid (400)
-    
-    Allowed formats: png, jpg, jpeg, gif, webp, mp4, mov
-    Max size: 10 MB
-    Optional: Returns (None, None) if no file uploaded
     """
-    # Check if file exists in request (optional for posts)
+    # Check if file exists in request
     if 'post_media' not in request.files:
         return None, None
     
@@ -273,7 +282,7 @@ def validate_post_media():
     if file.filename == '':
         return None, None
     
-    # Get file extension (lowercase)
+    # Get file extension
     file_extension = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else None
     
     # Validate extension
@@ -281,15 +290,15 @@ def validate_post_media():
         raise Exception(f"Invalid file type. Allowed: {', '.join(ALLOWED_POST_MEDIA)}", 400)
     
     # Check file size
-    file.seek(0, 2)  
-    file_size = file.tell()  
-    file.seek(0)  
+    file.seek(0, 2)
+    file_size = file.tell()
+    file.seek(0)
     
     if file_size > MAX_POST_MEDIA_SIZE:
-        raise Exception(f"File too large. Max: {MAX_POST_MEDIA_SIZE / (1024*1024)}MB", 400)
+        raise Exception(f"File too large. Max: {MAX_POST_MEDIA_SIZE / (1024*1024):.0f}MB", 400)
     
+    # Return file without any processing
     return file, file_extension
-
 
 # ==================== UUID VALIDATION ====================
 def validate_uuid4(uuid4=""):
