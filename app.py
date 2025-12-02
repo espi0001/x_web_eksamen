@@ -172,11 +172,11 @@ def signup(lan = "english"):
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered", lan))
+                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # System or developer error
@@ -222,15 +222,15 @@ def login(lan = "english"):
             
             # Check if user exists
             if not user: 
-                raise Exception(x.lans("user_not_found", lan), 400) 
+                raise Exception(x.lans("user_not_found"), 400) 
 
             # Verify password hash
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans("invalid_credentials", lan), 400) 
+                raise Exception(x.lans("invalid_credentials"), 400) 
 
             # Check if user has verified email
             if user["user_verification_key"] != "":
-                raise Exception(x.lans("user_not_verified", lan), 400) 
+                raise Exception(x.lans("user_not_verified"), 400) 
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
@@ -249,7 +249,7 @@ def login(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
             # System or developer error (database down, etc.)
-            toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance", lan))
+            toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance"))
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         
         finally:
@@ -371,7 +371,10 @@ def home(lan = "english"):
         # Get random posts with user data (JOIN)
         # TODO = Only show the posts from users / posts that are not deleted
        
-        q = """
+        is_admin = g.user["user_admin"]
+
+        # Base query (same for everyone)
+        base_query = """
         SELECT 
             users.*,
             posts.*,
@@ -382,13 +385,18 @@ def home(lan = "english"):
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk 
-            AND likes.like_user_fk = %s
-        ORDER BY RAND()
-        LIMIT 5
+        ON likes.like_post_fk = posts.post_pk
+        AND likes.like_user_fk = %s
         """
 
-        cursor.execute(q, (g.user["user_pk"],))
+        # Add condition ONLY if user is not admin
+        if not is_admin:
+            base_query += " WHERE posts.post_is_blocked = 0"
+
+        # Random order + limit
+        base_query += " ORDER BY RAND() LIMIT 5"
+
+        cursor.execute(base_query, (g.user["user_pk"],))
         tweets = cursor.fetchall()
 
         # Get random trends
