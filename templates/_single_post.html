@@ -6,16 +6,11 @@
     </div>
     {% include "_tweet.html" %}
 
+    {% include "___comment_post.html" %}
 
-    <div class="comments">
+    <div class="comments mt-4">
         <div id="post-comments">
-            {% if comments|length == 0: %}
-            <div class="no-posts">
-                <p>no comments yet</p>
-            </div>
-            {% else: %}
-            <p>Comment</p>
-            {% endif %}
+            {% include "___comments_list.html" %}
         </div>
     </div>
 </div>
