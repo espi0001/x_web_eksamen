@@ -31,7 +31,11 @@
                 {% endif %}
 
                 <div class="post-actions">
-                    <span class="action"><i class="fa-regular fa-comment"></i> 12</span>
+                    <span class="action">
+                        <a href="/single-post/{{ tweet.post_pk }}" mix-get>
+                            <i class="fa-regular fa-comment"></i> 12
+                        </a>
+                    </span>
                     <span class="action"><i class="fa-solid fa-retweet"></i> 5</span>
                     <span class="action">
                         {% if tweet.liked_by_user %}
