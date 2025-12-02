@@ -1,3 +1,5 @@
-<button class="action" mix-patch="/unlike-tweet">
-    <i class="fa-solid fa-heart"></i>     
-</button>
+<div id="button_like_container_{{ tweet.post_pk }}">
+    <button class="action" mix-delete="/unlike-tweet/{{ tweet.post_pk }}">
+        <i class="fa-solid fa-heart pointer-e-none"></i>
+    </button>
+</div>
