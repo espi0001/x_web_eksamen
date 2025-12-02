@@ -4,7 +4,7 @@
 <section class="avatar-section">
     <h2>{{ x.lans("profile_picture") }}</h2>
     <div class="avatar-container">
-        <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar">
+        <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar" class="profile-avatar">
     </div>
 
 
@@ -13,7 +13,7 @@
             <label for="avatar">{{ x.lans("choose_new_picture") }}</label>
             <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
         </div>
-        <button class="x-dialog__btn" mix-default="Upload Avatar" mix-await="Uploading...">
+        <button class="edit-profile-btn" mix-default="Upload Avatar" mix-await="Uploading...">
             {{ x.lans("upload_avatar") }}
         </button>
     </form>
@@ -45,7 +45,7 @@
         <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}"
             value="{{ user.user_first_name }}">
     </div>
-    <button class="x-dialog__btn" mix-default="{{ x.lans('update_profile') }}"
+    <button class="edit-profile-btn" mix-default="{{ x.lans('update_profile') }}"
         mix-await="{{ x.lans('updating_profile') }}">
         {{ x.lans("update_profile") }}
     </button>
