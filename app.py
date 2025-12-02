@@ -391,6 +391,9 @@ def home_comp():
         tweets = cursor.fetchall()
         ic(tweets)
 
+        # q = "SELECT * FROM likes"
+        # likes = cursor.fetchall()
+
         # Render partial template
         html = render_template("_home_comp.html", tweets=tweets)
         return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
@@ -467,15 +470,63 @@ def edit_profile():
 
 
 ############## LIKE TWEET ################
-@app.patch("/like-tweet")
+@app.patch("/like-tweet/<post_pk>")
 @x.no_cache
-def api_like_tweet():
+def api_like_tweet(post_pk):
     try:
+        
+        like_user_fk = session.get("user_pk")
+        like_post_fk = post_pk
+        created_at = int(time.time())
+        
+        db, cursor = x.db()
+        q = "INSERT INTO likes VALUES(%s, %s, %s, %s)"
+        cursor.execute(q, (like_user_fk, like_post_fk, created_at, None))
+        db.commit()
+       
+
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
         # Render unlike button template
-        button_unlike_tweet = render_template("___button_unlike_tweet.html")
+        button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet )
         return f"""
-            <mixhtml mix-replace="#button_1">
+            <mixhtml mix-replace="#button_like_container_{post_pk}">
                 {button_unlike_tweet}
+            </mixhtml>
+        """
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############## UNLIKE TWEET ################
+@app.delete("/unlike-tweet/<post_pk>")
+@x.no_cache
+def api_unlike_tweet(post_pk):
+    try:
+        
+        like_user_fk = session.get("user_pk")
+        like_post_fk = post_pk
+        
+        db, cursor = x.db()
+        q = "DELETE FROM likes WHERE like_user_fk = %s AND like_post_fk = %s"
+        cursor.execute(q, (like_user_fk, like_post_fk))
+        db.commit()
+       
+
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        # Render unlike button template
+        button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet )
+        return f"""
+            <mixhtml mix-replace="#button_like_container_{post_pk}">
+                {button_like_tweet}
             </mixhtml>
         """
     except Exception as ex:
