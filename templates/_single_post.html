@@ -1,0 +1,21 @@
+<div class="profile-container">
+    <div class="profile-header">
+        <a href="/home-comp" mix-get>
+            <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
+        </a>
+    </div>
+    {% include "_tweet.html" %}
+
+
+    <div class="comments">
+        <div id="post-comments">
+            {% if comments|length == 0: %}
+            <div class="no-posts">
+                <p>no comments yet</p>
+            </div>
+            {% else: %}
+            <p>Comment</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

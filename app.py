@@ -916,11 +916,52 @@ def api_delete_post(post_pk):
 
 
 
+############## SINGLE POST/TWEET ################
+# TODO: Translate
+@app.get("/single-post/<post_pk>")
+def view_singe_post(post_pk):
+    try:
+        if not g.user:
+            return redirect(url_for("login"))
+
+        db, cursor = x.db()
+
+        q = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk 
+            AND likes.like_user_fk = %s
+        WHERE posts.post_pk = %s
+        """
+        cursor.execute(q, (g.user["user_pk"], post_pk))
+        tweet = cursor.fetchone()
+
+        if not tweet:
+            return "Post not found", 404
+
+        single_post_html = render_template("_single_post.html", tweet=tweet)
+        return f"""<browser mix-update="main">{ single_post_html }</browser>"""
+    except Exception as ex:
+        return "error", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############## COMMENT POST/TWEET ################
 
 
 
-# -------------------- LIKE TWEET -------------------- #
-############## LIKE TWEET ################
+
+
+############## LIKE POST/TWEET ################
 @app.patch("/like-tweet/<post_pk>")
 @x.no_cache
 def api_like_tweet(post_pk):
