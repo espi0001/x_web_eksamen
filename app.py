@@ -277,7 +277,7 @@ def forgot_password():
 
             # updating the user_password_reset key on the user that matches the email
             db, cursor = x.db()
-            q = "UPDATE users SET user_password_reset = %s WHERE user_email = %s"
+            q = "UPDATE users SET user_password_reset_key = %s WHERE user_email = %s"
             cursor.execute(q, (user_password_reset_key, user_email))
             db.commit()
 
@@ -302,6 +302,7 @@ def forgot_password():
 @app.route("/create-new-password", methods=["GET", "POST"])
 def create_new_password():
     try:
+
         # getting the key from the url or the form
         key = request.args.get("key") or request.form.get("key")
 
@@ -310,7 +311,7 @@ def create_new_password():
 
         # We select the user that has the key from the url in user_password_reset
         db, cursor = x.db()
-        q = "SELECT * FROM users WHERE user_password_reset = %s"
+        q = "SELECT * FROM users WHERE user_password_reset_key = %s"
         cursor.execute(q, (key,))
         row = cursor.fetchone()
 
@@ -331,7 +332,7 @@ def create_new_password():
             q = """
             UPDATE users 
             SET user_password = %s,
-                user_password_reset = 0
+                user_password_reset_key = 0
             WHERE user_email = %s
             """
             cursor.execute(q, (user_hashed_password, row["user_email"]))

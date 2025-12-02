@@ -1,9 +1,9 @@
 <h1>
-    Admin panel
+    {{ x.lans("admin_panel") }}
 </h1>
 
 <section>
-    <h2>Active users</h2>
+    <h2>{{ x.lans("active_users") }}</h2>
     <div id="unblocked_user_list">
         {% for row in rows: %}
         {% include "_user.html" %}
@@ -11,7 +11,7 @@
     </div>
 
     <div id="blocked_user_list">
-        <h2>Blocked users</h2>
+        <h2>{{ x.lans("blocked_users") }}</h2>
         {% for row in blocked_rows: %}
         {% include "_user.html" %}
         {% endfor %}
