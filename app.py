@@ -768,7 +768,7 @@ def api_delete_profile(lan = "english"):
 
 
 
-# -------------------- CREATE POST -------------------- #
+# -------------------- POST/TWEET -------------------- #
 
 ############### API CREATE POST ###############
 @app.route("/api-create-post", methods=["POST"])
@@ -841,6 +841,40 @@ def api_create_post():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+
+@app.route("/api-delete-post", methods=["GET", "DELETE"])
+@app.route("/api-delete-post/<lan>", methods=["GET", "DELETE"])
+def api_delete_post(lan = "enlish"):
+    # Validate language parameter
+    if lan not in x.allowed_languages: 
+        lan = "english"
+
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user"
+
+        # Delete user from database
+        q = "DELETE FROM posts WHERE post_user_fk = %s"
+        db, cursor = x.db()
+        cursor.execute(q, (g.user["user_pk"],))
+        db.commit()
+
+        return "ok"
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
+    finally: 
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
 
 
 
@@ -1041,13 +1075,13 @@ def admin_block_user(user_pk):
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
     try:
-       db, cursor = x.db()
-       q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
-       cursor.execute(q, (post_pk,))
-       db.commit()
+        db, cursor = x.db()
+        q = "UPDATE posts SET post_is_blocked = NOT post_is_blocked WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        db.commit()
 
         # SQL query to fetch a specific post along with data on the user who created the post.
-       q = """SELECT 
+        q = """SELECT 
         posts.*,
         users.user_first_name,
         users.user_last_name,
@@ -1056,30 +1090,30 @@ def admin_block_post(post_pk):
         FROM posts
         JOIN users ON posts.post_user_fk = users.user_pk
         WHERE posts.post_pk = %s"""
-       
-       cursor.execute(q, (post_pk,))
-       tweet = cursor.fetchone()
+
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
 
         # SQL query to select the user who created the post, in order to get their email
-       q = "SELECT * FROM users WHERE user_pk = %s"
-       cursor.execute(q, (tweet["post_user_fk"],))
-       row = cursor.fetchone()
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (tweet["post_user_fk"],))
+        row = cursor.fetchone()
 
         # The users email
-       user_email = row["user_email"]
+        user_email = row["user_email"]
 
-       email_post_is_blocked = render_template("_email_post_is_blocked.html")
+        email_post_is_blocked = render_template("_email_post_is_blocked.html")
 
         # Send an email to the user
-       if tweet["post_is_blocked"]:
-           x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+        if tweet["post_is_blocked"]:
+            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
 
-       block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
-       tweet_html = render_template("_tweet.html", tweet=tweet)
-       return f"""
-       <browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>
-       <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
-       """
+        block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
+        tweet_html = render_template("_tweet.html", tweet=tweet)
+        return f"""
+        <browser mix-replace="#block_unblock_post_{post_pk}">{block_unblock_html}</browser>
+        <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+        """
     except Exception as ex:
         ic(ex)
         return "error"

@@ -498,7 +498,7 @@ aside {
   background: #f5f5f5;
 }
 
-/* Footer */
+/* ---------- Footer ---------- */
 .x-landing__footer {
   position: absolute;
   bottom: 1rem;
@@ -531,7 +531,7 @@ aside {
   }
 }
 
-/* DIALOG COMPONENTS */
+/* ---------- DIALOG COMPONENTS ---------- */
 .x-dialog {
   display: none;
   position: fixed;
@@ -654,6 +654,7 @@ aside {
   text-decoration: underline;
 }
 
+/* ---------- PROFILE ---------- */
 /* Profile Tabs */
 .profile-tabs {
   display: flex;
@@ -819,6 +820,7 @@ aside {
   font-size: 1rem;
 }
 
+/* ---------- ADMIN ---------- */
 /* admin */
 .dropdown-wrapper {
   position: relative;

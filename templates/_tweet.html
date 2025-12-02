@@ -2,6 +2,8 @@
     {% if user.user_admin %}
     {% include "___block_unblock_post.html" %}
     {% endif %}
+
+
     <div class="post_container">
         {% if tweet.post_is_blocked %}
         <div class="blocked_post_overlay">
