@@ -34,7 +34,12 @@
         </div> <!-- TODO: mangler translate på timestamp -->
         <!-- Followers and Following Stats -->
         <div class="profile-stats">
-
+            <a href="/all-user-follows" mix-get>
+                {{ user.user_total_follows }} {{ x.lans("following") }}
+            </a>
+            <a href="/all-user-followers" mix-get>
+                {{ user.user_total_followers }} {{ x.lans("followers") }}
+            </a>
 
         </div>
     </div>
@@ -50,7 +55,7 @@
                 <p>{{ lans("no_posts_yet") }}</p>
             </div>
             {% else: %}
-                {% for tweet in posts: %}
+            {% for tweet in posts: %}
             {% include "_tweet.html" %}
 
             {% endfor %}
