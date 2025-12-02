@@ -841,7 +841,7 @@ def api_create_post():
         
         # Render templates
         html_post_container = render_template("___post_container.html")
-        html_post = render_template("_tweet.html", tweet=tweet)
+        html_post = render_template("_tweet.html", tweet=tweet, user=user_pk) # passing user so delete post will show us as soon as its posted
         
         # Return multiple updates to browser
         return f"""
@@ -868,25 +868,32 @@ def api_create_post():
         if "db" in locals(): db.close()
 
 
-@app.route("/api-delete-post", methods=["GET", "DELETE"])
-@app.route("/api-delete-post/<lan>", methods=["GET", "DELETE"])
-def api_delete_post(lan = "enlish"):
-    # Validate language parameter
-    if lan not in x.allowed_languages: 
-        lan = "english"
-
+############### API DELETE POST ###############
+# @app.route("/api-delete-post", methods=["GET", "DELETE"])
+# question: skal vi have language her??
+@app.route("/api-delete-post/<post_pk>", methods=["DELETE"])
+def api_delete_post(post_pk):
     try:
         # Check if user is logged in
         if not g.user:
-            return "invalid user"
+            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
 
-        # Delete user from database
-        q = "DELETE FROM posts WHERE post_user_fk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (g.user["user_pk"],))
+
+
+        # Delete post from database IF its the users post
+        q = "DELETE FROM posts WHERE post_pk = %s and post_user_fk = %s"
+        cursor.execute(q, (post_pk, g.user["user_pk"],))
         db.commit()
 
-        return "ok"
+        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted") #TODO: Translate
+        
+        # Remove the post from the DOM + show toast
+        # return "ok"
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-remove="#post_container_{post_pk}"></browser>
+        """, 200
 
     except Exception as ex:
         ic(ex)

@@ -42,6 +42,16 @@
                     </span>
                     <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
                     <span class="action"><i class="fa-solid fa-share"></i></span>
+
+                    
+                    {% if user and user.user_pk == tweet.post_user_fk %}
+                    <form action="/api-delete-post/{{ tweet.post_pk }}" mix-delete style="display:inline" class="action" mix-delay="3000"
+                            mix-await="{{ lans('deleting_post') }}...">
+                        <button type="submit" class="action text-c-red" class="text-c-red" hover="cursor-pointer">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </article>
