@@ -370,10 +370,26 @@ def home(lan = "english"):
         
         # Get random posts with user data (JOIN)
         # TODO = Only show the posts from users / posts that are not deleted
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk ORDER BY RAND() LIMIT 5"
-        cursor.execute(q)
+       
+        q = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk 
+            AND likes.like_user_fk = %s
+        ORDER BY RAND()
+        LIMIT 5
+        """
+
+        cursor.execute(q, (g.user["user_pk"],))
         tweets = cursor.fetchall()
-        ic(tweets)
 
         # Get random trends
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
@@ -402,31 +418,40 @@ def home(lan = "english"):
 @app.get("/home-comp")
 def home_comp():
     try:
-        # Check if user is logged in
-        if not g.user: 
+        if not g.user:
             return "error"
-        
+
         db, cursor = x.db()
-        # TODO = Only show the posts from users / posts that are not deleted
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk ORDER BY RAND() LIMIT 5"
-        cursor.execute(q)
+
+        q = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk 
+            AND likes.like_user_fk = %s
+        ORDER BY RAND()
+        LIMIT 5
+        """
+
+        cursor.execute(q, (g.user["user_pk"],))
         tweets = cursor.fetchall()
-        ic(tweets)
 
-        # q = "SELECT * FROM likes"
-        # likes = cursor.fetchall()
-
-        # Render partial template
         html = render_template("_home_comp.html", tweets=tweets)
         return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
-        
+
     except Exception as ex:
         ic(ex)
         return "error"
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
 
 # -------------------- LOGOUT -------------------- #
 
