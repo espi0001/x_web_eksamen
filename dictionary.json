@@ -389,6 +389,21 @@
         "danish": "Vis mere",
         "spanish": "Mostrar más"
     },
+    "unfollow": {
+        "english": "Unfollow",
+        "danish": "Fjern ",
+        "spanish": "Eliminar"
+    },
+    "followers": {
+        "english": "Followers",
+        "danish": "Følgere",
+        "spanish": "Seguidores"
+    },
+    "following": {
+        "english": "Following",
+        "danish": "Følger",
+        "spanish": "Sigue"
+    },
     "edit_profile": {
         "english": "Edit profile",
         "danish": "Rediger profil",
