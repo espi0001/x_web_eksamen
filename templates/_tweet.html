@@ -2,14 +2,17 @@
     {% if user.user_admin %}
     {% include "___block_unblock_post.html" %}
     {% endif %}
+
     <div class="post_container">
         {% if tweet.post_is_blocked %}
         <div class="blocked_post_overlay">
             <p>This post is unavailable</p>
         </div>
         {% endif %}
+
         <article class="post">
             <img src="{{ tweet.user_avatar_path | avatar }}" alt="Avatar" class="w-8 h-8 rounded-full">
+
             <div class="post-content">
                 <div class="post-header">
                     <span class="name">
@@ -18,24 +21,46 @@
                         {{ tweet.user_last_name }}
                         {% endif %}
                     </span>
-                    <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">1d</span>
+                    <span class="handle">@{{ tweet.user_username }}</span> ·
+                    <span class="time">1d</span>
                 </div>
-                <p class="text">
-                    {{ tweet.post_message }}
-                </p>
-                {% if tweet.post_image_path: %}
-                <img src="{{ url_for('static', filename='images/' ~ tweet.post_image_path) }}" alt="Post image"
-                    class="w-80">
+
+                <p class="text">{{ tweet.post_message }}</p>
+
+                <!-- Media display  -->
+                {% if tweet.post_media_path %}
+                {% set file_ext = tweet.post_media_path.split('.')[-1].lower() %}
+
+                {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                <!-- Display image -->
+                <img src="{{ url_for('static', filename=tweet.post_media_path) }}" alt="Post image" class="post-media">
+
+                {% elif file_ext in ['mp4', 'mov', 'webm'] %}
+                <!-- Display video -->
+                <video controls class="post-media">
+                    <source src="{{ url_for('static', filename=tweet.post_media_path) }}" type="video/{{ file_ext }}">
+                    Your browser does not support the video tag.
+                </video>
+                {% endif %}
                 {% endif %}
 
                 <div class="post-actions">
-                    <span class="action"><i class="fa-regular fa-comment"></i> 12</span>
-                    <span class="action"><i class="fa-solid fa-retweet"></i> 5</span>
+                    <span class="action">
+                        <i class="fa-regular fa-comment"></i>
+                        {{ tweet.post_total_comments or 0 }}
+                    </span>
+                    <span class="action">
+                        <i class="fa-solid fa-retweet"></i> 5
+                    </span>
                     <span class="action">
                         {% include "___button_like_tweet.html" %}
                     </span>
-                    <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
-                    <span class="action"><i class="fa-solid fa-share"></i></span>
+                    <span class="action">
+                        <i class="fa-solid fa-chart-simple"></i> 230
+                    </span>
+                    <span class="action">
+                        <i class="fa-solid fa-share"></i>
+                    </span>
                 </div>
             </div>
         </article>
