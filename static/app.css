@@ -654,6 +654,32 @@ aside {
   text-decoration: underline;
 }
 
+/* Profile Tabs */
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgb(110, 109, 109);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.2s;
+}
+
+.tab-btn:hover {
+  background-color: rgb(247, 249, 249);
+}
+
+.tab-btn.active {
+  color: rgb(15, 15, 15);
+  border-bottom: 2px solid rgb(29, 155, 240);
+  font-weight: bold;
+}
 /* Profile Container (bruges på begge sider) */
 .profile-container {
   max-width: 100%;
@@ -772,6 +798,25 @@ aside {
   font-weight: 800;
   line-height: 1.5;
   margin: 0;
+}
+.profile-bio {
+  margin: 0.75rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgb(15, 20, 25);
+}
+/* Profile Meta (Joined date) */
+.profile-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(110, 109, 109);
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+
+.profile-meta i {
+  font-size: 1rem;
 }
 
 /* admin */
