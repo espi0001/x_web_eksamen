@@ -820,6 +820,11 @@ aside {
   font-size: 1rem;
 }
 
+.profile-stats {
+  display: flex;
+  gap: 2rem;
+}
+
 /* ---------- ADMIN ---------- */
 /* admin */
 .dropdown-wrapper {

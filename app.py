@@ -407,8 +407,22 @@ def home(lan = "english"):
         ic(trends)
 
         # Get user suggestions (exclude current user)
-        q = "SELECT * FROM users WHERE user_pk != %s ORDER BY RAND() LIMIT 3"
-        cursor.execute(q, (g.user["user_pk"],))
+        q = """
+            SELECT 
+            users.*,
+            CASE 
+                WHEN follows.follow_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS followed_by_user
+            FROM users
+            LEFT JOIN follows 
+            ON follows.followed_user_fk = users.user_pk
+            AND follows.follow_user_fk = %s
+            WHERE users.user_pk != %s
+            ORDER BY RAND()
+            LIMIT 3
+            """
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"]))
         suggestions = cursor.fetchall()
         ic(suggestions)
 
@@ -1170,6 +1184,124 @@ def api_unlike_tweet(post_pk):
         if "db" in locals(): db.close()
 
 
+# -------------------- FOLLOW -------------------- #
+############## FOLLOW USER ################
+@app.post("/follow-user/<user_pk>")
+def follow_user(user_pk):
+    try:
+        
+        follow_user_fk = g.user["user_pk"]
+        followed_user_fk = user_pk
+        created_at = int(time.time())
+
+        db, cursor = x.db()
+        q = "INSERT INTO follows VALUES(%s, %s, %s, %s)"
+        cursor.execute(q, (follow_user_fk, followed_user_fk, created_at, None))
+        db.commit()
+
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        suggestion = cursor.fetchone()
+
+        button_unfollow_user_html = render_template("___button_unfollow_user.html", suggestion=suggestion)
+        return f"""
+        <browser mix-replace=#button_follow_user_{user_pk}>
+        {button_unfollow_user_html}
+        </browser>
+        """
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## UNFOLLOW USER ################
+@app.post("/unfollow-user/<user_pk>")
+def unfollow_user(user_pk):
+    try:
+
+        follow_user_fk = g.user["user_pk"]
+        followed_user_fk = user_pk
+
+        db, cursor = x.db()
+        q = "DELETE FROM follows WHERE follow_user_fk = %s AND followed_user_fk = %s"
+        cursor.execute(q, (follow_user_fk, followed_user_fk))
+        db.commit()
+        
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        suggestion = cursor.fetchone()
+
+        button_follow_user_html = render_template("___button_follow_user.html", suggestion=suggestion)
+        return f"""
+        <browser mix-replace=#button_follow_user_{user_pk}>
+        {button_follow_user_html}
+        </browser>
+        """
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############## ALL USER FOLLOWERS ################
+@app.get("/all-user-followers")
+def view_all_user_followers():
+    try:
+        user_pk = g.user["user_pk"]
+
+        db, cursor = x.db()
+        q = """
+            SELECT
+            users.*,
+            CASE
+                WHEN f1.follow_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS followed_by_user
+            FROM users
+            JOIN follows AS f2
+            ON f2.follow_user_fk = users.user_pk
+            LEFT JOIN follows AS f1
+            ON f1.followed_user_fk = users.user_pk
+            AND f1.follow_user_fk = %s 
+            WHERE f2.followed_user_fk = %s
+            """
+        cursor.execute(q, (user_pk, user_pk))
+        suggestions = cursor.fetchall()
+        
+        follower_list_html = render_template("_user_follower_list.html", suggestions=suggestions)
+        return f"""<browser mix-update="main">{ follower_list_html }</browser>"""
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## ALL USER FOLLOWS ################
+@app.get("/all-user-follows")
+def view_all_user_follows():
+    try:
+        user_pk = g.user["user_pk"]
+        db, cursor = x.db()
+        q = """
+            SELECT users.*
+            FROM users
+            JOIN follows ON follows.followed_user_fk = users.user_pk
+            WHERE follows.follow_user_fk = %s
+             """
+        cursor.execute(q, (user_pk,))
+        suggestions = cursor.fetchall()
+
+        follows_list_html = render_template("_user_follows_list.html", suggestions=suggestions)
+        return f"""<browser mix-update="main">{ follows_list_html }</browser>"""
+    except Exception as ex:
+        ic(ex)
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
 
 
 # -------------------- SEARCH -------------------- #
@@ -1416,7 +1548,10 @@ def get_data_from_sheet():
         with open("dictionary.json", 'w', encoding='utf-8') as f:
             f.write(json_data)
 
-        return "ok"
+        toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
+        return f"""
+                <browser mix-bottom="#toast">{toast_ok}</browser>
+                """
         
     except Exception as ex:
         ic(ex)
