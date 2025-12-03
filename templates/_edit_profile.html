@@ -13,9 +13,10 @@
             <label for="avatar">{{ lans("choose_new_picture") }}</label>
             <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
         </div>
-        <button class="edit-profile-btn" mix-default="{{ lans('upload_avatar') }}" mix-await="{{ lans('uploading') }}...">
+        <button class="edit-profile-btn" mix-default="{{ lans('upload_avatar') }}"
+            mix-await="{{ lans('uploading') }}...">
             {{ lans("upload_avatar") }}
-            
+
         </button>
     </form>
 </section>
@@ -30,9 +31,9 @@
     </div>
     <div>
         <label for="user_username">
-            <span>{{ lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }}
+            <span>{{ lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ lans("to") }}
             {{ x.USER_USERNAME_MAX }}
-            {{ x.lans("characters") }}
+            {{ lans("characters") }}
         </label>
         <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
             value="{{ user.user_username }}">

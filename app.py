@@ -942,6 +942,128 @@ def api_create_post():
         if "db" in locals(): db.close()
 
 
+############### EDIT POST - GET ###############
+@app.get("/edit-post/<post_pk>")
+def edit_post(post_pk):
+    try:
+        # check if user is logged in
+        if not g.user:
+            return "error", 400
+        
+        # get post from db
+        db, cursor = x.db()
+        q = "SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
+        cursor.execute(q, (post_pk, g.user["user_pk"]))
+        post = cursor.fetchone()
+
+        if not post:
+            toast_error = render_template("___toast_error.html", message="Post not found or you don't have permission")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 403
+        
+        edit_post_html = render_template("_edit_post.html", post=post)
+        return f"""<browser mix-update="main">{edit_post_html}</browser>"""
+    except Exception as ex:
+        ic(ex) 
+            
+        toast_error = render_template("___toast_error.html", message="Could not load post")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+############### API EDIT POST - POST ############### 
+@app.route("/api-update-post/<post_pk>", methods=["POST"])
+def api_update_post(post_pk):
+    try:
+        # Check if user is logged in
+        if not g.user: 
+            return "invalid user", 401
+        
+        # Get and validate new post message
+        post_message = request.form.get("post_message", "").strip()
+        
+        # Validate: must have text (can't be empty for edit)
+        if not post_message:
+            toast_error = render_template("___toast_error.html", message="Post cannot be empty")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
+        
+        # Validate post length
+        post_message = x.validate_post(post_message, allow_empty=False)
+        
+        # Update timestamp
+        updated_at = int(time.time())
+        
+        # Update database
+        db, cursor = x.db()
+        q = "UPDATE posts SET post_message = %s, updated_at = %s WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
+        
+        cursor.execute(q, (post_message, updated_at, post_pk, g.user["user_pk"]))
+        db.commit()
+        
+        # Check if update was successful
+        if cursor.rowcount != 1:
+            raise Exception("Could not update post", 400)
+        
+        # Fetch updated post with user data
+        q = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk 
+            AND likes.like_user_fk = %s
+            ORDER BY 
+                CASE 
+                    WHEN posts.updated_at = (SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL) THEN 0
+                    ELSE 1
+                END,
+            RAND()
+            LIMIT 5
+            """
+        cursor.execute(q, (post_pk,))
+        tweets = cursor.fetchall()
+        
+        # Send success response
+        toast_ok = render_template("___toast_ok.html", message="Post updated successfully!")
+        # tweet_html = render_template("_tweet.html", tweet=tweets)
+        home_html = render_template("_home_comp.html", tweets=tweets)
+        # <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-update="main">{home_html}</browser>
+        """
+        
+    except Exception as ex:
+        ic(ex)
+        
+        if "db" in locals(): 
+            db.rollback()
+        
+        # User validation error
+        if len(ex.args) > 1 and ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
+        
+        # System error
+        toast_error = render_template("___toast_error.html", message="Could not update post")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+   
+
+    
+
+
 ############### API DELETE POST ###############
 # @app.route("/api-delete-post", methods=["GET", "DELETE"])
 # question: skal vi have language her??
@@ -978,7 +1100,6 @@ def api_delete_post(post_pk):
     finally: 
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
 
 
 ############## SINGLE POST/TWEET ################
