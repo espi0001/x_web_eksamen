@@ -31,27 +31,43 @@ function get_search_results(url, method, data_source_selector, function_after_fe
 }
 // ##############################
 function parse_search_results(data_from_server) {
-  // console.log(data_from_server)
   data_from_server = JSON.parse(data_from_server);
-  let users = "";
-  data_from_server.forEach((user) => {
-    let user_avatar_path = user.user_avatar_path ? user.user_avatar_path : "unknown.jpg";
-    let html = `
-        <div class="d-flex a-items-center">
-            <img src="/static/images/${user_avatar_path}" class="w-8 h-8 rounded-full" alt="Profile Picture">
-            <div class="w-full ml-2">
-                <p class="">
-                    ${user.user_first_name} ${user.user_last_name}
-                    <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
-                </p>                
-            </div>
-            <button class="px-4 py-1 text-c-white bg-c-black rounded-lg">Follow</button>
-        </div>`;
-    users += html;
-  });
-  console.log(users);
-  document.querySelector("#search_results").innerHTML = users;
-  document.querySelector("#search_results").classList.remove("d-none");
+
+  let html_output = "";
+
+  if (data_from_server.users && data_from_server.users.length) {
+    data_from_server.users.forEach((user) => {
+      let user_avatar_path = user.user_avatar_path ? user.user_avatar_path : "unknown.jpg";
+      html_output += `
+            <div class="d-flex a-items-center mb-2">
+                <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full" alt="Profile Picture">
+                <div class="w-full ml-2">
+                    <p>
+                        ${user.user_first_name} ${user.user_last_name}
+                        <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
+                    </p>                
+                </div>
+                <button class="px-4 py-1 text-c-white bg-c-black rounded-lg">Follow</button>
+            </div>`;
+    });
+  }
+
+  if (data_from_server.posts && data_from_server.posts.length) {
+    data_from_server.posts.forEach((post) => {
+      html_output += `
+            <div class="search_post d-flex flex-col mb-2 p-2 bg-c-white">
+                <p class="text-c-gray text-sm">${post.post_message}</p>
+            </div>`;
+    });
+  }
+
+  if (!html_output) {
+    html_output = "<p>No results found.</p>";
+  }
+
+  const resultsContainer = document.querySelector("#search_results");
+  resultsContainer.innerHTML = html_output;
+  resultsContainer.classList.remove("d-none");
 }
 
 // ##############################
