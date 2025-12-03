@@ -1,14 +1,13 @@
+<!-- Tweet that we want to comment on -->
+{% include "_tweet.html" %}
 
-    <!-- Tweet that we want to comment on -->
-    {% include "_tweet.html" %}
+<!-- Create comment section -->
+{% include "___comment_container.html" %}
 
-    <!-- Create comment section -->
-    {% include "___comment_container.html" %}
-    
 
-    <!-- Comments feed -->
-    <div id="comments" class="mt-4">
-        {% for comment in comments: %}
-        {% include "_comment.html" %}
-        {% endfor %}
-    </div>
+<!-- Comments feed -->
+<div id="comments" class="mt-4">
+    {% for comment in comments: %}
+    {% include "_comment.html" %}
+    {% endfor %}
+</div>
