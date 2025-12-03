@@ -1,9 +1,0 @@
-{% if comments|length == 0 %}
-<div class="no-posts">
-    <p>No comments yet</p>
-</div>
-{% else %}
-    {% for comment in comments %}
-        {% include "___comment.html" %}
-    {% endfor %}
-{% endif %}
