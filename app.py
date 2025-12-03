@@ -409,16 +409,14 @@ def home(lan = "english"):
         # Get user suggestions (exclude current user)
         q = """
             SELECT 
-            users.*,
-            CASE 
-                WHEN follows.follow_user_fk IS NOT NULL THEN 1
-                ELSE 0
-            END AS followed_by_user
-            FROM users
-            LEFT JOIN follows 
-            ON follows.followed_user_fk = users.user_pk
-            AND follows.follow_user_fk = %s
+                users.*
+            FROM users 
             WHERE users.user_pk != %s
+            AND users.user_pk NOT IN (
+                SELECT followed_user_fk
+                FROM follows
+                WHERE follow_user_fk = %s
+            )
             ORDER BY RAND()
             LIMIT 3
             """
