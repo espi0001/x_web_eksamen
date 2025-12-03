@@ -861,10 +861,15 @@ aside {
   background-color: rgba(231, 231, 231, 0.849);
   width: 100%;
   z-index: 100;
+  pointer-events: auto;
 }
 
 /* ==================== CREATE POST FORM ==================== */
-
+.post_container > article.post {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
 .post-container-wrapper {
   border-bottom: 1px solid #2f3336;
 }
@@ -987,4 +992,112 @@ aside {
 
 .search_post {
   border-top: 1px solid black;
+}
+
+/* ==================== EDIT POST PAGE ==================== */
+
+.edit-post-page {
+  max-width: 100%;
+}
+
+.edit-post-wrapper {
+  padding: 1rem;
+}
+
+.edit-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid rgb(230, 230, 230);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: rgb(29, 155, 240);
+}
+
+.char-counter {
+  font-size: 0.85rem;
+  color: rgb(110, 109, 109);
+  text-align: right;
+}
+
+.edit-media-preview {
+  margin-top: 1rem;
+}
+
+.edit-form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(230, 230, 230);
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  padding: 0.7rem 1.5rem;
+  background-color: white;
+  color: rgb(15, 15, 15);
+  border: 1px solid rgb(200, 200, 200);
+  border-radius: 2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+  background-color: rgb(240, 240, 240);
+}
+
+.btn-save {
+  padding: 0.7rem 1.5rem;
+  background-color: rgb(15, 15, 15);
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-save:hover {
+  background-color: rgb(50, 50, 50);
+}
+
+/* Edit button on tweet */
+.edit-post-btn {
+  background: none;
+  border: none;
+  color: rgb(110, 109, 109);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 50%;
+  font-size: 14px;
+  margin-left: auto;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+.edit-post-btn:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  color: #1d9bf0;
 }

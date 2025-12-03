@@ -25,6 +25,13 @@
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
                     <span class="time">1d</span>
+
+                    <!-- edit knap > vises kun på brugerens egne posts -->
+                    {% if user.user_pk == tweet.post_user_fk %}
+                    <button class="edit-post-btn" mix-get="/edit-post/{{ tweet.post_pk }}" title="Edit post">
+                        <i class="fa-solid fa-pen pointer-e-none"></i>
+                    </button>
+                    {% endif %}
                 </div>
 
                 <p class="text">{{ tweet.post_message }}</p>
@@ -75,5 +82,8 @@
                 </div>
             </div>
         </article>
+        <div>
+
+        </div>
     </div>
 </div>
