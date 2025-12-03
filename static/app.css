@@ -978,3 +978,13 @@ aside {
   object-fit: cover;
   display: block;
 }
+
+/* ==================== SEARCH ==================== */
+#search_results {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search_post {
+  border-top: 1px solid black;
+}
