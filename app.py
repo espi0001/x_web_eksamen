@@ -223,6 +223,9 @@ def login(lan = "english"):
             # Check if user exists
             if not user: 
                 raise Exception(x.lans("user_not_found"), 400) 
+            
+            if user["user_is_blocked"] == 1:
+                raise Exception(x.lans("user_is_blocked"), 400)
 
             # Verify password hash
             if not check_password_hash(user["user_password"], user_password):
@@ -392,7 +395,7 @@ def home(lan = "english"):
 
         # Add condition ONLY if user is not admin
         if not is_admin:
-            base_query += " WHERE posts.post_is_blocked = 0"
+            base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Random order + limit
         base_query += " ORDER BY RAND() LIMIT 5"
@@ -412,6 +415,7 @@ def home(lan = "english"):
                 users.*
             FROM users 
             WHERE users.user_pk != %s
+            AND users.user_is_blocked = 0
             AND users.user_pk NOT IN (
                 SELECT followed_user_fk
                 FROM follows
@@ -446,7 +450,11 @@ def home_comp():
         db, cursor = x.db()
 
         # Get likes on a post
-        q = """
+         
+        is_admin = g.user["user_admin"]
+
+        # Base query (same for everyone)
+        base_query = """
         SELECT 
             users.*,
             posts.*,
@@ -457,13 +465,18 @@ def home_comp():
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk 
-            AND likes.like_user_fk = %s
-        ORDER BY RAND()
-        LIMIT 5
+        ON likes.like_post_fk = posts.post_pk
+        AND likes.like_user_fk = %s
         """
 
-        cursor.execute(q, (g.user["user_pk"],))
+        # Add condition ONLY if user is not admin
+        if not is_admin:
+            base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
+
+        # Random order + limit
+        base_query += " ORDER BY RAND() LIMIT 5"
+
+        cursor.execute(base_query, (g.user["user_pk"],))
         tweets = cursor.fetchall()
 
         html = render_template("_home_comp.html", tweets=tweets)
@@ -1017,29 +1030,44 @@ def api_update_post(post_pk):
             raise Exception("Could not update post", 400)
         
         # Fetch updated post with user data
+        is_admin = g.user["user_admin"]
+
+        # Base query
         q = """
-        SELECT 
+            SELECT 
             users.*,
             posts.*,
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
             END AS liked_by_user
-        FROM posts
-        JOIN users ON users.user_pk = posts.post_user_fk
-        LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk 
+            FROM posts
+            JOIN users ON users.user_pk = posts.post_user_fk
+            LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk
             AND likes.like_user_fk = %s
+            """
+
+        # Add filters ONLY for non-admins
+        if not is_admin:
+            q += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
+
+        # Add ordering + limit
+        q += """
             ORDER BY 
-                CASE 
-                    WHEN posts.updated_at = (SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL) THEN 0
-                    ELSE 1
-                END,
+            CASE 
+                WHEN posts.updated_at = (
+                SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL
+                ) THEN 0
+                 ELSE 1
+            END,
             RAND()
             LIMIT 5
             """
+
         cursor.execute(q, (post_pk,))
         tweets = cursor.fetchall()
+
         
         # Send success response
         toast_ok = render_template("___toast_ok.html", message="Post updated successfully!")
