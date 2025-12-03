@@ -437,8 +437,9 @@ def home(lan = "english"):
         if "db" in locals(): db.close()
 
 
-############## HOME COMP - GET ################
+############## HOME COMP ################
 @app.get("/home-comp")
+# TODO: add translation
 def home_comp():
     try:
         if not g.user:
@@ -446,6 +447,7 @@ def home_comp():
 
         db, cursor = x.db()
 
+        # Get likes on a post
         q = """
         SELECT 
             users.*,
@@ -467,18 +469,23 @@ def home_comp():
         tweets = cursor.fetchall()
 
         html = render_template("_home_comp.html", tweets=tweets)
-        return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
+        return f"""<browser mix-update="main">{ html }</browser>"""
 
     except Exception as ex:
         ic(ex)
         return "error"
+        # TODO: better error messages
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+
+
 # -------------------- LOGOUT -------------------- #
 
 ############## LOGOUT - GET ################
+# TODO: add translation
 @app.get("/logout")
 def logout():
     try:
@@ -496,6 +503,7 @@ def logout():
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
 # Question: mangler vi language og methods?
+# TODO: add translation
 @app.get("/profile")
 def profile():
     try:
@@ -530,7 +538,7 @@ def profile():
 
 
 ############### EDIT PROFILE ###############
-# TODO: translate
+# TODO: add translation
 @app.get("/edit_profile")
 def edit_profile():
     try:
@@ -558,7 +566,7 @@ def edit_profile():
 
 
 ############## API UPDATE PROFILE ################
-# TODO: translate
+# TODO: add translation
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
@@ -622,6 +630,7 @@ def api_update_profile():
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
 @app.route('/images/avatars/<path:filename>')
+# TODO: add translation????
 def serve_image(filename):
     """
     Serves avatar images from the static/images/avatars folder
@@ -632,6 +641,7 @@ def serve_image(filename):
 
 ############################## 
 @app.template_filter('avatar')
+# TODO: add translation ???
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
@@ -654,6 +664,7 @@ def avatar_filter(avatar_path):
 
 ############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
+# TODO: add translation???
 def api_upload_avatar():
     """
     Handles avatar/profile picture upload
@@ -819,7 +830,8 @@ def api_delete_profile(lan = "english"):
 
 # -------------------- POST/TWEET -------------------- #
 
-############### API CREATE POST ###############
+############### API CREATE POST/TWEET ###############
+# TODO: add translation
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
@@ -877,7 +889,7 @@ def api_create_post():
             file.save(filepath)
             post_media_path = f"images/posts/{filename}"
         
-        # Insert post into database
+        # Insert post into DB
         db, cursor = x.db()
         q = """INSERT INTO posts VALUES(
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
@@ -982,9 +994,9 @@ def api_delete_post(post_pk):
 
 
 ############## SINGLE POST/TWEET ################
-# TODO: Translate
+# TODO: add translation
 @app.get("/single-post/<post_pk>")
-def view_singe_post(post_pk):
+def view_single_post(post_pk):
     # Check if user is logged in
     try:
         if not g.user:
@@ -1034,12 +1046,15 @@ def view_singe_post(post_pk):
         cursor.execute(q, (post_pk,))  
         comments = cursor.fetchall()
 
-        
-        single_post_html = render_template("_single_post.html", tweet=tweet, comments=comments)
+        # Manglede at sende post_pk til templaten
+        single_post_html = render_template("_single_post.html", tweet=tweet, comments=comments, post_pk=post_pk)
         return f"""<browser mix-update="main">{ single_post_html }</browser>"""
 
     except Exception as ex:
-        return "error", 500 # TODO: better error
+        
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message="Error") # TODO: lav en message der passer til error
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1047,30 +1062,60 @@ def view_singe_post(post_pk):
 
 
 ############## CREATE COMMENT ON POST/TWEET ################
-# TODO: translate
-@app.post("/api-create-comment/<post_pk>")
+# TODO: add translation
+@app.route("/api-create-comment/<post_pk>", methods=["POST"])
 def api_create_comment(post_pk):
     try:
+        # Check if user is logged in
         if not g.user:
             return "invalid user", 400
         
-        ic("FORM", request.form.to_dict())
-        # comment_message = x.validate_comment(request.form.get("comment", ""))
-        comment_raw = request.form.get("comment", "")
-        ic(comment_raw, len(comment_raw))
-        comment_message = x.validate_comment(comment_raw)
+        # Get and validate the comment from the comment form
+        # ic("FORM", request.form.to_dict())
+        # comment_raw = request.form.get("comment", "")
+        # ic(comment_raw, len(comment_raw))
+        # comment_message = x.validate_comment(comment_raw)
+        comment_message = x.validate_comment(request.form.get("comment", ""))
 
+        # Generate comment data
         comment_pk = uuid.uuid4().hex
         comment_user_fk = g.user["user_pk"]
         comment_post_fk = post_pk
         comment_is_blocked = 0
         created_at = int(time.time())
 
+        # Insert comment into DB
         db, cursor = x.db()
         q = """INSERT INTO comments VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"""
         cursor.execute(q, (comment_pk, comment_user_fk, comment_post_fk, comment_message, comment_is_blocked, created_at, None, None,),)
         db.commit()
 
+        # Prepare response
+        # toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
+        
+        comment = {
+            "comment_pk": comment_pk,
+            "user_first_name": g.user["user_first_name"],
+            "user_username": g.user["user_username"],
+            "user_avatar_path": g.user["user_avatar_path"],
+            "comment_message": comment_message,
+            "comment_is_blocked": 0,
+            "created_at": created_at
+        }
+
+        # Render templates
+        toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
+        html_comment_container = render_template("___comment_container.html", post_pk=post_pk)
+        html_comment = render_template("_comment.html", comment=comment)
+        
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-top="#comments">{html_comment}</browser>
+            <browser mix-replace="#comment_container">{html_comment_container}</browser>
+        """
+
+        # Success
+        return redirect(url_for("view_single_post", post_pk=post_pk))
         # Get all comments again, so the list will get updated
         q = """
         SELECT
@@ -1099,9 +1144,12 @@ def api_create_comment(post_pk):
 
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        ic(traceback.format_exc())
 
-        # USER ERROR (Validating from x.validate_post)
+        if "db" in locals(): 
+            db.rollback()
+
+        # USER ERROR (Validating from x.validate_comment)
         if len(ex.args) > 1 and ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
@@ -1290,7 +1338,7 @@ def view_all_user_follows():
             FROM users
             JOIN follows ON follows.followed_user_fk = users.user_pk
             WHERE follows.follow_user_fk = %s
-             """
+            """
         cursor.execute(q, (user_pk,))
         suggestions = cursor.fetchall()
 
