@@ -8,7 +8,7 @@
     <div class="post_container">
         {% if tweet.post_is_blocked %}
         <div class="blocked_post_overlay">
-            <p>{{ x.lans("this_post_is_blocked") }}</p>
+            <p>{{ lans("this_post_is_blocked") }}</p>
         </div>
         {% endif %}
 
@@ -24,7 +24,7 @@
                         {% endif %}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
-                    <span class="time">1d</span>
+                    <span class="time">1d</span> <!-- TODO: Add timestamp + translate -->
 
                     <!-- edit knap > vises kun på brugerens egne posts -->
                     {% if user.user_pk == tweet.post_user_fk %}

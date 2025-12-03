@@ -53,13 +53,12 @@
                         <i class="fa-regular fa-user"></i>
                         <span class="pointer-e-none">{{ lans("profile") }}</span>
                     </a>
-                </li>
-                <!-- TODO: Missing translation -->
+                </li> 
+                <!-- Question: hvad er Profile" til? -->
 
                 <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a></li>
 
-                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{
-                            lans("logout") }}</span></a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{ lans("logout") }}</span></a></li>
 
                 {% if user.user_admin %}
                 <li>

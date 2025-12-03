@@ -36,66 +36,58 @@
       </div>
 
       <!-- Sign up page title -->
-      <h2 id="loginTitle">{{ x.lans("sign_up_to_x") }}</h2> <!-- Should the id be different, maybe a class instead -->
+      <h2 id="loginTitle">{{ lans("sign_up_to_x") }}</h2> <!-- Should the id be different, maybe a class instead -->
       
       <!-- Login form -->
       <form class="x-dialog__form" action="/signup/{{ lan }}" mix-post autocomplete="off">
 
         <!-- Email -->
         <div>
-          <label for="user_email">{{ x.lans("email") }}</label>
+          <label for="user_email">{{ lans("email") }}</label>
           <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}">
         </div>
         
         <!-- Username -->
         <div>
-          <label for="user_username">{{ x.lans("username") }}</label>
+          <label for="user_username">{{ lans("username") }}</label>
           <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}">
-          <p class="validation_rules">{{ x.lans("your_username_must_be_between") }}  {{ x.USER_USERNAME_MIN }} {{ x.lans("to") }} {{ x.USER_USERNAME_MAX }} {{ x.lans("characters") }}</p>
+          <p class="validation_rules">{{ lans("your_username_must_be_between") }}  {{ x.USER_USERNAME_MIN }} {{ lans("to") }} {{ x.USER_USERNAME_MAX }} {{ lans("characters") }}</p>
         </div>
     
-        <div class="frm_side_by_side">
-          <!-- First name -->
-          <div>
-            <label for="user_first_name">{{ x.lans("first_name") }}</label>
-            <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}">
-            <p class="validation_rules">{{ x.lans("your_first_name_must_be_between") }} {{ x.USER_FIRST_NAME_MIN }} {{ x.lans("to") }} {{ x.USER_FIRST_NAME_MAX }} {{ x.lans("characters") }}</p>
-          </div>
-          
-          <!-- Last name --> <!-- Have not done yet -->
-          <!-- <div>
-            <label for="user_last_name">{{ x.lans("last_name") }}</label>
-            <input name="user_last_name" id="user_last_name" type="text" mix-check="{{ x.REGEX_USER_LAST_NAME }}">
-            <p class="validation_rules">{{ x.lans("your_last_name_must_be_between") }} {{ x.USER_LAST_NAME_MIN }} {{ x.lans("to") }} {{ x.USER_LAST_NAME_MAX }} {{ x.lans("characters") }}</p>
-          </div> -->
+        <!-- First name -->
+        <div>
+          <label for="user_first_name">{{ lans("first_name") }}</label>
+          <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}">
+          <p class="validation_rules">{{ lans("your_first_name_must_be_between") }} {{ x.USER_FIRST_NAME_MIN }} {{ lans("to") }} {{ x.USER_FIRST_NAME_MAX }} {{ lans("characters") }}</p>
         </div>
+
 
         <div class="frm_side_by_side">
           <!-- Password -->
           <div>
-            <label for="password">{{ x.lans("password") }}</label>              
+            <label for="password">{{ lans("password") }}</label>              
             <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
-            <p class="validation_rules">{{ x.lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ x.lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ x.lans("characters") }}</p>
+            <p class="validation_rules">{{ lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ lans("characters") }}</p>
           </div>
           
           <!-- Repeat Password --> <!-- Have not done yet -->
           <!-- <div>
-            <label for="password">Repeat {{ x.lans("password") }}</label>              
+            <label for="password">Repeat {{ lans("password") }}</label>              
             <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
-            <p class="validation_rules">{{ x.lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ x.lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ x.lans("characters") }}</p>
+            <p class="validation_rules">{{ lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ lans("characters") }}</p>
           </div> -->
         </div>
 
         <!-- Button -->
-        <button class="x-dialog__btn" mix-default="Sign up" mix-await="{{ x.lans('signing_up') }}...">
-            {{ x.lans("sign_up") }}
+        <button class="x-dialog__btn" mix-default="Sign up" mix-await="{{ lans('signing_up') }}...">
+            {{ lans("sign_up") }}
         </button>
         </form>
         
         <!-- Have an account -->
         <p class="x-dialog__alt">
-            {{ x.lans("have_an_account") }}? 
-            <a href="/login/{{ lan }}">{{ x.lans("log_in") }}</a>
+            {{ lans("have_an_account") }}? 
+            <a href="/login/{{ lan }}">{{ lans("log_in") }}</a>
         </p>
     </div>
 

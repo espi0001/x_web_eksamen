@@ -1,9 +1,9 @@
 <h1>
-    {{ x.lans("admin_panel") }}
+    {{ lans("admin_panel") }}
 </h1>
 
 <section>
-    <h2>{{ x.lans("active_users") }}</h2>
+    <h2>{{ lans("active_users") }}</h2>
     <div id="unblocked_user_list">
         {% for row in rows: %}
         {% include "_user.html" %}
@@ -11,13 +11,13 @@
     </div>
 
     <div id="blocked_user_list">
-        <h2>{{ x.lans("blocked_users") }}</h2>
+        <h2>{{ lans("blocked_users") }}</h2>
         {% for row in blocked_rows: %}
         {% include "_user.html" %}
         {% endfor %}
     </div>
 
     <form action="/get-data-from-sheet" mix-get>
-        <button type="submit" class=" px-4 py-1 text-c-white bg-c-black rounded-lg mt-10">Get dictionary</button>
+        <button type="submit" class=" px-4 py-1 text-c-white bg-c-black rounded-lg mt-10">Get dictionary</button> <!-- TODO: Translate -->
     </form>
 </section>
