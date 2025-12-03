@@ -354,6 +354,21 @@
         "danish": "Dit opslag er blevet slettet",
         "spanish": "Tu publicación ha sido eliminada"
     },
+    "post_your_reply": {
+        "english": "Post your reply",
+        "danish": "Post dit svar",
+        "spanish": "Publica tu respuesta"
+    },
+    "commenting": {
+        "english": "Commenting",
+        "danish": "Kommenterer",
+        "spanish": "Comentando"
+    },
+    "reply": {
+        "english": "Reply",
+        "danish": "Svar",
+        "spanish": "Responder"
+    },
     "search": {
         "english": "Search",
         "danish": "Søg",
