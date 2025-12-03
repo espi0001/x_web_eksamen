@@ -941,6 +941,7 @@ def api_create_post():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
 ############### API DELETE POST ###############
 # @app.route("/api-delete-post", methods=["GET", "DELETE"])
 # question: skal vi have language her??
@@ -984,12 +985,14 @@ def api_delete_post(post_pk):
 # TODO: Translate
 @app.get("/single-post/<post_pk>")
 def view_singe_post(post_pk):
+    # Check if user is logged in
     try:
         if not g.user:
-            return redirect(url_for("login"))
+            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
 
-        db, cursor = x.db()
+        db, cursor = x.db() # Question: hvorfor skal linjen være her?
 
+        # Get likes on a post
         q = """
         SELECT 
             users.*,
@@ -1005,23 +1008,111 @@ def view_singe_post(post_pk):
             AND likes.like_user_fk = %s
         WHERE posts.post_pk = %s
         """
-        cursor.execute(q, (g.user["user_pk"], post_pk))
+        cursor.execute(q, (g.user["user_pk"], post_pk,))
+        
         tweet = cursor.fetchone()
 
         if not tweet:
             return "Post not found", 404
 
-        single_post_html = render_template("_single_post.html", tweet=tweet)
+
+        # Get comments on a post
+        q = """
+        SELECT
+            comments.*,
+            users.user_first_name,
+            users.user_username,
+            users.user_avatar_path
+        FROM comments
+        JOIN users ON users.user_pk = comments.comment_user_fk
+        WHERE comments.comment_post_fk = %s
+        ORDER BY comments.created_at DESC
+        """
+
+        # ORDER BY comments.created_at DESC (means: Show the newest comments first)
+        
+        cursor.execute(q, (post_pk,))  
+        comments = cursor.fetchall()
+
+        
+        single_post_html = render_template("_single_post.html", tweet=tweet, comments=comments)
         return f"""<browser mix-update="main">{ single_post_html }</browser>"""
+
     except Exception as ex:
-        return "error", 500
+        return "error", 500 # TODO: better error
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
-############## COMMENT POST/TWEET ################
 
 
+############## CREATE COMMENT ON POST/TWEET ################
+# TODO: translate
+@app.post("/api-create-comment/<post_pk>")
+def api_create_comment(post_pk):
+    try:
+        if not g.user:
+            return "invalid user", 400
+        
+        ic("FORM", request.form.to_dict())
+        # comment_message = x.validate_comment(request.form.get("comment", ""))
+        comment_raw = request.form.get("comment", "")
+        ic(comment_raw, len(comment_raw))
+        comment_message = x.validate_comment(comment_raw)
+
+        comment_pk = uuid.uuid4().hex
+        comment_user_fk = g.user["user_pk"]
+        comment_post_fk = post_pk
+        comment_is_blocked = 0
+        created_at = int(time.time())
+
+        db, cursor = x.db()
+        q = """INSERT INTO comments VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"""
+        cursor.execute(q, (comment_pk, comment_user_fk, comment_post_fk, comment_message, comment_is_blocked, created_at, None, None,),)
+        db.commit()
+
+        # Get all comments again, so the list will get updated
+        q = """
+        SELECT
+            comments.*,
+            users.user_first_name,
+            users.user_username,
+            users.user_avatar_path
+        FROM comments
+        JOIN users ON users.user_pk = comments.comment_user_fk
+        WHERE comments.comment_post_fk = %s
+        ORDER BY comments.created_at DESC
+        """
+        # ORDER BY comments.created_at DESC (means: Show the newest comments first)
+
+        cursor.execute(q, (post_pk,))
+        comments = cursor.fetchall()
+
+        comments_html = render_template("___comments_list.html", comments=comments)
+        toast_ok = render_template("___toast_ok.html", message="Comment posted")
+
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-replace="#post-comments">{comments_html}</browser>
+            <browser mix-reset="#comment_frm"></browser> 
+        """, 200
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+
+        # USER ERROR (Validating from x.validate_post)
+        if len(ex.args) > 1 and ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
+
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message="Cannot post comment")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 

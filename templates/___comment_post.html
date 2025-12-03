@@ -1,0 +1,13 @@
+<form id="comment_frm" action="/api-create-comment/TESTPOST" method="post" mix-post mix-await="Commenting..."
+    class="post">
+    <div class="mt-2 d-flex a-items-center gap-4 w-full">
+    <img src="{{ user.user_avatar_path | avatar }}" alt="" class="max-w-8 max-h-8">
+    <div class="d-flex flex-row mt-4 a-items-center gap-4 w-full">
+        <textarea name="comment" placeholder="Post your reply" class="flex-1 comment-textarea w-full" rows="2" required></textarea>
+        
+        <button type="submit" class="btn-primary px-4 py-1 text-c-white bg-c-black rounded-lg">
+            Reply
+        </button>
+    </div>
+    </div>
+</form>
