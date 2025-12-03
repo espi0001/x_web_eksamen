@@ -1119,67 +1119,80 @@ def api_create_comment(post_pk):
 @x.no_cache
 def api_like_tweet(post_pk):
     try:
-        
-        like_user_fk = session.get("user_pk")
-        like_post_fk = post_pk
-        created_at = int(time.time())
-        
+
+        like_user_fk = session.get("user_pk")  # The user who is liking the tweet
+        like_post_fk = post_pk                 # The tweet/post being liked
+        created_at = int(time.time())         # Get the current timestamp
+
         db, cursor = x.db()
+
+        # Insert the like record in the databse
         q = "INSERT INTO likes VALUES(%s, %s, %s, %s)"
         cursor.execute(q, (like_user_fk, like_post_fk, created_at, None))
-        db.commit()
+        db.commit()  # Commit the change
 
-
+        # Fetch the post data
+        # Used to re-render the unlike button with updated state
         q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        # Render unlike button template
-        button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet )
+        # Render the unlike button HTML
+        button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet)
         return f"""
             <mixhtml mix-replace="#button_like_container_{post_pk}">
                 {button_unlike_tweet}
             </mixhtml>
         """
+
     except Exception as ex:
         ic(ex)
         return "error"
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
+
 ############## UNLIKE TWEET ################
 @app.delete("/unlike-tweet/<post_pk>")
-@x.no_cache
+@x.no_cache 
 def api_unlike_tweet(post_pk):
     try:
-        
-        like_user_fk = session.get("user_pk")
-        like_post_fk = post_pk
-        
+  
+        like_user_fk = g.user["user_pk"]  # The user who is unliking the tweet
+        like_post_fk = post_pk                 # The tweet/post being unliked
+
         db, cursor = x.db()
+
+        # Delete the like from database
         q = "DELETE FROM likes WHERE like_user_fk = %s AND like_post_fk = %s"
         cursor.execute(q, (like_user_fk, like_post_fk))
         db.commit()
 
+        # Fetch the tweet data
+        # This is used to re-render the like/unlike button with updated state
         q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        # Render unlike button template
-        button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet )
+        # Render the like button HTML
+        button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet)
         return f"""
             <mixhtml mix-replace="#button_like_container_{post_pk}">
                 {button_like_tweet}
             </mixhtml>
         """
+
     except Exception as ex:
         ic(ex)
         return "error"
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 # -------------------- FOLLOW -------------------- #
@@ -1187,26 +1200,32 @@ def api_unlike_tweet(post_pk):
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
-        
-        follow_user_fk = g.user["user_pk"]
-        followed_user_fk = user_pk
-        created_at = int(time.time())
+  
+        follow_user_fk = g.user["user_pk"]  # The user who is performing the follow
+        followed_user_fk = user_pk           # The user being followed 
+        created_at = int(time.time())         # Get the current timestamp
 
         db, cursor = x.db()
+
+        # Insert the new follow in the database
         q = "INSERT INTO follows VALUES(%s, %s, %s, %s)"
         cursor.execute(q, (follow_user_fk, followed_user_fk, created_at, None))
         db.commit()
 
+        # Fetch the followed user's info
+        # This is useful for re-rendering the follow/unfollow button dynamically
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         suggestion = cursor.fetchone()
 
+        # Render the unfollow button HTML
         button_unfollow_user_html = render_template("___button_unfollow_user.html", suggestion=suggestion)
         return f"""
         <browser mix-replace=#button_follow_user_{user_pk}>
         {button_unfollow_user_html}
         </browser>
         """
+
     except Exception as ex:
         ic(ex)
     finally:
@@ -1219,57 +1238,70 @@ def follow_user(user_pk):
 def unfollow_user(user_pk):
     try:
 
-        follow_user_fk = g.user["user_pk"]
-        followed_user_fk = user_pk
+        follow_user_fk = g.user["user_pk"]  # The user who is performing the unfollow
+        followed_user_fk = user_pk           # The user being unfollowed
 
-        db, cursor = x.db()
+        db, cursor = x.db() 
+
+        # Delete the follow from database
         q = "DELETE FROM follows WHERE follow_user_fk = %s AND followed_user_fk = %s"
         cursor.execute(q, (follow_user_fk, followed_user_fk))
-        db.commit()
-        
+        db.commit() 
+
+        # Fetch updated user data
+        # This is useful for re-rendering the follow/unfollow button dynamically
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         suggestion = cursor.fetchone()
 
+        # Render the follow/unfollow button HTML
         button_follow_user_html = render_template("___button_follow_user.html", suggestion=suggestion)
         return f"""
         <browser mix-replace=#button_follow_user_{user_pk}>
         {button_follow_user_html}
         </browser>
         """
+
     except Exception as ex:
         ic(ex)
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 ############## ALL USER FOLLOWERS ################
 @app.get("/all-user-followers")
 def view_all_user_followers():
     try:
         user_pk = g.user["user_pk"]
-
         db, cursor = x.db()
+
+        # Query to get all followers of the current user
+        # `f2` identifies users who follow the current user
+        # LEFT JOIN `f1` checks if the current user also follows them back, so the correct button (follow/unfollow) shows
+        # The CASE statement creates a "followed_by_user" flag:
+        # 1 → current user follows them
+        # 0 → current user does not follow them
         q = """
             SELECT
-            users.*,
-            CASE
-                WHEN f1.follow_user_fk IS NOT NULL THEN 1
-                ELSE 0
-            END AS followed_by_user
+                users.*,
+                CASE
+                    WHEN f1.follow_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS followed_by_user
             FROM users
             JOIN follows AS f2
-            ON f2.follow_user_fk = users.user_pk
+                ON f2.follow_user_fk = users.user_pk
             LEFT JOIN follows AS f1
-            ON f1.followed_user_fk = users.user_pk
-            AND f1.follow_user_fk = %s 
+                ON f1.followed_user_fk = users.user_pk
+                AND f1.follow_user_fk = %s 
             WHERE f2.followed_user_fk = %s
-            """
+        """
         cursor.execute(q, (user_pk, user_pk))
         suggestions = cursor.fetchall()
-        
         follower_list_html = render_template("_user_follower_list.html", suggestions=suggestions)
         return f"""<browser mix-update="main">{ follower_list_html }</browser>"""
+
     except Exception as ex:
         ic(ex)
     finally:
@@ -1277,23 +1309,34 @@ def view_all_user_followers():
         if "db" in locals(): db.close()
 
 
+
 ############## ALL USER FOLLOWS ################
 @app.get("/all-user-follows")
 def view_all_user_follows():
     try:
+        # Get the current logged-in user's primary key
         user_pk = g.user["user_pk"]
+
         db, cursor = x.db()
+
+
+        # Query to get all users that the current user follows
+        # Join `users` and `follows` tables
+        # `follows.followed_user_fk` points to the user being followed
+        # `follows.follow_user_fk` is the current logged-in user
         q = """
             SELECT users.*
             FROM users
             JOIN follows ON follows.followed_user_fk = users.user_pk
             WHERE follows.follow_user_fk = %s
-             """
+        """
         cursor.execute(q, (user_pk,))
+
         suggestions = cursor.fetchall()
 
         follows_list_html = render_template("_user_follows_list.html", suggestions=suggestions)
         return f"""<browser mix-update="main">{ follows_list_html }</browser>"""
+
     except Exception as ex:
         ic(ex)
     finally:
@@ -1307,30 +1350,54 @@ def view_all_user_follows():
 @app.post("/api-search")
 def api_search():
     try:
-        # TODO: Validate search input
+        # Get the search input from the request
         search_for = request.form.get("search_for", "")
-        if not search_for: 
-            return """empty search field""", 400
         
-        # Create SQL LIKE pattern
+        if not search_for:
+            return "empty search field", 400
+
         part_of_query = f"%{search_for}%"
-        ic(search_for)
-        
-        # Search database
-        db, cursor = x.db()
-        q = "SELECT * FROM users WHERE user_username LIKE %s"
-        cursor.execute(q, (part_of_query,))
+
+        db, cursor = x.db() 
+
+        # Look for matches in `user_username` and `user_first_name` using LIKE
+        # Look for matches in `user_bio` using FULLTEXT search in BOOLEAN MODE
+        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer"
+        q = """
+            SELECT * FROM users
+            WHERE user_username LIKE %s
+               OR user_first_name LIKE %s
+               OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
+        """
+        cursor.execute(q, (part_of_query, part_of_query, search_for + "*"))
+
         users = cursor.fetchall()
-        
-        # Return JSON response
-        return jsonify(users)
-        
+
+        # - Use FULLTEXT search on the `post_message` column in BOOLEAN MODE
+        q = """
+            SELECT * FROM posts
+            WHERE MATCH(post_message) AGAINST(%s IN BOOLEAN MODE)
+        """
+        cursor.execute(q, (search_for + "*",))
+
+        posts = cursor.fetchall()
+
+        # The JSON response will have two keys: "users" and "posts"
+        results = {
+            "users": users,
+            "posts": posts
+        }
+
+        # Return the combined results as JSON
+        return jsonify(results)
+
     except Exception as ex:
-        ic(ex)
         return str(ex)
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 
