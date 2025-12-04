@@ -378,6 +378,9 @@ def send_email(user_email, subject, template, lan="en"):
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 
         user_email=user_email
+        print(f"SENDING EMAIL TO: {user_email}")
+        ic(f"Sending to: {user_email}")
+        ic(f"Subject: {subject}")
 
         # Create email message
         message = MIMEMultipart()

@@ -167,7 +167,7 @@ def signup(lan = "english"):
             # x.send_email(user_email, "Verify your account", email_verify_account)
 
             toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
-            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>
+            return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
             """
             # Redirect to login page
