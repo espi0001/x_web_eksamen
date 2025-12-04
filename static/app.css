@@ -13,9 +13,11 @@ body {
 button {
   border: none;
   background-color: transparent;
+  cursor: pointer;
 }
 a {
   text-decoration: none;
+  cursor: pointer;
 }
 p {
   line-height: 1.4rem;
