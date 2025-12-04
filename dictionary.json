@@ -374,6 +374,36 @@
         "danish": "Svar",
         "spanish": "Responder"
     },
+    "edit_post": {
+        "english": "Edit post",
+        "danish": "Rediger opslag",
+        "spanish": "Editar publicacíon"
+    },
+    "cancel": {
+        "english": "Cancel",
+        "danish": "Annullér",
+        "spanish": "Cancelar"
+    },
+    "save_changes": {
+        "english": "Save changes",
+        "danish": "Gem ændringer",
+        "spanish": "Guardar cambios"
+    },
+    "video_not_supported": {
+        "english": "Your browser does not support the video tag",
+        "danish": "Din browser understøtter ikke video afspilning",
+        "spanish": "Tu navegador no soporta la etiqueta de video"
+    },
+    "whats_happening": {
+        "english": "What's happening?",
+        "danish": "Hvad sker der?",
+        "spanish": "¿Qué está pasando?"
+    },
+    "add_photo_or_video": {
+        "english": "Add photo or video",
+        "danish": "Tilføj foto eller video",
+        "spanish": "Agregar foto o video"
+    },
     "search": {
         "english": "Search",
         "danish": "Søg",

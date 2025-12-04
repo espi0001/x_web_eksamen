@@ -27,8 +27,10 @@
                     <span class="time">1d</span> <!-- TODO: Add timestamp + translate -->
 
                     <!-- edit knap > vises kun på brugerens egne posts -->
+                    <!-- edit knap > vises kun på brugerens egne posts -->
                     {% if user.user_pk == tweet.post_user_fk %}
-                    <button class="edit-post-btn" mix-get="/edit-post/{{ tweet.post_pk }}" title="Edit post">
+                    <button class="edit-post-btn" mix-get="/edit-post/{{ tweet.post_pk }}"
+                        title="{{ lans('edit_post') }}">
                         <i class="fa-solid fa-pen pointer-e-none"></i>
                     </button>
                     {% endif %}
@@ -48,7 +50,7 @@
                 <!-- Display video -->
                 <video controls class="post-media">
                     <source src="{{ url_for('static', filename=tweet.post_media_path) }}" type="video/{{ file_ext }}">
-                    Your browser does not support the video tag.
+                    {{ lans("video_not_supported") }}
                 </video>
                 {% endif %}
                 {% endif %}
