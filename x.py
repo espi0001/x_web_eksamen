@@ -13,10 +13,12 @@ This module contains:
 from flask import request, make_response, render_template
 from functools import wraps
 from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import smtplib # handles the connection to an email server so for us gmail
+from email.mime.multipart import MIMEMultipart # allows adding both text and attachments
+from email.mime.text import MIMEText # allows adding the email body text, in plain or HTML format
+
 import mysql.connector
-import smtplib
 import json
 import re
 import dictionary
@@ -359,7 +361,7 @@ def validate_uuid4_without_dashes(uuid4=""):
 
 
 # -------------------- SEND EMAIL --------------------
-def send_email(user_email, subject, template):
+def send_email(user_email, subject, template, lan="en"):
     """
     Send HTML email via Gmail SMTP
     
@@ -375,11 +377,15 @@ def send_email(user_email, subject, template):
         sender_email = "webdevxclone@gmail.com"
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 
+        user_email=user_email
+
         # Create email message
         message = MIMEMultipart()
         message["From"] = "X clone"
         message["To"] = user_email
         message["Subject"] = subject
+
+        # Body of the email
         message.attach(MIMEText(template, "html"))
 
         # Send email via Gmail SMTP
@@ -387,7 +393,7 @@ def send_email(user_email, subject, template):
             server.starttls()  # Upgrade to secure connection
             server.login(sender_email, password)
             server.sendmail(sender_email, user_email, message.as_string())
-        
+        print("Email sent successfully!")
         ic("Email sent successfully!")
         return "email sent"
     
