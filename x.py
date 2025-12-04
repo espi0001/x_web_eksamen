@@ -359,7 +359,7 @@ def validate_uuid4_without_dashes(uuid4=""):
 
 
 # -------------------- SEND EMAIL --------------------
-def send_email(user_email, subject, template):
+def send_email(to_email, subject, template):
     """
     Send HTML email via Gmail SMTP
     
@@ -375,18 +375,23 @@ def send_email(user_email, subject, template):
         sender_email = "webdevxclone@gmail.com"
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 
+        # Receiver email address
+        receiver_email = to_email
+
         # Create email message
         message = MIMEMultipart()
         message["From"] = "X clone"
-        message["To"] = user_email
+        message["To"] = to_email
         message["Subject"] = subject
+
+        # Body of email
         message.attach(MIMEText(template, "html"))
 
-        # Send email via Gmail SMTP
+        # Send email via Gmail SMTP server and send the email
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()  # Upgrade to secure connection
             server.login(sender_email, password)
-            server.sendmail(sender_email, user_email, message.as_string())
+            server.sendmail(sender_email, receiver_email, message.as_string())
         
         ic("Email sent successfully!")
         return "email sent"

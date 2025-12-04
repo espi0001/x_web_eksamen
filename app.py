@@ -137,7 +137,8 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            # user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            user_avatar_path = "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
             user_verification_key = uuid.uuid4().hex
             user_total_follows = 0
             user_total_followers = 0
@@ -160,11 +161,11 @@ def signup(lan = "english"):
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
 
-            x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
+            # x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
 
             # Question: skal det her være udkommenteret??
             # Uncomment when email is configured:
-            # x.send_email(user_email, "Verify your account", email_verify_account)
+            x.send_email(user_email, "Verify your account", email_verify_account)
 
 
             # Redirect to login page
@@ -179,16 +180,28 @@ def signup(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # Database duplicate entry errors
-            if "Duplicate entry" in str(ex) and user_email in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
+            # if "Duplicate entry" in str(ex) and user_email in str(ex): 
+            #     toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
+            #     return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            
+            # if "Duplicate entry" in str(ex) and user_username in str(ex): 
+            #     toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
+            #     return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            
+            # Database errors 
+            if "Duplicate entry" and user_email in str(ex): 
+                toast_error = render_template("___toast_error.html", message=f"{x.lans('email_already_registered')}") # NYT - TAGET FRA DRENGENES
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            if "Duplicate entry" and user_username in str(ex): 
+                toast_error = render_template("___toast_error.html", message=f"{x.lans('username_already_registered')}") # NYT - TAGET FRA DRENGENES
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
-            if "Duplicate entry" in str(ex) and user_username in str(ex): 
-                toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
-            
+
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            # toast_error = render_template("___toast_error.html", message="System under maintenance")
+            # return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+            # System or developer error
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}") # NYT - TAGET FRA DRENGENES
             return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
         finally:
@@ -307,8 +320,8 @@ def forgot_password(lan = "english"):
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
             
-            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
-            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            # toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
 
 
