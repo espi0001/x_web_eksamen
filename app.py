@@ -99,8 +99,16 @@ def _____USER_____(): pass
 ##############################
 
 @app.get("/")
-def view_index():
-    return render_template("index.html")
+@app.get("/<lan>")
+def view_index(lan="english"):
+# Validate language parameter
+    if lan not in x.allowed_languages: 
+        lan = "english"
+       
+       # Set default language in x module
+    x.default_language = lan
+       
+    return render_template("index.html", lan=lan)
 
 
 # -------------------- SIGNUP -------------------- #
