@@ -1562,9 +1562,12 @@ def api_search():
         # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer"
         q = """
             SELECT * FROM users
-            WHERE user_username LIKE %s
+            WHERE (
+             user_username LIKE %s
                OR user_first_name LIKE %s
                OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
+               )
+               AND user_is_blocked = 0
         """
         cursor.execute(q, (part_of_query, part_of_query, search_for + "*"))
 
