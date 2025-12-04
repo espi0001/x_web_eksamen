@@ -584,6 +584,16 @@
         "danish": "Dit opslag har overtrådt vores retningslinjer og er blevet blokeret fra X.",
         "spanish": "Tu publicación ha violado nuestras directrices y ha sido bloqueada de X."
     },
+    "post_has_been_unblocked": {
+        "english": "Your post has been unblocked from X",
+        "danish": "Dit opslag er nu tilgængeligt på X igen.",
+        "spanish": "Tu publicación ha sido desbloqueada en X."
+    },
+    "post_has_been_unblocked_text": {
+        "english": "Your post has been unblocked and is now visible on X again.",
+        "danish": "Dit opslag er blevet ophævet fra blokering og er nu synligt på X igen.",
+        "spanish": "Tu publicación ha sido desbloqueada y ahora vuelve a ser visible en X."
+    },
     "update_password": {
         "english": "Update your password",
         "danish": "Opdater din adgangskode",
