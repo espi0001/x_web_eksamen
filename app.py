@@ -99,8 +99,16 @@ def _____USER_____(): pass
 ##############################
 
 @app.get("/")
-def view_index():
-    return render_template("index.html")
+@app.get("/<lan>")
+def view_index(lan="english"):
+# Validate language parameter
+    if lan not in x.allowed_languages: 
+        lan = "english"
+       
+       # Set default language in x module
+    x.default_language = lan
+       
+    return render_template("index.html", lan=lan)
 
 
 # -------------------- SIGNUP -------------------- #
@@ -508,6 +516,7 @@ def logout():
         return "error"
     finally:
         pass
+
 
 
 
@@ -1723,10 +1732,14 @@ def admin_block_post(post_pk):
         user_email = row["user_email"]
 
         email_post_is_blocked = render_template("_email_post_is_blocked.html")
+        email_post_is_unblocked = render_template("_email_post_is_unblocked.html")
 
         # Send an email to the user
         if tweet["post_is_blocked"]:
             x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+        else:
+            x.send_email(user_email=user_email, subject="Your post has been unblocked", template=email_post_is_unblocked)
+
 
         block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
         tweet_html = render_template("_tweet.html", tweet=tweet)
