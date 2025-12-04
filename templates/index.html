@@ -33,8 +33,8 @@
     <h1 class="x-landing__title">{{ lans("happening_now") }}</h1>
     <h2 class="x-landing__subtitle">{{ lans("join_today") }}.</h2>
 
-    <a class="x-landing__btn x-landing__btn--login" href="{{ url_for('signup') }}">{{ lans("sign_up") }}</a>
-    <a class="x-landing__btn x-landing__btn--login" href="{{ url_for('login') }}">{{ lans("log_in") }}</a>
+    <a class="x-landing__btn x-landing__btn--login" href="/signup/{{ lan }}">{{ lans("sign_up") }}</a>
+    <a class="x-landing__btn x-landing__btn--login" href="/login/{{ lan }}">{{ lans("log_in") }}</a>
   </div>
 
 

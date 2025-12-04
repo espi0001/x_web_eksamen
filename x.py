@@ -20,6 +20,9 @@ import smtplib
 import json
 import re
 import dictionary
+
+import os
+
 import traceback
 from icecream import ic
 ic.configureOutput(prefix=f'----- | ', includeContext=True)
@@ -66,11 +69,16 @@ def db():
         Exception: If connection fails
     """
     try:
+        host = "webdevMESS.mysql.eu.pythonanywhere-services.com" if "PYTHONANYWHERE_DOMAIN" in os.environ else "mariadb"
+        user = "webdevMESS" if "PYTHONANYWHERE_DOMAIN" in os.environ else "root"
+        password = "Webdev2025" if "PYTHONANYWHERE_DOMAIN" in os.environ else "password"
+        database = "webdevMESS$xclone" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
+
         db = mysql.connector.connect(
-            host="mariadb",
-            user="root",  
-            password="password",
-            database="x"
+            host = host,
+            user = user,  
+            password = password,
+            database = database
         )
         cursor = db.cursor(dictionary=True)
         return db, cursor
