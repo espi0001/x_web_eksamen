@@ -273,15 +273,24 @@ def login(lan = "english"):
 # -------------------- FORGOT PASSWORD -------------------- #
 ############# FORGOT PASSWORD #################
 @app.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
+@app.route("/forgot-password/<lan>", methods=["GET", "POST"])
+def forgot_password(lan = "english"):
     try:
+        # Validate language parameter
+        if lan not in x.allowed_languages: 
+            lan = "english"
+        
+        # Set default language in x module
+        x.default_language = lan
+
+
         # GET to view the template
         if request.method == "GET":
-            return render_template("forgot_password.html")
+            return render_template("forgot_password.html", lan=lan)
         
         # POST to begin process of creating new password
         if request.method == "POST":
-            user_email = x.validate_user_email()
+            user_email = x.validate_user_email(lan)
 
             # uuid to insert on the user_password_reset
             user_password_reset_key = uuid.uuid4().hex
@@ -298,7 +307,8 @@ def forgot_password():
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
             
-            toast_ok = render_template("___toast_ok.html", message="Check your email")
+            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
 
 
@@ -382,7 +392,7 @@ def home(lan = "english"):
         
         # Get random posts with user data (JOIN)
         # TODO = Only show the posts from users / posts that are not deleted
-       
+
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
