@@ -722,7 +722,7 @@ def avatar_filter(avatar_path):
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
-        return "https://avatar.iran.liara.run/public/40"
+        return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
     
     # håndterer eksterne URLs (fra tredjeparts services)
     if avatar_path.startswith("http"):
