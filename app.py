@@ -104,10 +104,10 @@ def view_index(lan="english"):
 # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
-       
-       # Set default language in x module
+
+    # Set default language in x module
     x.default_language = lan
-       
+
     return render_template("index.html", lan=lan)
 
 
@@ -137,7 +137,7 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            user_avatar_path = "https://avatar.iran.liara.run/public/40"
+            user_avatar_path = "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
             user_verification_key = uuid.uuid4().hex
             user_total_follows = 0
             user_total_followers = 0
@@ -166,7 +166,10 @@ def signup(lan = "english"):
             # Uncomment when email is configured:
             # x.send_email(user_email, "Verify your account", email_verify_account)
 
-
+            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
+                <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
+            """
             # Redirect to login page
             return f"""<browser mix-redirect="{ url_for('login', lan=lan) }"></browser>""", 200 # Question: skal lan=lan være her??
             
@@ -194,6 +197,44 @@ def signup(lan = "english"):
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
+
+# -------------------- VERIFY ACCOUNT -------------------- #
+############## VERIFY ACCOUNT ################
+@app.route("/verify-account", methods=["GET"])
+def verify_account():
+    try:
+        # Get verification key from URL parameter
+        user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        user_verified_at = int(time.time())
+        
+        # Update user verification status
+        db, cursor = x.db()
+        q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
+        cursor.execute(q, (user_verified_at, user_verification_key))
+        db.commit()
+        
+        # Check if exactly one row was updated
+        if cursor.rowcount != 1: 
+            raise Exception("Invalid key", 400)
+        
+        return redirect(url_for('login'))
+        
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        
+        # User error (invalid key)
+        if len(ex.args) > 1 and ex.args[1] == 400: 
+            return ex.args[0], 400    
+
+        # System error
+        return "Cannot verify user"
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
 
 
 # -------------------- LOGIN -------------------- #
@@ -273,15 +314,24 @@ def login(lan = "english"):
 # -------------------- FORGOT PASSWORD -------------------- #
 ############# FORGOT PASSWORD #################
 @app.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
+@app.route("/forgot-password/<lan>", methods=["GET", "POST"])
+def forgot_password(lan = "english"):
     try:
+        # Validate language parameter
+        if lan not in x.allowed_languages: 
+            lan = "english"
+        
+        # Set default language in x module
+        x.default_language = lan
+
+
         # GET to view the template
         if request.method == "GET":
-            return render_template("forgot_password.html")
+            return render_template("forgot_password.html", lan=lan)
         
         # POST to begin process of creating new password
         if request.method == "POST":
-            user_email = x.validate_user_email()
+            user_email = x.validate_user_email(lan)
 
             # uuid to insert on the user_password_reset
             user_password_reset_key = uuid.uuid4().hex
@@ -294,11 +344,13 @@ def forgot_password():
 
             # rendering the template that the email is gonna contain
             email_forgot_password = render_template("_email_forgot_password.html", user_password_reset_key=user_password_reset_key)
-            
+            ic(email_forgot_password)
+
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
             
-            toast_ok = render_template("___toast_ok.html", message="Check your email")
+            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
 
 
@@ -382,7 +434,7 @@ def home(lan = "english"):
         
         # Get random posts with user data (JOIN)
         # TODO = Only show the posts from users / posts that are not deleted
-       
+
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -670,7 +722,7 @@ def avatar_filter(avatar_path):
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
-        return "https://avatar.iran.liara.run/public/40"
+        return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
     
     # håndterer eksterne URLs (fra tredjeparts services)
     if avatar_path.startswith("http"):
@@ -1755,42 +1807,6 @@ def admin_block_post(post_pk):
         if "db" in locals(): db.close()  
 
 
-
-# -------------------- VERIFY ACCOUNT -------------------- #
-############## VERIFY ACCOUNT ################
-@app.route("/verify-account", methods=["GET"])
-def verify_account():
-    try:
-        # Get verification key from URL parameter
-        user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        user_verified_at = int(time.time())
-        
-        # Update user verification status
-        db, cursor = x.db()
-        q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
-        cursor.execute(q, (user_verified_at, user_verification_key))
-        db.commit()
-        
-        # Check if exactly one row was updated
-        if cursor.rowcount != 1: 
-            raise Exception("Invalid key", 400)
-        
-        return redirect(url_for('login'))
-        
-    except Exception as ex:
-        ic(ex)
-        if "db" in locals(): db.rollback()
-        
-        # User error (invalid key)
-        if len(ex.args) > 1 and ex.args[1] == 400: 
-            return ex.args[0], 400    
-
-        # System error
-        return "Cannot verify user"
-
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
 
 
 

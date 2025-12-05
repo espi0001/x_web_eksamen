@@ -219,6 +219,11 @@
         "danish": "Kan ikke sende e-mail",
         "spanish": "No se puede enviar el correo"
     },
+    "check_your_email": {
+        "english": "check_your_email",
+        "danish": "Tjek din email",
+        "spanish": "Revisa tu correo"
+    },
     "click_here_to_get_verified": {
         "english": "Click here to get verified",
         "danish": "Klik her for at blive bekræftet",
