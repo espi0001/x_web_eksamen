@@ -1,6 +1,5 @@
 from crypt import methods
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory 
-# Question: Hvorfor har vi send_from_directory og hvad er det?
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
@@ -116,15 +115,13 @@ def view_index(lan="english"):
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
-    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
-    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan # Question: Skal vi have det her med = lan??
-        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
+        x.default_language = lan 
+        return render_template("signup.html", lan=lan)
 
     if request.method == "POST":
         try:
@@ -162,14 +159,10 @@ def signup(lan = "english"):
 
             x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
 
-            # Question: skal det her være udkommenteret??
-            # Uncomment when email is configured:
-            # x.send_email(user_email, "Verify your account", email_verify_account)
-
             toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
-                <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
-            """
+                <browser mix-redirect="{ url_for('login', lan=lan) }"></browser> 
+            """ 
             # Redirect to login page
             return f"""<browser mix-redirect="{ url_for('login', lan=lan) }"></browser>""", 200 # Question: skal lan=lan være her??
             
@@ -255,17 +248,18 @@ def login(lan = "english"):
         if g.user: 
             return redirect(url_for("home"))
         
-        return render_template("login.html", lan=lan) # Question: skal vi stadig have lan=lan???
+        return render_template("login.html", lan=lan)
 
     if request.method == "POST":
         try:
             # Validate user input
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
+
+            db, cursor = x.db()
             
             # Query database for user -> deleted user cannot log in
             q = "SELECT * FROM users WHERE user_email = %s"
-            db, cursor = x.db() # Question: burde den her linje ikke være over q?
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
             
@@ -574,8 +568,7 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
-# Question: mangler vi language og methods?
-# TODO: add translation
+# TODO: add translation + methods
 @app.get("/profile")
 def profile():
     try:
@@ -722,7 +715,7 @@ def avatar_filter(avatar_path):
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
-        return "https://avatar.iran.liara.run/public/40"
+        return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
     
     # håndterer eksterne URLs (fra tredjeparts services)
     if avatar_path.startswith("http"):
@@ -1210,7 +1203,7 @@ def view_single_post(post_pk):
         if not g.user:
             return "invalid user", 400 ## TODO: add a HTTP requests på de andre
 
-        db, cursor = x.db() # Question: hvorfor skal linjen være her?
+        db, cursor = x.db()
 
         # Get likes on a post
         q = """
@@ -1321,7 +1314,7 @@ def api_create_comment(post_pk):
             <browser mix-top="#comments">{html_comment}</browser>
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
         """
-
+        # TODO: Ryd op
         # Success
         return redirect(url_for("view_single_post", post_pk=post_pk))
         # Get all comments again, so the list will get updated

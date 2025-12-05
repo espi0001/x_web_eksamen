@@ -331,7 +331,6 @@ def validate_post_media():
 
 
 # -------------------- UUID VALIDATION --------------------
-# Question: Hvorfor har vi både med og uden dashes?
 def validate_uuid4(uuid4=""):
     """
     Validate UUID4 format (with dashes)
