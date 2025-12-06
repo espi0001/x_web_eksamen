@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mariadb
--- Generation Time: Dec 06, 2025 at 04:26 PM
+-- Generation Time: Dec 06, 2025 at 05:55 PM
 -- Server version: 10.6.20-MariaDB-ubu2004
 -- PHP Version: 8.2.27
 
@@ -56,9 +56,29 @@ CREATE TABLE `comments` (
 --
 
 INSERT INTO `comments` (`comment_pk`, `comment_user_fk`, `comment_post_fk`, `comment_message`, `comment_is_blocked`, `created_at`, `updated_at`, `deleted_at`) VALUES
-('89300ad38f8a4b198953e2ba7155bc20', '818473efe156464c8e0cb0d8d62ead08', 'e08c8878bf6f484b897dae4a9620a48c', 'Can\'t wait', 0, 1764883090, NULL, NULL),
-('985cdffd17504dc1831b9607d2386165', '818473efe156464c8e0cb0d8d62ead08', 'e8263488f83f407ea70b25e73d0c6154', '<333', 0, 1764884659, NULL, NULL),
-('ab6af7969a2c45afb201d3ef029874db', '818473efe156464c8e0cb0d8d62ead08', 'b35ac08bba0a4b22b4f7383de2df13d6', 'I know its the best:)', 0, 1764883028, NULL, NULL);
+('0129436018cf486184e5644d450f2d3f', '818473efe156464c8e0cb0d8d62ead08', 'aa0d9a8c8fa84a6fb921695b1a220d4f', 'Glæder mig', 0, 1765043355, NULL, NULL),
+('022cd773f2a54c9bb48feadf9f24ba17', '818473efe156464c8e0cb0d8d62ead08', 'e8263488f83f407ea70b25e73d0c6154', 'Cute billede', 0, 1765043307, NULL, NULL),
+('0bfab662ef454edfb6edc30cb05e2c8e', '818473efe156464c8e0cb0d8d62ead08', '47ceb2352e464419bfb5229776b2c9b4', 'Fedt!', 0, 1765043338, NULL, NULL),
+('c8678d89a15444a5b6ff27d97191220e', '818473efe156464c8e0cb0d8d62ead08', '83df1fe7bca74714ab9788981e93bad4', 'Mega nice', 0, 1765043347, NULL, NULL),
+('ebf0fdddf8184038863fe6eb7775616d', '818473efe156464c8e0cb0d8d62ead08', 'e08c8878bf6f484b897dae4a9620a48c', 'Yay, cant wait!', 0, 1765043325, NULL, NULL);
+
+--
+-- Triggers `comments`
+--
+DELIMITER $$
+CREATE TRIGGER `decrease_total_comments` AFTER DELETE ON `comments` FOR EACH ROW UPDATE posts
+
+SET post_total_comments = post_total_comments - 1
+
+WHERE post_pk = OLD.comment_post_fk
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `increase_total_comments` AFTER INSERT ON `comments` FOR EACH ROW UPDATE posts
+SET post_total_comments = post_total_comments + 1
+WHERE post_pk = NEW.comment_post_fk
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -154,21 +174,21 @@ CREATE TABLE `likes` (
 --
 
 INSERT INTO `likes` (`like_user_fk`, `like_post_fk`, `created_at`, `deleted_at`) VALUES
-('02fbe4716fae4533a1f393253d32e20d', 'b35ac08bba0a4b22b4f7383de2df13d6', 1764882590, NULL),
-('02fbe4716fae4533a1f393253d32e20d', 'c631b41f180d4068893259b1437d42da', 1764882586, NULL),
-('09870c3149e04741b18d48c31f84d942', '41efa351fc234646a90b134dd1898582', 1764882766, NULL),
-('0cd10bd6ed6947de91a9bc060b1f7856', 'e8263488f83f407ea70b25e73d0c6154', 1764883417, NULL),
-('6e1dc650e73543cbaefba546026c0fb4', '41efa351fc234646a90b134dd1898582', 1764882939, NULL),
-('6e1dc650e73543cbaefba546026c0fb4', '80ab298bc6d0485987eb477dd7b1cf3c', 1764882931, NULL),
-('6e1dc650e73543cbaefba546026c0fb4', '9b5127cd1b004884897d86df0c71b46a', 1764882938, NULL),
-('6e1dc650e73543cbaefba546026c0fb4', 'b35ac08bba0a4b22b4f7383de2df13d6', 1764882934, NULL),
-('6e1dc650e73543cbaefba546026c0fb4', 'e08c8878bf6f484b897dae4a9620a48c', 1764882933, NULL),
-('818473efe156464c8e0cb0d8d62ead08', '41efa351fc234646a90b134dd1898582', 1764884652, NULL),
-('818473efe156464c8e0cb0d8d62ead08', '42ef2204ef0746289d4dc16735696256', 1764883149, NULL),
-('818473efe156464c8e0cb0d8d62ead08', '80ab298bc6d0485987eb477dd7b1cf3c', 1764883015, NULL),
-('818473efe156464c8e0cb0d8d62ead08', 'b35ac08bba0a4b22b4f7383de2df13d6', 1764883020, NULL),
-('818473efe156464c8e0cb0d8d62ead08', 'c631b41f180d4068893259b1437d42da', 1764883003, NULL),
-('818473efe156464c8e0cb0d8d62ead08', 'e08c8878bf6f484b897dae4a9620a48c', 1764883004, NULL);
+('818473efe156464c8e0cb0d8d62ead08', '41efa351fc234646a90b134dd1898582', 1765043680, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '42ef2204ef0746289d4dc16735696256', 1765043654, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '47ceb2352e464419bfb5229776b2c9b4', 1765043650, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '5e5fb929a7814583b2e4e80f35fcb1fc', 1765043660, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '80ab298bc6d0485987eb477dd7b1cf3c', 1765043656, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '83df1fe7bca74714ab9788981e93bad4', 1765043667, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '956a00d53b254108a3c0b4c39b98f409', 1765043668, NULL),
+('818473efe156464c8e0cb0d8d62ead08', '9b5127cd1b004884897d86df0c71b46a', 1765043652, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'aa0d9a8c8fa84a6fb921695b1a220d4f', 1765043647, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'b35ac08bba0a4b22b4f7383de2df13d6', 1765043671, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'c539edea6058440c93ab1bd3781dde1c', 1765043677, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'c631b41f180d4068893259b1437d42da', 1765043646, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'c6aa4f460e944c37892538e447e942c0', 1765043670, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'e08c8878bf6f484b897dae4a9620a48c', 1765043658, NULL),
+('818473efe156464c8e0cb0d8d62ead08', 'e8263488f83f407ea70b25e73d0c6154', 1765043644, NULL);
 
 --
 -- Triggers `likes`
@@ -198,9 +218,9 @@ CREATE TABLE `posts` (
   `post_pk` char(32) NOT NULL,
   `post_user_fk` char(32) NOT NULL,
   `post_message` varchar(200) NOT NULL,
-  `post_total_comments` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `post_total_likes` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `post_total_bookmarks` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `post_total_comments` bigint(20) UNSIGNED NOT NULL,
+  `post_total_likes` bigint(20) UNSIGNED NOT NULL,
+  `post_total_bookmarks` bigint(20) UNSIGNED NOT NULL,
   `post_media_path` varchar(255) DEFAULT NULL,
   `post_is_blocked` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` bigint(20) UNSIGNED NOT NULL,
@@ -213,21 +233,21 @@ CREATE TABLE `posts` (
 --
 
 INSERT INTO `posts` (`post_pk`, `post_user_fk`, `post_message`, `post_total_comments`, `post_total_likes`, `post_total_bookmarks`, `post_media_path`, `post_is_blocked`, `created_at`, `updated_at`, `deleted_at`) VALUES
-('41efa351fc234646a90b134dd1898582', '09870c3149e04741b18d48c31f84d942', 'GitHub just rolled out custom Copilot agents, including the JFrog Security Agent!', 0, 3, 0, NULL, 0, 1764882715, NULL, NULL),
+('41efa351fc234646a90b134dd1898582', '09870c3149e04741b18d48c31f84d942', 'GitHub just rolled out custom Copilot agents, including the JFrog Security Agent!', 0, 1, 0, NULL, 0, 1764882715, NULL, NULL),
 ('42ef2204ef0746289d4dc16735696256', '6e1dc650e73543cbaefba546026c0fb4', 'Farewell, Penneo 💙  Hello, Trafikstyrelsen 💚', 0, 1, 0, NULL, 0, 1764882925, NULL, NULL),
-('47ceb2352e464419bfb5229776b2c9b4', 'ae1be9f69de5499fa7b4ec4d0b0433bc', 'Er du klar til et brag af en introtur med ROS DIGITAL? Så hold fast, for vi har pakket weekenden med alt det sjove!', 0, 0, 0, 'images/posts/58e348279f9d4545b65eb871cbc149d6.jpg', 0, 1764883352, NULL, NULL),
-('5e5fb929a7814583b2e4e80f35fcb1fc', '818473efe156464c8e0cb0d8d62ead08', 'Weekend very soon:))', 0, 0, 0, NULL, 0, 1764883174, NULL, NULL),
-('80ab298bc6d0485987eb477dd7b1cf3c', 'bd49ef73ba214a63b121e472a88fdc51', 'KEA + Cphbusiness = EK 🥳', 0, 2, 0, NULL, 0, 1764881773, 1764881844, NULL),
-('83df1fe7bca74714ab9788981e93bad4', 'ae1be9f69de5499fa7b4ec4d0b0433bc', '✨Profil for tutorerne på EK DIGITAL✨', 0, 0, 0, NULL, 0, 1764883205, NULL, NULL),
-('956a00d53b254108a3c0b4c39b98f409', '818473efe156464c8e0cb0d8d62ead08', 'Det lørdag i dag:)', 0, 0, 0, NULL, 0, 1765038307, NULL, NULL),
+('47ceb2352e464419bfb5229776b2c9b4', 'ae1be9f69de5499fa7b4ec4d0b0433bc', 'Er du klar til et brag af en introtur med ROS DIGITAL? Så hold fast, for vi har pakket weekenden med alt det sjove!', 1, 1, 0, 'images/posts/58e348279f9d4545b65eb871cbc149d6.jpg', 0, 1764883352, NULL, NULL),
+('5e5fb929a7814583b2e4e80f35fcb1fc', '818473efe156464c8e0cb0d8d62ead08', 'Weekend very soon:))', 0, 1, 0, NULL, 0, 1764883174, NULL, NULL),
+('80ab298bc6d0485987eb477dd7b1cf3c', 'bd49ef73ba214a63b121e472a88fdc51', 'KEA + Cphbusiness = EK 🥳', 0, 1, 0, NULL, 0, 1764881773, 1764881844, NULL),
+('83df1fe7bca74714ab9788981e93bad4', 'ae1be9f69de5499fa7b4ec4d0b0433bc', '✨Profil for tutorerne på EK DIGITAL✨', 1, 1, 0, NULL, 0, 1764883205, NULL, NULL),
+('956a00d53b254108a3c0b4c39b98f409', '818473efe156464c8e0cb0d8d62ead08', 'Det lørdag i dag:)', 0, 1, 0, NULL, 0, 1765038307, NULL, NULL),
 ('9b5127cd1b004884897d86df0c71b46a', '09870c3149e04741b18d48c31f84d942', 'This gives devs instant security checks, dependency insights, and fix suggestions inside their coding flow. ✅', 0, 1, 0, 'images/posts/800d53b62f86483c9e8bfe612e9e139a.jpeg', 0, 1764882747, 1764882760, NULL),
-('aa0d9a8c8fa84a6fb921695b1a220d4f', 'ae1be9f69de5499fa7b4ec4d0b0433bc', 'EK Digital Beerpong turnering til introfest – kun for nye studerende!', 0, 0, 0, 'images/posts/9d75974d238744b195a47214d0d7e8d5.jpg', 0, 1764883239, NULL, NULL),
-('b35ac08bba0a4b22b4f7383de2df13d6', 'f61f544c01ec4bfe9870a2f4a549c82b', 'My favorite group name is 100% MESS', 0, 3, 0, NULL, 0, 1764882376, NULL, NULL),
-('c539edea6058440c93ab1bd3781dde1c', '02fbe4716fae4533a1f393253d32e20d', 'UX is the best!', 0, 0, 0, NULL, 0, 1764882569, NULL, NULL),
-('c631b41f180d4068893259b1437d42da', 'bd49ef73ba214a63b121e472a88fdc51', 'EK - Erhvervsakademi København er Danmarks største erhvervsakademi med 20.000 studerende.', 0, 2, 0, 'images/posts/25abcb3763a04ee181ba8dd90903a18e.jpg', 0, 1764881878, 1764881901, NULL),
+('aa0d9a8c8fa84a6fb921695b1a220d4f', 'ae1be9f69de5499fa7b4ec4d0b0433bc', 'EK Digital Beerpong turnering til introfest – kun for nye studerende!', 1, 1, 0, 'images/posts/9d75974d238744b195a47214d0d7e8d5.jpg', 0, 1764883239, NULL, NULL),
+('b35ac08bba0a4b22b4f7383de2df13d6', 'f61f544c01ec4bfe9870a2f4a549c82b', 'My favorite group name is 100% MESS', 0, 1, 0, NULL, 0, 1764882376, NULL, NULL),
+('c539edea6058440c93ab1bd3781dde1c', '02fbe4716fae4533a1f393253d32e20d', 'UX is the best!', 0, 1, 0, NULL, 0, 1764882569, NULL, NULL),
+('c631b41f180d4068893259b1437d42da', 'bd49ef73ba214a63b121e472a88fdc51', 'EK - Erhvervsakademi København er Danmarks største erhvervsakademi med 20.000 studerende.', 0, 1, 0, 'images/posts/25abcb3763a04ee181ba8dd90903a18e.jpg', 0, 1764881878, 1764881901, NULL),
 ('c6aa4f460e944c37892538e447e942c0', '8f234d16daf24cb19243d18e1183f4c1', 'Post 8 - helllo', 0, 1, 0, '', 0, 0, 0, 0),
-('e08c8878bf6f484b897dae4a9620a48c', 'f61f544c01ec4bfe9870a2f4a549c82b', 'My elective next year is PHP! Its the best!', 0, 2, 0, NULL, 0, 1764882430, NULL, NULL),
-('e8263488f83f407ea70b25e73d0c6154', 'ae1be9f69de5499fa7b4ec4d0b0433bc', '🎉 Nedtællingen er officielt i gang! Vi har haft vores første vejledermøde med en masse nye ansigter, og vi er så småt begyndt at planlægge intro til foråret 2025!🌟', 0, 1, 0, 'images/posts/adfcf7a3858d43f18744f7d967060215.jpg', 0, 1764883305, NULL, NULL);
+('e08c8878bf6f484b897dae4a9620a48c', 'f61f544c01ec4bfe9870a2f4a549c82b', 'My elective next year is PHP! Its the best!', 1, 1, 0, NULL, 0, 1764882430, NULL, NULL),
+('e8263488f83f407ea70b25e73d0c6154', 'ae1be9f69de5499fa7b4ec4d0b0433bc', '🎉 Nedtællingen er officielt i gang! Vi har haft vores første vejledermøde med en masse nye ansigter, og vi er så småt begyndt at planlægge intro til foråret 2025!🌟', 1, 1, 0, 'images/posts/adfcf7a3858d43f18744f7d967060215.jpg', 0, 1764883305, NULL, NULL);
 
 -- --------------------------------------------------------
 
