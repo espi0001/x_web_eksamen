@@ -39,9 +39,9 @@
         "danish": "Brugernavn",
         "spanish": "Nombre de usuario"
     },
-    "first_name": {
-        "english": "First name",
-        "danish": "Fornavn",
+    "name": {
+        "english": "Name",
+        "danish": "Navn",
         "spanish": "Nombre"
     },
     "last_name": {
@@ -59,9 +59,9 @@
         "danish": "Dit brugernavn skal være mellem",
         "spanish": "Tu nombre de usuario debe estar entre"
     },
-    "your_first_name_must_be_between": {
-        "english": "Your first name must be between",
-        "danish": "Dit fornavn skal være mellem",
+    "your_name_must_be_between": {
+        "english": "Your name must be between",
+        "danish": "Dit navn skal være mellem",
         "spanish": "Tu nombre debe estar entre"
     },
     "your_last_name_must_be_between": {

@@ -132,7 +132,7 @@ def signup(lan = "english"):
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
             user_username = x.validate_user_username(lan)
-            user_first_name = x.validate_user_first_name(lan)
+            user_name = x.validate_user_name(lan)
 
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
@@ -149,10 +149,10 @@ def signup(lan = "english"):
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             # All the values that has NULL in the DB is now None here
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_first_name, None, None, user_avatar_path, 
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_name, None, user_avatar_path, 
             user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
@@ -510,7 +510,7 @@ def home_comp():
         db, cursor = x.db()
 
         # Get likes on a post
-         
+        
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -589,7 +589,7 @@ def profile():
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
         q = """
-        SELECT posts.*, users.user_username, users.user_first_name, users.user_last_name, users.user_avatar_path
+        SELECT posts.*, users.user_username, users.user_name, users.user_avatar_path
         FROM posts
         JOIN users ON posts.post_user_fk = users.user_pk
         WHERE posts.post_user_fk = %s
@@ -652,22 +652,22 @@ def api_update_profile():
         # Validate inputs
         user_email = x.validate_user_email()
         user_username = x.validate_user_username()
-        user_first_name = x.validate_user_first_name()
+        user_name = x.validate_user_name()
 
         # timestamp for when the profile updates
         updated_at = int(time.time())
 
         # Update database
-        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, updated_at = %s WHERE user_pk = %s"
+        q = "UPDATE users SET user_email = %s, user_username = %s, user_name = %s, updated_at = %s WHERE user_pk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_first_name, updated_at, g.user["user_pk"]))
+        cursor.execute(q, (user_email, user_username, user_name, updated_at, g.user["user_pk"]))
         db.commit()
 
         # Send success response
         toast_ok = render_template("___toast_ok.html", message="Profile updated successfully")
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-update="#profile_tag .name">{user_first_name}</browser>
+            <browser mix-update="#profile_tag .name">{user_name}</browser>
             <browser mix-update="#profile_tag .handle">@{user_username}</browser>
         """, 200
         
@@ -717,8 +717,8 @@ def serve_image(filename):
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
-   - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
-   - Ingen kompliceret if/else logik i templates
+    - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
+    - Ingen kompliceret if/else logik i templates
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
@@ -978,8 +978,7 @@ def api_create_post():
         
         tweet = {
             "post_pk": post_pk,
-            "user_first_name": g.user["user_first_name"],
-            "user_last_name": g.user["user_last_name"],
+            "user_name": g.user["user_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "post_message": post_message,
@@ -1057,6 +1056,8 @@ def edit_post(post_pk):
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+
 ############### API EDIT POST - POST ############### 
 @app.route("/api-update-post/<post_pk>", methods=["POST"])
 def api_update_post(post_pk):
@@ -1120,7 +1121,7 @@ def api_update_post(post_pk):
                 WHEN posts.updated_at = (
                 SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL
                 ) THEN 0
-                 ELSE 1
+                ELSE 1
             END,
             RAND()
             LIMIT 5
@@ -1158,9 +1159,8 @@ def api_update_post(post_pk):
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-   
 
-    
+
 
 
 ############### API DELETE POST ###############
@@ -1199,6 +1199,7 @@ def api_delete_post(post_pk):
     finally: 
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 ############## SINGLE POST/TWEET ################
@@ -1240,7 +1241,7 @@ def view_single_post(post_pk):
         q = """
         SELECT
             comments.*,
-            users.user_first_name,
+            users.user_name,
             users.user_username,
             users.user_avatar_path
         FROM comments
@@ -1303,7 +1304,7 @@ def api_create_comment(post_pk):
         
         comment = {
             "comment_pk": comment_pk,
-            "user_first_name": g.user["user_first_name"],
+            "user_name": g.user["user_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "comment_message": comment_message,
@@ -1328,7 +1329,7 @@ def api_create_comment(post_pk):
         q = """
         SELECT
             comments.*,
-            users.user_first_name,
+            users.user_name,
             users.user_username,
             users.user_avatar_path
         FROM comments
@@ -1418,7 +1419,6 @@ def api_like_tweet(post_pk):
 @x.no_cache 
 def api_unlike_tweet(post_pk):
     try:
-  
         like_user_fk = g.user["user_pk"]  # The user who is unliking the tweet
         like_post_fk = post_pk                 # The tweet/post being unliked
 
@@ -1458,7 +1458,6 @@ def api_unlike_tweet(post_pk):
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
-  
         follow_user_fk = g.user["user_pk"]  # The user who is performing the follow
         followed_user_fk = user_pk           # The user being followed 
         created_at = int(time.time())         # Get the current timestamp
@@ -1618,14 +1617,14 @@ def api_search():
 
         db, cursor = x.db() 
 
-        # Look for matches in `user_username` and `user_first_name` using LIKE
+        # Look for matches in `user_username` and `user_name` using LIKE
         # Look for matches in `user_bio` using FULLTEXT search in BOOLEAN MODE
         # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer"
         q = """
             SELECT * FROM users
             WHERE (
              user_username LIKE %s
-               OR user_first_name LIKE %s
+               OR user_name LIKE %s
                OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
                )
                AND user_is_blocked = 0
@@ -1658,10 +1657,6 @@ def api_search():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
-
-
-
 
 
 
@@ -1752,6 +1747,7 @@ def admin_block_user(user_pk):
         if "db" in locals(): db.close()
 
 
+
 ############# ADMIN-BLOCK-POST #################
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
@@ -1764,8 +1760,7 @@ def admin_block_post(post_pk):
         # SQL query to fetch a specific post along with data on the user who created the post.
         q = """SELECT 
         posts.*,
-        users.user_first_name,
-        users.user_last_name,
+        users.user_name,
         users.user_username,
         users.user_avatar_path
         FROM posts

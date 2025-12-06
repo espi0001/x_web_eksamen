@@ -136,10 +136,10 @@ USER_USERNAME_MIN = 2
 USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
 
-# First name
-USER_FIRST_NAME_MIN = 2
-USER_FIRST_NAME_MAX = 20
-REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
+# Name
+USER_NAME_MIN = 2
+USER_NAME_MAX = 50
+REGEX_USER_NAME = f"^.{{{USER_NAME_MIN},{USER_NAME_MAX}}}$"
 
 # Password
 USER_PASSWORD_MIN = 6
@@ -184,16 +184,16 @@ def validate_user_username(lan="en"):
         raise Exception(error, 400)
     return user_username
 
-# Firs name
-def validate_user_first_name(lan="en"):
+# Name
+def validate_user_name(lan="en"):
     """
-    Validate first name from form input
+    Validate name from form input
     """
-    user_first_name = request.form.get("user_first_name", "").strip()
-    error = f"first name min {USER_FIRST_NAME_MIN} max {USER_FIRST_NAME_MAX} characters"
-    if not re.match(REGEX_USER_FIRST_NAME, user_first_name): 
+    user_name = request.form.get("user_name", "").strip()
+    error = f"name min {USER_NAME_MIN} max {USER_NAME_MAX} characters"
+    if not re.match(REGEX_USER_NAME, user_name): 
         raise Exception(error, 400)
-    return user_first_name
+    return user_name
 
 # password
 def validate_user_password(lan="en"):

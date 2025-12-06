@@ -18,10 +18,7 @@
             <div class="post-content">
                 <div class="post-header">
                     <span class="name">
-                        {{ tweet.user_first_name }}
-                        {% if tweet.user_last_name %}
-                        {{ tweet.user_last_name }}
-                        {% endif %}
+                        {{ tweet.user_name }}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
                     <span class="time">1d</span> <!-- TODO: Add timestamp + translate -->

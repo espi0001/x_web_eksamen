@@ -54,11 +54,11 @@
           <p class="validation_rules">{{ lans("your_username_must_be_between") }}  {{ x.USER_USERNAME_MIN }} {{ lans("to") }} {{ x.USER_USERNAME_MAX }} {{ lans("characters") }}</p>
         </div>
     
-        <!-- First name -->
+        <!-- Name -->
         <div>
-          <label for="user_first_name">{{ lans("first_name") }}</label>
-          <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}">
-          <p class="validation_rules">{{ lans("your_first_name_must_be_between") }} {{ x.USER_FIRST_NAME_MIN }} {{ lans("to") }} {{ x.USER_FIRST_NAME_MAX }} {{ lans("characters") }}</p>
+          <label for="user_name">{{ lans("name") }}</label>
+          <input name="user_name" id="user_name" type="text" mix-check="{{ x.REGEX_USER_NAME }}">
+          <p class="validation_rules">{{ lans("your_name_must_be_between") }} {{ x.USER_NAME_MIN }} {{ lans("to") }} {{ x.USER_NAME_MAX }} {{ lans("characters") }}</p>
         </div>
 
 
