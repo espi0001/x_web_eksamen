@@ -44,11 +44,6 @@
         "danish": "Navn",
         "spanish": "Nombre"
     },
-    "last_name": {
-        "english": "Last name",
-        "danish": "Efternavn",
-        "spanish": "Apellido"
-    },
     "password": {
         "english": "Password",
         "danish": "Adgangskode",
@@ -63,11 +58,6 @@
         "english": "Your name must be between",
         "danish": "Dit navn skal være mellem",
         "spanish": "Tu nombre debe estar entre"
-    },
-    "your_last_name_must_be_between": {
-        "english": "Your last name must be between",
-        "danish": "Dit efternavn skal være mellem",
-        "spanish": "Tu apellido debe estar entre"
     },
     "your_password_must_be_between": {
         "english": "Your password must be between",
