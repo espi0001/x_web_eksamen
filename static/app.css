@@ -986,6 +986,19 @@ aside {
   display: block;
 }
 
+.fa-bookmark, .fa-comment, .fa-heart {
+  color:rgb(110, 109, 109);
+}
+
+span.comment,
+button.bookmark,
+button.like {
+  color:rgb(110, 109, 109);
+}
+span.comment >a {
+  color:rgb(110, 109, 109);
+}
+
 /* ==================== SEARCH ==================== */
 #search_results {
   max-height: 300px;

@@ -433,7 +433,6 @@ def home(lan = "english"):
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
-        # TODO = Only show the posts from users / posts that are not deleted
 
         is_admin = g.user["user_admin"]
 
@@ -445,13 +444,21 @@ def home(lan = "english"):
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-        ON likes.like_post_fk = posts.post_pk
-        AND likes.like_user_fk = %s
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         """
+
 
         # Add condition ONLY if user is not admin
         if not is_admin:
@@ -460,7 +467,8 @@ def home(lan = "english"):
         # Random order + limit
         base_query += " ORDER BY RAND() LIMIT 5"
 
-        cursor.execute(base_query, (g.user["user_pk"],))
+        # Pass user_pk TWICE (once for likes, once for bookmarks)
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
         tweets = cursor.fetchall()
 
         # Get random trends
@@ -499,6 +507,7 @@ def home(lan = "english"):
         if "db" in locals(): db.close()
 
 
+
 ############## HOME COMP ################
 @app.get("/home-comp")
 # TODO: add translation
@@ -509,7 +518,6 @@ def home_comp():
 
         db, cursor = x.db()
 
-        # Get likes on a post
         
         is_admin = g.user["user_admin"]
 
@@ -521,13 +529,21 @@ def home_comp():
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-        ON likes.like_post_fk = posts.post_pk
-        AND likes.like_user_fk = %s
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         """
+
 
         # Add condition ONLY if user is not admin
         if not is_admin:
@@ -536,7 +552,7 @@ def home_comp():
         # Random order + limit
         base_query += " ORDER BY RAND() LIMIT 5"
 
-        cursor.execute(base_query, (g.user["user_pk"],))
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
 
         html = render_template("_home_comp.html", tweets=tweets)
@@ -583,20 +599,43 @@ def profile():
         if not g.user: 
             return "error" # Question: mangler den end http code? f.eks. 400??
         
+        db, cursor = x.db()
+
+
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
-        db, cursor = x.db()
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
+
         q = """
-        SELECT posts.*, users.user_username, users.user_name, users.user_avatar_path
-        FROM posts
-        JOIN users ON posts.post_user_fk = users.user_pk
+        SELECT 
+            posts.*,                    -- All from posts-table
+            users.user_username,        -- Users username
+            users.user_name,            -- User name
+            users.user_avatar_path,     -- User avartar
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
+                ELSE 0                                          -- You have not likes
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
+                ELSE 0                                              -- You have not likes
+            END AS bookmarked_by_user
+        FROM posts                                                  -- start with posts table
+        JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk           -- Match post pk
+            AND likes.like_user_fk = %s                     -- Match the users pk
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
+            AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
         WHERE posts.post_user_fk = %s
         ORDER BY posts.created_at DESC
         """
-        cursor.execute(q, (g.user["user_pk"],))
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
+                                #1 for likes     #2 for bookmarks  #3 for WHERE
         posts = cursor.fetchall()
+
         # Render profile template
         profile_html = render_template("_profile.html", row=row, posts=posts)
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
@@ -1213,7 +1252,7 @@ def view_single_post(post_pk):
 
         db, cursor = x.db() # Question: hvorfor skal linjen være her?
 
-        # Get likes on a post
+        # Get likes + bookmarks on a post
         q = """
         SELECT 
             users.*,
@@ -1221,15 +1260,23 @@ def view_single_post(post_pk):
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
             ON likes.like_post_fk = posts.post_pk 
             AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         WHERE posts.post_pk = %s
         """
-        cursor.execute(q, (g.user["user_pk"], post_pk,))
+
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], post_pk))
         
         tweet = cursor.fetchone()
 
@@ -1375,7 +1422,7 @@ def api_create_comment(post_pk):
 def api_like_tweet(post_pk):
     try:
 
-        like_user_fk = session.get("user_pk")  # The user who is liking the tweet
+        like_user_fk = g.user["user_pk"]  # The user who is liking the tweet
         like_post_fk = post_pk                 # The tweet/post being liked
         created_at = int(time.time())         # Get the current timestamp
 
@@ -1442,6 +1489,94 @@ def api_unlike_tweet(post_pk):
     except Exception as ex:
         ic(ex)
         return "error"
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## BOOKMARK POST/TWEET ################
+@app.patch("/bookmark-tweet/<post_pk>")
+@x.no_cache
+def api_bookmark_tweet(post_pk):
+    try:
+        if not g.user:
+            return "invalid user", 400
+
+        
+        
+        bookmark_user_fk = g.user["user_pk"]    # The user who is bookmarking the tweet
+        bookmark_post_fk = post_pk              # The tweet/post being bookmarked
+        created_at = int(time.time())           # Get the current timestamp
+
+        db, cursor = x.db()
+
+        # Insert the bookmark record in the databse
+        q = "INSERT INTO bookmarks VALUES(%s, %s, %s, %s)"
+        cursor.execute(q, (bookmark_user_fk, bookmark_post_fk, created_at, None))
+        db.commit()  # Commit the change
+
+        # Fetch the post data
+        # Used to re-render the unbookmark button with updated state
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        # Render the unbookmark button HTML
+        button_unbookmark_tweet = render_template("___button_unbookmark_tweet.html", tweet=tweet)
+        return f"""
+            <browser mix-replace="#button_bookmark_container_{post_pk}">
+                {button_unbookmark_tweet}
+            </browser>
+        """
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
+############## UNBOOKMARK TWEET ################
+@app.delete("/unbookmark-tweet/<post_pk>")
+@x.no_cache 
+def api_unbookmark_tweet(post_pk):
+    try:
+        if not g.user:
+            return "invalid user", 400
+
+        bookmark_user_fk = g.user["user_pk"]  # The user who is unbookmarking the tweet
+        bookmark_post_fk = post_pk                 # The tweet/post being unbookmarkd
+
+        db, cursor = x.db()
+
+        # Delete the bookmark from database
+        q = "DELETE FROM bookmarks WHERE bookmark_user_fk = %s AND bookmark_post_fk = %s"
+        cursor.execute(q, (bookmark_user_fk, bookmark_post_fk))
+        db.commit()
+
+        # Fetch the tweet data
+        # This is used to re-render the bookmark/unbookmark button with updated state
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        # Render the bookmark button HTML
+        button_bookmark_tweet = render_template("___button_bookmark_tweet.html", tweet=tweet)
+        return f"""
+            <browser mix-replace="#button_bookmark_container_{post_pk}">
+                {button_bookmark_tweet}
+            </browser>
+        """
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
