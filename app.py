@@ -602,42 +602,72 @@ def profile():
         db, cursor = x.db()
 
 
-        # Fetch fresh user data from database
+        # Fetch user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
 
-        q = """
-        SELECT 
-            posts.*,                    -- All from posts-table
-            users.user_username,        -- Users username
-            users.user_name,            -- User name
-            users.user_avatar_path,     -- User avartar
-            CASE 
-                WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
-                ELSE 0                                          -- You have not likes
-            END AS liked_by_user,
-            CASE 
-                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
-                ELSE 0                                              -- You have not likes
-            END AS bookmarked_by_user
-        FROM posts                                                  -- start with posts table
-        JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
-        LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk           -- Match post pk
-            AND likes.like_user_fk = %s                     -- Match the users pk
-        LEFT JOIN bookmarks
-            ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
-            AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
-        WHERE posts.post_user_fk = %s
-        ORDER BY posts.created_at DESC
-        """
-        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
-                                #1 for likes     #2 for bookmarks  #3 for WHERE
+        # Check which tab is active (default is "posts")
+        active_tab = request.args.get("tab", "posts")
+        
+        # Fetch posts based on active tab
+        if active_tab == "bookmarks":
+            # Get bookmarked posts
+            q = """
+            SELECT 
+                posts.*,
+                users.user_username,
+                users.user_name,
+                users.user_avatar_path,
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS liked_by_user,
+                1 AS bookmarked_by_user
+            FROM posts
+            JOIN users ON posts.post_user_fk = users.user_pk
+            JOIN bookmarks ON bookmarks.bookmark_post_fk = posts.post_pk
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk
+                AND likes.like_user_fk = %s
+            WHERE bookmarks.bookmark_user_fk = %s
+            ORDER BY bookmarks.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"]))
+        else:
+            # Get user's own posts (default tab)
+            q = """
+            SELECT 
+                posts.*,                    -- All from posts-table
+                users.user_username,        -- Users username
+                users.user_name,            -- User name
+                users.user_avatar_path,     -- User avartar
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
+                    ELSE 0                                          -- You have not likes
+                END AS liked_by_user,
+                CASE 
+                    WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
+                    ELSE 0                                              -- You have not likes
+                END AS bookmarked_by_user
+            FROM posts                                                  -- start with posts table
+            JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk           -- Match post pk
+                AND likes.like_user_fk = %s                     -- Match the users pk
+            LEFT JOIN bookmarks
+                ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
+                AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
+            WHERE posts.post_user_fk = %s
+            ORDER BY posts.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
+                            #1 for likes     #2 for bookmarks  #3 for WHERE
+        
         posts = cursor.fetchall()
 
         # Render profile template
-        profile_html = render_template("_profile.html", row=row, posts=posts)
+        profile_html = render_template("_profile.html", row=row, posts=posts, active_tab=active_tab)
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
         
     except Exception as ex:
@@ -1034,6 +1064,7 @@ def api_get_bookmarks():
         cursor.execute(q, (user_pk, user_pk))
         posts = cursor.fetchall()
 
+
         # Render just the posts list
         if posts:
             posts_html = ""
@@ -1056,6 +1087,7 @@ def api_get_bookmarks():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 # -------------------- POST/TWEET -------------------- #

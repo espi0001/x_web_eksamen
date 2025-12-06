@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/mojocss"></script>
 
     <title>
-        Fresh news
+        {{ lans("fresh_news") }}
     </title>
 </head>
 
@@ -42,7 +42,7 @@
                 <li><a href="#"><i class="fa-regular fa-bell"></i><span>{{ lans("notifications") }}</span></a></li>
                 <li><a href="#"><i class="fa-regular fa-envelope"></i><span>{{ lans("messages") }}</span></a></li>
                 <li><a href="#"><i class="fa-solid fa-atom"></i><span>{{ lans("grok") }}</span></a></li>
-                <li><a href="#"><i class="fa-regular fa-bookmark"></i><span>{{ lans("bookmarks") }}</span></a></li>
+                <li><a href="/profile?tab=bookmarks" mix-get><i class="fa-regular fa-bookmark"></i><span>{{ lans("bookmarks") }}</span></a></li>
                 <li><a href="#"><i class="fa-solid fa-briefcase"></i><span>{{ lans("jobs") }}</span></a></li>
                 <li><a href="#"><i class="fa-solid fa-users"></i><span>{{ lans("communities") }}</span></a></li>
                 <li><a href="#"><i class="fa-solid fa-star"></i><span>{{ lans("premium") }}</span></a></li>

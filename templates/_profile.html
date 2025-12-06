@@ -1,4 +1,5 @@
 <div class="profile-container">
+    <!-- Header with back-button -->
     <div class="profile-header">
         <a href="/home-comp" mix-get>
             <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
@@ -8,8 +9,13 @@
             <p class="post-count">{{ posts|length }} {{ lans("posts") }}</p>
         </div>
     </div>
+
+
+    <!-- Banner -->
     <div class="profile-banner"></div>
 
+
+    <!-- Avatar -->
     <div class="profile-avatar-wrapper">
         <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar" class="profile-avatar">
     </div>
@@ -22,6 +28,7 @@
         </a>
     </div>
 
+    <!-- Name, bio, stats -->
     <div class="profile-names">
         <div class="profile-name">{{ user.user_name }}</div>
         <div class="profile-username">@{{ user.user_username }}</div>
@@ -50,12 +57,12 @@
         </div>
     </div>
 
-    <!-- Tabs with MIX -->
+    <!-- TABS -->
     <div class="profile-tabs">
-        <button class="tab-btn active" mix-get="/api-get-users-posts">
+        <button class="tab-btn {% if active_tab != 'bookmarks' %}active{% endif %}" mix-get="/api-get-users-posts">
             {{ lans("posts") }}
         </button>
-        <button class="tab-btn" mix-get="/api-get-bookmarks">
+        <button class="tab-btn {% if active_tab == 'bookmarks' %}active{% endif %}" mix-get="/api-get-bookmarks">
             {{ lans("bookmarks") }}
         </button>
         <button class="tab-btn">
