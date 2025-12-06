@@ -941,6 +941,8 @@ def api_create_post():
         
         # Generate post data
         post_pk = uuid.uuid4().hex
+        post_total_comments = 0
+        post_total_likes = 0
         post_total_bookmarks = 0
         post_is_blocked = 0
         created_at = int(time.time())
@@ -965,8 +967,8 @@ def api_create_post():
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
         cursor.execute(q, (
-            post_pk, user_pk, post_message, None, 
-            None, post_total_bookmarks, post_media_path, 
+            post_pk, user_pk, post_message, post_total_comments, 
+            post_total_likes, post_total_bookmarks, post_media_path, 
             post_is_blocked, created_at, None, None
         ))
         db.commit()
@@ -982,6 +984,8 @@ def api_create_post():
             "post_message": post_message,
             "post_media_path": post_media_path,
             "post_is_blocked": 0,
+            "post_total_likes": 0,
+            "post_total_comments": 0,
         }
         
         html_post_container = render_template("___post_container.html")
