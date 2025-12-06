@@ -179,20 +179,20 @@ def signup(lan = "english"):
             # User validation errors
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # System or developer error
             toast_error = render_template("___toast_error.html", message="System under maintenance")
-            return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
@@ -298,7 +298,7 @@ def login(lan = "english"):
             # User errors (validation, wrong password, etc.)
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
 
             # System or developer error (database down, etc.)
             toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance"))
@@ -464,18 +464,30 @@ def home(lan = "english"):
         if not is_admin:
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
-        # Random order + limit
-        base_query += " ORDER BY RAND() LIMIT 5"
+        # Random order + limit (get 6 posts, show 5, use 6 to check if there is more posts)
+        # base_query += " ORDER BY RAND() LIMIT 6"
+        base_query += " ORDER BY posts.created_at DESC LIMIT 6"
+
 
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
-        tweets = cursor.fetchall()
+        all_tweets = cursor.fetchall()
+
+
+        # Show only the first 5 posts
+        tweets = all_tweets[:5]
+
+        # If there is 6 posts is there more to show
+        # has_more = len(all_tweets) == 6
+        next_page = 1 # start pagination
+
 
         # Get random trends
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)
         trends = cursor.fetchall()
         ic(trends)
+
 
         # Get user suggestions (exclude current user)
         q = """
@@ -497,7 +509,7 @@ def home(lan = "english"):
         ic(suggestions)
 
 
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions)
+        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
         
     except Exception as ex:
         ic(ex)
@@ -515,9 +527,8 @@ def home_comp():
     try:
         if not g.user:
             return "error"
-
+        
         db, cursor = x.db()
-
         
         is_admin = g.user["user_admin"]
 
@@ -549,8 +560,8 @@ def home_comp():
         if not is_admin:
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
-        # Random order + limit
-        base_query += " ORDER BY RAND() LIMIT 5"
+        # Random order + limit (get 6 posts, show 5, use 6 to check if there is more posts)
+        base_query += " ORDER BY posts.created_at DESC LIMIT 6"
 
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
@@ -584,7 +595,6 @@ def logout():
         return "error"
     finally:
         pass
-
 
 
 
@@ -716,20 +726,20 @@ def api_update_profile():
         # User validation errors
         if len(ex.args) > 1 and ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # Database duplicate errors
         if "Duplicate entry" in str(ex) and user_email in str(ex): 
             toast_error = render_template("___toast_error.html", message="Email already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
         if "Duplicate entry" in str(ex) and user_username in str(ex): 
             toast_error = render_template("___toast_error.html", message="Username already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # System error
         toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1059,6 +1069,83 @@ def api_get_bookmarks():
 
 
 # -------------------- POST/TWEET -------------------- #
+############## API GET TWEETS (PAGINATION) ################
+@app.get("/api-get-tweets")
+def api_get_tweets():
+    try:
+        if not g.user:
+            return "invalid user", 400
+        
+        # Get page number from query string
+        next_page = int(request.args.get("page", "1"))
+        ic(next_page)
+        
+        db, cursor = x.db()
+        is_admin = g.user["user_admin"]
+        
+        # Base query
+        base_query = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
+        """
+
+        if not is_admin:
+            base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
+
+        # VIGTIGT: Hent 3 posts (vis 2, brug 3. til at tjekke om der er flere)
+        # LIMIT offset, count
+        base_query += " ORDER BY posts.created_at DESC LIMIT %s, 6"
+
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"], next_page * 5))
+        all_tweets = cursor.fetchall()
+        ic(all_tweets)
+        
+        # Build HTML for de første 5 tweets
+        container = ""
+        for tweet in all_tweets[:5]:
+            html_tweet = render_template("_tweet.html", tweet=tweet)
+            container = container + html_tweet
+        
+        # Check if there are more tweets
+        if len(all_tweets) == 6:
+            new_hyperlink = render_template("___show_more_tweets.html", next_page=next_page + 1)
+        else:
+            new_hyperlink = ""
+        
+        return f"""
+            <browser mix-bottom="#posts">
+                {container}
+            </browser>
+            <browser mix-replace="#show_more">
+                {new_hyperlink}
+            </browser>
+        """
+        
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
 
 ############### API CREATE POST/TWEET ###############
 # TODO: add translation
@@ -1281,8 +1368,7 @@ def api_update_post(post_pk):
                 ) THEN 0
                 ELSE 1
             END,
-            RAND()
-            LIMIT 5
+            posts.created_at DESC LIMIT 6
             """
 
         cursor.execute(q, (post_pk,))
@@ -1561,9 +1647,9 @@ def api_like_tweet(post_pk):
         # Render the unlike button HTML
         button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_unlike_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:
@@ -1600,9 +1686,9 @@ def api_unlike_tweet(post_pk):
         # Render the like button HTML
         button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_like_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:

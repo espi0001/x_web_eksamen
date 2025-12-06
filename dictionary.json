@@ -430,7 +430,7 @@
         "spanish": "Seguir"
     },
     "show_more": {
-        "english": "Se mere",
+        "english": "Show more",
         "danish": "Vis mere",
         "spanish": "Mostrar más"
     },
@@ -523,6 +523,11 @@
         "english": "No posts yet",
         "danish": "Ingen opslag endnu",
         "spanish": "Aún no hay publicaciones"
+    },
+    "no_bookmarks_yet": {
+        "english": "No bookmarks yet",
+        "danish": "Ingen bogmærker endnu",
+        "spanish": "Sin marcadores todavía"
     },
     "delete_profile": {
         "english": "Delete profile",
