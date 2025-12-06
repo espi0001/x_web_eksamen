@@ -937,6 +937,125 @@ def api_delete_profile(lan = "english"):
         if "db" in locals(): db.close()
 
 
+############## GET USERS POSTS (profile tabs) ################
+@app.get("/api-get-users-posts")
+def api_get_users_posts():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+        
+        user_pk = g.user["user_pk"]
+        db, cursor = x.db()
+
+        q = """
+        SELECT 
+            posts.*, 
+            users.user_username, 
+            users.user_name, 
+            users.user_avatar_path,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
+        FROM posts
+        JOIN users ON posts.post_user_fk = users.user_pk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
+        WHERE posts.post_user_fk = %s
+        ORDER BY posts.created_at DESC
+        """
+        cursor.execute(q, (user_pk, user_pk, user_pk))
+        posts = cursor.fetchall()
+
+        # Render posts
+        if posts:
+            posts_html = ""
+            for tweet in posts:
+                posts_html += render_template("_tweet.html", tweet=tweet)
+            return f"""<browser mix-update="#profile-posts">{posts_html}</browser>"""
+        else:
+            no_posts = f"""
+            <div class="no-posts">
+                <p>{x.lans("no_posts_yet")}</p>
+            </div>
+            """
+            return f"""<browser mix-update="#profile-posts">{no_posts}</browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        toast_error = render_template("___toast_error.html", message="Could not load posts")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## GET USER BOOKMARKS (profile tabs) ################
+@app.get("/api-get-bookmarks")
+def api_get_bookmarks():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+
+        user_pk = g.user["user_pk"]
+        db, cursor = x.db()
+
+        # Get all posts that the user has bookmarked
+        q = """
+            SELECT 
+                posts.*,
+                users.user_username,
+                users.user_name,
+                users.user_avatar_path,
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS liked_by_user,
+                1 AS bookmarked_by_user          -- Always 1 because we're showing bookmarked posts
+            FROM posts
+            JOIN users ON posts.post_user_fk = users.user_pk
+            JOIN bookmarks ON bookmarks.bookmark_post_fk = posts.post_pk
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk
+                AND likes.like_user_fk = %s
+            WHERE bookmarks.bookmark_user_fk = %s
+            ORDER BY bookmarks.created_at DESC
+        """
+        cursor.execute(q, (user_pk, user_pk))
+        posts = cursor.fetchall()
+
+        # Render just the posts list
+        if posts:
+            posts_html = ""
+            for tweet in posts:
+                posts_html += render_template("_tweet.html", tweet=tweet)
+            return f"""<browser mix-update="#profile-posts">{posts_html}</browser>"""
+
+        else:
+            no_posts = f"""
+            <div class="no-posts>
+                <p>{x.lans("no_bookmarks_yet")}</p>
+            </div>
+            """
+            return f"""<browser mix-update="#profile-posts">{no_posts}</browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        toast_error = render_template("___toast_error.html", message="Could not load bookmarks")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 # -------------------- POST/TWEET -------------------- #

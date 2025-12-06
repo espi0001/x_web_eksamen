@@ -13,6 +13,8 @@
     <div class="profile-avatar-wrapper">
         <img id="current_avatar" src="{{ user.user_avatar_path | avatar }}" alt="Current avatar" class="profile-avatar">
     </div>
+
+
     <!-- Edit Profile Button -->
     <div class="edit-profile-wrapper">
         <a href="/edit_profile" mix-get class="edit-profile-btn">
@@ -23,15 +25,19 @@
     <div class="profile-names">
         <div class="profile-name">{{ user.user_name }}</div>
         <div class="profile-username">@{{ user.user_username }}</div>
+
         <!-- Bio (if user has one) -->
         {% if user.user_bio %}
         <p class="profile-bio">{{ user.user_bio }}</p>
         {% endif %}
+
         <!-- Joined Date -->
         <div class="profile-meta">
             <i class="fa-regular fa-calendar"></i>
             <span>{{ lans("joined") }} {{ x.format_timestamp(user.created_at) }}</span>
         </div> <!-- TODO: mangler translate på timestamp -->
+
+
         <!-- Followers and Following Stats -->
         <div class="profile-stats">
             <a href="/all-user-follows" mix-get>
@@ -43,11 +49,21 @@
 
         </div>
     </div>
+
+    <!-- Tabs with MIX -->
     <div class="profile-tabs">
-        <button class="tab-btn active">{{ lans("posts") }}</button>
-        <button class="tab-btn">{{ lans("media") }}</button>
-        <button class="tab-btn">{{ lans("likes") }}</button>
+        <button class="tab-btn active" mix-get="/api-get-users-posts">
+            {{ lans("posts") }}
+        </button>
+        <button class="tab-btn" mix-get="/api-get-bookmarks">
+            {{ lans("bookmarks") }}
+        </button>
+        <button class="tab-btn">
+            {{ lans("likes") }}
+        </button>
     </div>
+
+    <!-- Posts container -->
     <div class="posts">
         <div id="profile-posts">
             {% if posts|length == 0: %}
@@ -62,5 +78,4 @@
             {% endif %}
         </div>
     </div>
-
 </div>

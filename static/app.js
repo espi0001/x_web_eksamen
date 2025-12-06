@@ -143,3 +143,20 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+
+// Profile Tabs - Handles tab-change on the profile page
+
+document.addEventListener('click', function(e) {
+      // Check if the clicked element is a tab-btn
+    if (e.target.classList.contains('tab-btn')) {
+      // Remove 'active' from all tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Add 'active' on the clicked button
+      e.target.classList.add('active');
+    }
+});
+
