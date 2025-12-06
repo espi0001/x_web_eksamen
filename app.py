@@ -149,10 +149,10 @@ def signup(lan = "english"):
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             # All the values that has NULL in the DB is now None here
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_name, None, None, user_avatar_path, 
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_name, None, user_avatar_path, 
             user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
@@ -510,7 +510,7 @@ def home_comp():
         db, cursor = x.db()
 
         # Get likes on a post
-         
+        
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -589,7 +589,7 @@ def profile():
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
         q = """
-        SELECT posts.*, users.user_username, users.user_name, users.user_last_name, users.user_avatar_path
+        SELECT posts.*, users.user_username, users.user_name, users.user_avatar_path
         FROM posts
         JOIN users ON posts.post_user_fk = users.user_pk
         WHERE posts.post_user_fk = %s
@@ -717,8 +717,8 @@ def serve_image(filename):
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
-   - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
-   - Ingen kompliceret if/else logik i templates
+    - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
+    - Ingen kompliceret if/else logik i templates
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
@@ -979,7 +979,6 @@ def api_create_post():
         tweet = {
             "post_pk": post_pk,
             "user_name": g.user["user_name"],
-            "user_last_name": g.user["user_last_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "post_message": post_message,
@@ -1057,6 +1056,8 @@ def edit_post(post_pk):
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+
 ############### API EDIT POST - POST ############### 
 @app.route("/api-update-post/<post_pk>", methods=["POST"])
 def api_update_post(post_pk):
@@ -1120,7 +1121,7 @@ def api_update_post(post_pk):
                 WHEN posts.updated_at = (
                 SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL
                 ) THEN 0
-                 ELSE 1
+                ELSE 1
             END,
             RAND()
             LIMIT 5
@@ -1158,9 +1159,8 @@ def api_update_post(post_pk):
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-   
 
-    
+
 
 
 ############### API DELETE POST ###############
@@ -1199,6 +1199,7 @@ def api_delete_post(post_pk):
     finally: 
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 ############## SINGLE POST/TWEET ################
@@ -1418,7 +1419,6 @@ def api_like_tweet(post_pk):
 @x.no_cache 
 def api_unlike_tweet(post_pk):
     try:
-  
         like_user_fk = g.user["user_pk"]  # The user who is unliking the tweet
         like_post_fk = post_pk                 # The tweet/post being unliked
 
@@ -1458,7 +1458,6 @@ def api_unlike_tweet(post_pk):
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
-  
         follow_user_fk = g.user["user_pk"]  # The user who is performing the follow
         followed_user_fk = user_pk           # The user being followed 
         created_at = int(time.time())         # Get the current timestamp
@@ -1664,10 +1663,6 @@ def api_search():
 
 
 
-
-
-
-
 # -------------------- ADMIN -------------------- #
 
 ############# ADMIN #################
@@ -1752,6 +1747,7 @@ def admin_block_user(user_pk):
         if "db" in locals(): db.close()
 
 
+
 ############# ADMIN-BLOCK-POST #################
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
@@ -1765,7 +1761,6 @@ def admin_block_post(post_pk):
         q = """SELECT 
         posts.*,
         users.user_name,
-        users.user_last_name,
         users.user_username,
         users.user_avatar_path
         FROM posts
