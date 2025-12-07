@@ -35,6 +35,7 @@ allowed_languages = ["english", "danish", "spanish"]
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 
+
 def lans(key):
     """
     Load translation from dictionary.json
@@ -43,6 +44,7 @@ def lans(key):
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
     return data[key][default_language]
+
 
 
 # -------------------- FILE UPLOAD CONFIGURATION --------------------
@@ -86,7 +88,7 @@ def db():
         return db, cursor
     except Exception as e:
         print(e, flush=True)
-        raise Exception("Twitter exception - Database under maintenance", 500)
+        raise Exception(lans("system_under_maintenance"), 500)
 
 
 # -------------------- SECURITY & HELPERS --------------------
@@ -136,10 +138,10 @@ USER_USERNAME_MIN = 2
 USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
 
-# First name
-USER_FIRST_NAME_MIN = 2
-USER_FIRST_NAME_MAX = 20
-REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
+# Name
+USER_NAME_MIN = 2
+USER_NAME_MAX = 50
+REGEX_USER_NAME = f"^.{{{USER_NAME_MIN},{USER_NAME_MAX}}}$"
 
 # Password
 USER_PASSWORD_MIN = 6
@@ -161,21 +163,16 @@ REGEX_UUID4 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{
 REGEX_UUID4_WITHOUT_DASHES = "^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$"
 
 # -------------------- USER VALIDATION --------------------
-# Email
+# Email - Validate email from form input
 def validate_user_email(lan="en"):
-    """
-    Validate email from form input
-    """
     user_email = request.form.get("user_email", "").strip()
     if not re.match(REGEX_EMAIL, user_email): 
         raise Exception(dictionary.invalid_email[lan], 400)
     return user_email
 
-# Username
+
+# Username - Validate username from form input
 def validate_user_username(lan="en"):
-    """
-    Validate username from form input
-    """
     user_username = request.form.get("user_username", "").strip()
     error = f"username min {USER_USERNAME_MIN} max {USER_USERNAME_MAX} characters"
     if len(user_username) < USER_USERNAME_MIN: 
@@ -184,22 +181,17 @@ def validate_user_username(lan="en"):
         raise Exception(error, 400)
     return user_username
 
-# Firs name
-def validate_user_first_name(lan="en"):
-    """
-    Validate first name from form input
-    """
-    user_first_name = request.form.get("user_first_name", "").strip()
-    error = f"first name min {USER_FIRST_NAME_MIN} max {USER_FIRST_NAME_MAX} characters"
-    if not re.match(REGEX_USER_FIRST_NAME, user_first_name): 
-        raise Exception(error, 400)
-    return user_first_name
 
-# password
+# Name - Validate name from form input
+def validate_user_name(lan="en"):
+    user_name = request.form.get("user_name", "").strip()
+    error = f"name min {USER_NAME_MIN} max {USER_NAME_MAX} characters"
+    if not re.match(REGEX_USER_NAME, user_name): 
+        raise Exception(error, 400)
+    return user_name
+
+# password - Validate password from form input
 def validate_user_password(lan="en"):
-    """
-    Validate password from form input
-    """
     user_password = request.form.get("user_password", "").strip()
     if not re.match(REGEX_USER_PASSWORD, user_password): 
         raise Exception(dictionary.invalid_password[lan], 400)
