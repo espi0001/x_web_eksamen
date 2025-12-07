@@ -1,8 +1,7 @@
 <div class="profile-container">
     <div class="profile-header">
-        <a href="/home-comp" mix-get>
-            <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
-        </a>
+        {% include "___button_back.html" %}
+        
         <div class="header-info">
             <h2>{{ user.user_name }}</h2>
             <p class="post-count">{{ posts|length }} {{ lans("posts") }}</p>
