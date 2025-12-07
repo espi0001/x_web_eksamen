@@ -4,6 +4,8 @@ const nav = document.querySelector("nav");
 // ##############################
 async function server(url, method, data_source_selector, function_after_fetch) {
   let conn = null;
+
+  // Handle POST method and send form data
   if (method.toUpperCase() == "POST") {
     const data_source = document.querySelector(data_source_selector);
     conn = await fetch(url, {
@@ -11,10 +13,15 @@ async function server(url, method, data_source_selector, function_after_fetch) {
       body: new FormData(data_source),
     });
   }
+
+  // Read server response as text
   const data_from_server = await conn.text();
+
   if (!conn) {
     console.log("error connecting to the server");
   }
+
+  // Call the callback function dynamically
   window[function_after_fetch](data_from_server);
 }
 
@@ -79,42 +86,38 @@ burger.addEventListener("click", () => {
   burger.classList.toggle("open");
 });
 
+
+
 // ==================== POST MEDIA PREVIEW ====================
-document.addEventListener("DOMContentLoaded", function () {
-  const fileInput = document.getElementById("post_media_input");
-  const previewArea = document.getElementById("media_preview_area");
-  const textarea = document.getElementById("post_textarea");
-  const submitBtn = document.getElementById("post_submit_btn");
+// Uses event delegation so the preview works even if the form is replaced dynamically
+document.addEventListener("change", function (e) {
+  // Only run if the file input for posts was changed
+  if (e.target && e.target.id === "post_media_input") {
+    const fileInput = e.target;
+    const previewArea = document.getElementById("media_preview_area");
+    if (!previewArea) return;
+    
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Enable/disable post button based on content
-  if (textarea && submitBtn) {
-    textarea.addEventListener("input", function () {
-      submitBtn.disabled = textarea.value.trim().length === 0;
-    });
-  }
+    // Clear previous preview
+    previewArea.innerHTML = "";
 
-  // Handle file selection
-  if (fileInput && previewArea) {
-    fileInput.addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
+    const fileURL = URL.createObjectURL(file);
+    const fileType = file.type;
 
-      // Clear previous preview
-      previewArea.innerHTML = "";
+    // Create wrapper element for preview
+    const wrapper = document.createElement("div");
+    wrapper.className = "preview-wrapper";
 
-      const fileURL = URL.createObjectURL(file);
-      const fileType = file.type;
-
-      // Create preview wrapper
-      const wrapper = document.createElement("div");
-      wrapper.className = "preview-wrapper";
-
-      // Create media element
+    // Render image preview
       if (fileType.startsWith("image/")) {
         const img = document.createElement("img");
         img.src = fileURL;
         img.alt = "Preview";
         wrapper.appendChild(img);
+        
+        // Render video preview
       } else if (fileType.startsWith("video/")) {
         const video = document.createElement("video");
         video.src = fileURL;
@@ -122,9 +125,9 @@ document.addEventListener("DOMContentLoaded", function () {
         wrapper.appendChild(video);
       }
 
-      // Create remove button
+      // Add remove button to clear preview
       const removeBtn = document.createElement("button");
-      removeBtn.innerHTML = "×";
+      removeBtn.innerHTML = "X";
       removeBtn.className = "remove-preview-btn";
       removeBtn.type = "button";
       removeBtn.title = "Remove";
@@ -135,27 +138,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
       wrapper.appendChild(removeBtn);
       previewArea.appendChild(wrapper);
-
-      // Enable post button if textarea has content or file is selected
-      if (submitBtn) {
-        submitBtn.disabled = false;
-      }
-    });
   }
 });
 
 
-// Profile Tabs - Handles tab-change on the profile page
+// Optional: Reset form after successful post
+// This listens for form submission and resets after a delay
+document.addEventListener("submit", function(e) {
+  if (e.target && e.target.classList.contains("create-post-form")) {
+    // Wait a bit for mix-replace to complete, then reset
+    setTimeout(function() {
+      const textarea = e.target.querySelector('.post-form-textarea');
+      const fileInput = e.target.querySelector('#post_media_input');
+      const previewArea = document.getElementById('media_preview_area');
+      if (textarea) textarea.value = '';
+      if (fileInput) fileInput.value = '';
+      if (previewArea) previewArea.innerHTML = '';
+    }, 200);
+  }
+});
 
+
+
+// Profile Tabs - Handles tab-change on the profile page
 document.addEventListener('click', function(e) {
-      // Check if the clicked element is a tab-btn
-    if (e.target.classList.contains('tab-btn')) {
-      // Remove 'active' from all tabs
+    // Check if the clicked element is a tab-btn
+    if (e.target.classList.contains('tab-btn')) 
+      {
+      // Remove 'active' from all tab buttons
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
       });
 
-      // Add 'active' on the clicked button
+      // Add 'active' class on the clicked tab button
       e.target.classList.add('active');
     }
 });

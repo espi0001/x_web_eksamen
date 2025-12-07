@@ -602,42 +602,72 @@ def profile():
         db, cursor = x.db()
 
 
-        # Fetch fresh user data from database
+        # Fetch user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
 
-        q = """
-        SELECT 
-            posts.*,                    -- All from posts-table
-            users.user_username,        -- Users username
-            users.user_name,            -- User name
-            users.user_avatar_path,     -- User avartar
-            CASE 
-                WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
-                ELSE 0                                          -- You have not likes
-            END AS liked_by_user,
-            CASE 
-                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
-                ELSE 0                                              -- You have not likes
-            END AS bookmarked_by_user
-        FROM posts                                                  -- start with posts table
-        JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
-        LEFT JOIN likes 
-            ON likes.like_post_fk = posts.post_pk           -- Match post pk
-            AND likes.like_user_fk = %s                     -- Match the users pk
-        LEFT JOIN bookmarks
-            ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
-            AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
-        WHERE posts.post_user_fk = %s
-        ORDER BY posts.created_at DESC
-        """
-        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
-                                #1 for likes     #2 for bookmarks  #3 for WHERE
+        # Check which tab is active (default is "posts")
+        active_tab = request.args.get("tab", "posts")
+        
+        # Fetch posts based on active tab
+        if active_tab == "bookmarks":
+            # Get bookmarked posts
+            q = """
+            SELECT 
+                posts.*,
+                users.user_username,
+                users.user_name,
+                users.user_avatar_path,
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS liked_by_user,
+                1 AS bookmarked_by_user
+            FROM posts
+            JOIN users ON posts.post_user_fk = users.user_pk
+            JOIN bookmarks ON bookmarks.bookmark_post_fk = posts.post_pk
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk
+                AND likes.like_user_fk = %s
+            WHERE bookmarks.bookmark_user_fk = %s
+            ORDER BY bookmarks.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"]))
+        else:
+            # Get user's own posts (default tab)
+            q = """
+            SELECT 
+                posts.*,                    -- All from posts-table
+                users.user_username,        -- Users username
+                users.user_name,            -- User name
+                users.user_avatar_path,     -- User avartar
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
+                    ELSE 0                                          -- You have not likes
+                END AS liked_by_user,
+                CASE 
+                    WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
+                    ELSE 0                                              -- You have not likes
+                END AS bookmarked_by_user
+            FROM posts                                                  -- start with posts table
+            JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk           -- Match post pk
+                AND likes.like_user_fk = %s                     -- Match the users pk
+            LEFT JOIN bookmarks
+                ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
+                AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
+            WHERE posts.post_user_fk = %s
+            ORDER BY posts.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
+                            #1 for likes     #2 for bookmarks  #3 for WHERE
+        
         posts = cursor.fetchall()
 
         # Render profile template
-        profile_html = render_template("_profile.html", row=row, posts=posts)
+        profile_html = render_template("_profile.html", row=row, posts=posts, active_tab=active_tab)
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
         
     except Exception as ex:
@@ -1034,6 +1064,7 @@ def api_get_bookmarks():
         cursor.execute(q, (user_pk, user_pk))
         posts = cursor.fetchall()
 
+
         # Render just the posts list
         if posts:
             posts_html = ""
@@ -1056,6 +1087,7 @@ def api_get_bookmarks():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 # -------------------- POST/TWEET -------------------- #
@@ -1132,22 +1164,27 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
+        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!") # TODO: translate
         
         tweet = {
             "post_pk": post_pk,
+            "post_user_fk": user_pk,
             "user_name": g.user["user_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "post_message": post_message,
             "post_media_path": post_media_path,
             "post_is_blocked": 0,
-            "post_total_likes": 0,
-            "post_total_comments": 0,
+            "post_total_likes": post_total_likes,
+            "post_total_comments": post_total_comments,
+            "post_total_bookmarks": post_total_bookmarks,  # needed for bookmark button
+            "liked_by_user": 0,  # For new post, user hasn't liked it yet
+            "bookmarked_by_user": 0,  # For new post, user hasn't bookmarked it yet
+            "created_at": created_at,  # For timestamp
         }
         
         html_post_container = render_template("___post_container.html")
-        html_post = render_template("_tweet.html", tweet=tweet, user=user_pk) # passing user so delete post will show us as soon as its posted
+        html_post = render_template("_tweet.html", tweet=tweet, user=g.user) # passing user so delete post will show us as soon as its posted
         
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
