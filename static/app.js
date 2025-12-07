@@ -44,18 +44,19 @@ function parse_search_results(data_from_server) {
 
   if (data_from_server.users && data_from_server.users.length) {
     data_from_server.users.forEach((user) => {
-      let user_avatar_path = user.user_avatar_path ? user.user_avatar_path : "unknown.jpg";
+      let user_avatar_path = user.user_avatar_path || "unknown.jpg";
+
       html_output += `
-            <div class="d-flex a-items-center mb-2">
-                <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full" alt="Profile Picture">
-                <div class="w-full ml-2">
-                    <p>
-                        ${user.user_first_name} ${user.user_last_name}
-                        <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
-                    </p>                
-                </div>
-                <button class="px-4 py-1 text-c-white bg-c-black rounded-lg">Follow</button>
-            </div>`;
+    <div class="d-flex a-items-center mb-2">
+      <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full">
+      <div class="w-full ml-2">
+        <p>${user.user_name}
+          <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
+        </p>
+      </div>
+         ${user.followed_by_user ? user.unfollow_button_html : user.follow_button_html}
+    </div>
+  `;
     });
   }
 
@@ -86,8 +87,6 @@ burger.addEventListener("click", () => {
   burger.classList.toggle("open");
 });
 
-
-
 // ==================== POST MEDIA PREVIEW ====================
 // Uses event delegation so the preview works even if the form is replaced dynamically
 document.addEventListener("change", function (e) {
@@ -96,7 +95,7 @@ document.addEventListener("change", function (e) {
     const fileInput = e.target;
     const previewArea = document.getElementById("media_preview_area");
     if (!previewArea) return;
-    
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -111,67 +110,62 @@ document.addEventListener("change", function (e) {
     wrapper.className = "preview-wrapper";
 
     // Render image preview
-      if (fileType.startsWith("image/")) {
-        const img = document.createElement("img");
-        img.src = fileURL;
-        img.alt = "Preview";
-        wrapper.appendChild(img);
-        
-        // Render video preview
-      } else if (fileType.startsWith("video/")) {
-        const video = document.createElement("video");
-        video.src = fileURL;
-        video.controls = true;
-        wrapper.appendChild(video);
-      }
+    if (fileType.startsWith("image/")) {
+      const img = document.createElement("img");
+      img.src = fileURL;
+      img.alt = "Preview";
+      wrapper.appendChild(img);
 
-      // Add remove button to clear preview
-      const removeBtn = document.createElement("button");
-      removeBtn.innerHTML = "X";
-      removeBtn.className = "remove-preview-btn";
-      removeBtn.type = "button";
-      removeBtn.title = "Remove";
-      removeBtn.onclick = function () {
-        previewArea.innerHTML = "";
-        fileInput.value = "";
-      };
+      // Render video preview
+    } else if (fileType.startsWith("video/")) {
+      const video = document.createElement("video");
+      video.src = fileURL;
+      video.controls = true;
+      wrapper.appendChild(video);
+    }
 
-      wrapper.appendChild(removeBtn);
-      previewArea.appendChild(wrapper);
+    // Add remove button to clear preview
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "X";
+    removeBtn.className = "remove-preview-btn";
+    removeBtn.type = "button";
+    removeBtn.title = "Remove";
+    removeBtn.onclick = function () {
+      previewArea.innerHTML = "";
+      fileInput.value = "";
+    };
+
+    wrapper.appendChild(removeBtn);
+    previewArea.appendChild(wrapper);
   }
 });
 
-
 // Optional: Reset form after successful post
 // This listens for form submission and resets after a delay
-document.addEventListener("submit", function(e) {
+document.addEventListener("submit", function (e) {
   if (e.target && e.target.classList.contains("create-post-form")) {
     // Wait a bit for mix-replace to complete, then reset
-    setTimeout(function() {
-      const textarea = e.target.querySelector('.post-form-textarea');
-      const fileInput = e.target.querySelector('#post_media_input');
-      const previewArea = document.getElementById('media_preview_area');
-      if (textarea) textarea.value = '';
-      if (fileInput) fileInput.value = '';
-      if (previewArea) previewArea.innerHTML = '';
+    setTimeout(function () {
+      const textarea = e.target.querySelector(".post-form-textarea");
+      const fileInput = e.target.querySelector("#post_media_input");
+      const previewArea = document.getElementById("media_preview_area");
+      if (textarea) textarea.value = "";
+      if (fileInput) fileInput.value = "";
+      if (previewArea) previewArea.innerHTML = "";
     }, 200);
   }
 });
 
-
-
 // Profile Tabs - Handles tab-change on the profile page
-document.addEventListener('click', function(e) {
-    // Check if the clicked element is a tab-btn
-    if (e.target.classList.contains('tab-btn')) 
-      {
-      // Remove 'active' from all tab buttons
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
+document.addEventListener("click", function (e) {
+  // Check if the clicked element is a tab-btn
+  if (e.target.classList.contains("tab-btn")) {
+    // Remove 'active' from all tab buttons
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
 
-      // Add 'active' class on the clicked tab button
-      e.target.classList.add('active');
-    }
+    // Add 'active' class on the clicked tab button
+    e.target.classList.add("active");
+  }
 });
-
