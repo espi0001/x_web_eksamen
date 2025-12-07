@@ -37,18 +37,19 @@ function parse_search_results(data_from_server) {
 
   if (data_from_server.users && data_from_server.users.length) {
     data_from_server.users.forEach((user) => {
-      let user_avatar_path = user.user_avatar_path ? user.user_avatar_path : "unknown.jpg";
+      let user_avatar_path = user.user_avatar_path || "unknown.jpg";
+
       html_output += `
-            <div class="d-flex a-items-center mb-2">
-                <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full" alt="Profile Picture">
-                <div class="w-full ml-2">
-                    <p>
-                        ${user.user_first_name} ${user.user_last_name}
-                        <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
-                    </p>                
-                </div>
-                <button class="px-4 py-1 text-c-white bg-c-black rounded-lg">Follow</button>
-            </div>`;
+    <div class="d-flex a-items-center mb-2">
+      <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full">
+      <div class="w-full ml-2">
+        <p>${user.user_name}
+          <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
+        </p>
+      </div>
+         ${user.followed_by_user ? user.unfollow_button_html : user.follow_button_html}
+    </div>
+  `;
     });
   }
 
@@ -144,19 +145,17 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-
 // Profile Tabs - Handles tab-change on the profile page
 
-document.addEventListener('click', function(e) {
-      // Check if the clicked element is a tab-btn
-    if (e.target.classList.contains('tab-btn')) {
-      // Remove 'active' from all tabs
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
+document.addEventListener("click", function (e) {
+  // Check if the clicked element is a tab-btn
+  if (e.target.classList.contains("tab-btn")) {
+    // Remove 'active' from all tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
 
-      // Add 'active' on the clicked button
-      e.target.classList.add('active');
-    }
+    // Add 'active' on the clicked button
+    e.target.classList.add("active");
+  }
 });
-

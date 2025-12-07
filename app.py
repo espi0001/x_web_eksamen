@@ -1857,6 +1857,8 @@ def view_all_user_follows():
 @app.post("/api-search")
 def api_search():
     try:
+
+        user_pk = g.user["user_pk"]
         # Get the search input from the request
         search_for = request.form.get("search_for", "")
         
@@ -1869,18 +1871,28 @@ def api_search():
 
         # Look for matches in `user_username` and `user_name` using LIKE
         # Look for matches in `user_bio` using FULLTEXT search in BOOLEAN MODE
-        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer"
-        q = """
-            SELECT * FROM users
-            WHERE (
-             user_username LIKE %s
-               OR user_name LIKE %s
-               OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
-               )
-               AND user_is_blocked = 0
-        """
-        cursor.execute(q, (part_of_query, part_of_query, search_for + "*"))
+        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer" # or however you store it
 
+        q = """
+            SELECT 
+            users.*,
+            CASE 
+                WHEN f.follow_user_fk IS NOT NULL THEN 1 
+                ELSE 0 
+            END AS followed_by_user
+            FROM users
+            LEFT JOIN follows f
+            ON f.follow_user_fk = %s
+            AND f.followed_user_fk = users.user_pk
+            WHERE (
+                user_username LIKE %s
+                OR user_name LIKE %s
+                OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
+                )
+             AND user_is_blocked = 0
+            """
+
+        cursor.execute(q, (user_pk, part_of_query, part_of_query, search_for + "*"))
         users = cursor.fetchall()
 
         # - Use FULLTEXT search on the `post_message` column in BOOLEAN MODE
@@ -1892,13 +1904,28 @@ def api_search():
 
         posts = cursor.fetchall()
 
-        # The JSON response will have two keys: "users" and "posts"
-        results = {
-            "users": users,
-            "posts": posts
-        }
+        users_list = []
+        for user in users:
+            # Make user dict editable
+            user_dict = dict(user)
 
-        # Return the combined results as JSON
+            # Render button templates server-side
+            user_dict["follow_button_html"] = render_template(
+                "___button_follow_user.html",
+                suggestion=user_dict
+            )
+
+            user_dict["unfollow_button_html"] = render_template(
+                "___button_unfollow_user.html",
+                suggestion=user_dict
+            )
+
+            users_list.append(user_dict)
+
+        results = ({
+            "users": users_list,
+            "posts": posts
+        })
         return jsonify(results)
 
     except Exception as ex:
