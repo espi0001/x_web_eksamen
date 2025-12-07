@@ -21,7 +21,7 @@
                         {{ tweet.user_name }}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
-                    <span class="time">1d</span> <!-- TODO: Add timestamp + translate -->
+                    <span class="time">{{ x.format_timestamp(tweet.created_at) }}</span> <!-- TODO: change timestamp + translate -->
 
                     <!-- edit knap > vises kun på brugerens egne posts -->
                     {% if user.user_pk == tweet.post_user_fk %}

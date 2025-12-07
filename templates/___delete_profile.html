@@ -3,14 +3,12 @@
 </h1>
 
 <!-- Question: Burde det her være en form -->
-<div class="py-8 d-flex flex-col a-items-center">
-    <a href="/api-delete-profile" mix-delete class="text-c-red" hover="cursor-pointer" mix-delay="3000" mix-await="{{ lans('deleting_profile') }}...">
+<div class="py-8 d-flex flex-col a-items-center gap-3">
+    <a href="/api-delete-profile" mix-delete class="text-c-red mt-4" hover="cursor-pointer" mix-delay="3000" mix-await="{{ lans('deleting_profile') }}...">
         {{ lans("yes_delete_my_profile") }}
     </a>
-    <!-- <button mix-delete="/api-delete-profile" class="text-c-red" hover="cursor-pointer" mix-delay="3000">
-        Yes - Delete my account
-    </button> -->
-    <a href="/edit_profile" mix-get class="edit-profile-btn">
+
+    <a href="/edit_profile" mix-get class="edit-profile-btn mt-4">
         {{ lans("no_cancel") }}
     </a>
 </div>
