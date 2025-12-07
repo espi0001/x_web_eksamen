@@ -43,7 +43,7 @@ def global_variables():
     return dict(
         lan=lan,        # Language for current user
         user=g.user,    # Current logged-in user (or None)
-        x=x,             # x.py module (for constants, validation regex, etc.)
+        x=x,            # x.py module (for constants, validation regex, etc.)
         lans=x.lans,
         dictionary=dictionary
     )
@@ -116,15 +116,13 @@ def view_index(lan="english"):
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
-    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
-    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan # Question: Skal vi have det her med = lan??
-        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
+        x.default_language = lan
+        return render_template("signup.html", lan=lan)
 
     if request.method == "POST":
         try:
@@ -160,19 +158,14 @@ def signup(lan = "english"):
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
 
-            x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
+            x.send_email(user_email=user_email, subject=f"{x.lans('verify_your_account')}", template=email_verify_account)
 
-            # Question: skal det her være udkommenteret??
-            # Uncomment when email is configured:
-            # x.send_email(user_email, "Verify your account", email_verify_account)
 
-            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
-            """
-            # Redirect to login page
-            return f"""<browser mix-redirect="{ url_for('login', lan=lan) }"></browser>""", 200 # Question: skal lan=lan være her??
-            
+            """, 200
+
         except Exception as ex:
             ic(ex)
             
@@ -191,12 +184,15 @@ def signup(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
             return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
+
+
+
 
 # -------------------- VERIFY ACCOUNT -------------------- #
 ############## VERIFY ACCOUNT ################
@@ -228,7 +224,7 @@ def verify_account():
             return ex.args[0], 400    
 
         # System error
-        return "Cannot verify user"
+        return f"{x.lans('cannot_verify_user')}"
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -263,9 +259,10 @@ def login(lan = "english"):
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
             
+            db, cursor = x.db()
+
             # Query database for user -> deleted user cannot log in
             q = "SELECT * FROM users WHERE user_email = %s"
-            db, cursor = x.db() # Question: burde den her linje ikke være over q?
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
             
@@ -347,10 +344,10 @@ def forgot_password(lan = "english"):
             ic(email_forgot_password)
 
             # passing the email, subject and template to the send_email function.
-            x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
+            x.send_email(user_email=user_email, subject=f"{x.lans('update_password')}", template=email_forgot_password)
             
             #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
-            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
 
 
@@ -379,7 +376,7 @@ def create_new_password():
         row = cursor.fetchone()
 
         if not row:
-            return "Invalid reset link", 400
+            return "Invalid reset key", 400
 
         # on GET, create_new_password.html is shown and we pass the key from the url
         if request.method == "GET":
