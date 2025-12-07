@@ -889,7 +889,7 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_upload_avatar'): {str(ex)}}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:

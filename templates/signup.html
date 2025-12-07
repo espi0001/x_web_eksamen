@@ -62,21 +62,13 @@
         </div>
 
 
-        <div class="frm_side_by_side">
-          <!-- Password -->
-          <div>
-            <label for="password">{{ lans("password") }}</label>              
-            <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
-            <p class="validation_rules">{{ lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ lans("characters") }}</p>
-          </div>
-          
-          <!-- Repeat Password --> <!-- Have not done yet -->
-          <!-- <div>
-            <label for="password">Repeat {{ lans("password") }}</label>              
-            <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
-            <p class="validation_rules">{{ lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ lans("characters") }}</p>
-          </div> -->
+        <!-- Password -->
+        <div>
+          <label for="password">{{ lans("password") }}</label>              
+          <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
+          <p class="validation_rules">{{ lans("your_password_must_be_between") }} {{ x.USER_PASSWORD_MIN }} {{ lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ lans("characters") }}</p>
         </div>
+        
 
         <!-- Button -->
         <button class="x-dialog__btn" mix-default="Sign up" mix-await="{{ lans('signing_up') }}...">

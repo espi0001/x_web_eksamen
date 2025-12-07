@@ -289,6 +289,11 @@
         "danish": "Administrationspanel",
         "spanish": "Panel de administración"
     },
+    "get_dictionary": {
+        "english": "Get dictionary",
+        "danish": "Hent ordbog",
+        "spanish": "Obtener diccionarios"
+    },
     "active_users": {
         "english": "Active users",
         "danish": "Aktive brugere",
@@ -318,6 +323,16 @@
         "english": "Unblocking",
         "danish": "Fjerner blokering",
         "spanish": "Desbloqueando"
+    },
+    "block_post": {
+        "english": "Block post",
+        "danish": "Bloker opslag",
+        "spanish": "Bloquear publicación"
+    },
+    "unblock_post": {
+        "english": "Unblock post",
+        "danish": "Fjern blokering af opslag",
+        "spanish": "Desbloquear publicación"
     },
     "this_post_is_blocked": {
         "english": "This post is blocked",
@@ -430,7 +445,7 @@
         "spanish": "Seguir"
     },
     "show_more": {
-        "english": "Se mere",
+        "english": "Show more",
         "danish": "Vis mere",
         "spanish": "Mostrar más"
     },
@@ -524,6 +539,11 @@
         "danish": "Ingen opslag endnu",
         "spanish": "Aún no hay publicaciones"
     },
+    "no_bookmarks_yet": {
+        "english": "No bookmarks yet",
+        "danish": "Ingen bogmærker endnu",
+        "spanish": "Sin marcadores todavía"
+    },
     "delete_profile": {
         "english": "Delete profile",
         "danish": "Slet profil",
@@ -608,5 +628,10 @@
         "english": "System under maintenance",
         "danish": "Systemet er under vedligeholdelse",
         "spanish": "Sistema en mantenimiento"
+    },
+    "could_not_upload_avatar": {
+        "english": "Could not upload avatar",
+        "danish": "Avatar kunne ikke uploades",
+        "spanish": "No se pudo subir el avatar"
     }
 }

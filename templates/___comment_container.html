@@ -4,12 +4,12 @@
             <img src="{{ user.user_avatar_path | avatar }}" alt="Avatar" class="w-8 h-8 rounded-full">
 
             <div class="comment-form-input">
-                <textarea name="comment" id="comment_textarea_{{ post_pk }}" placeholder="Post your reply"
+                <textarea name="comment" id="comment_textarea_{{ post_pk }}" placeholder="{{ lans('post_your_reply') }}"
                     class="comment-textarea" rows="3"></textarea> 
 
-                <button type="submit" class="btn-reply"> <!-- TODO: Translate -->
-                    Reply
-                </button> <!-- TODO: Translate -->
+                <button type="submit" class="btn-reply"> 
+                    {{ lans("reply") }}
+                </button>
             </div>
         </div>
     </form>
