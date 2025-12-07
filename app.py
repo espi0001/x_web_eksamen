@@ -43,7 +43,7 @@ def global_variables():
     return dict(
         lan=lan,        # Language for current user
         user=g.user,    # Current logged-in user (or None)
-        x=x,             # x.py module (for constants, validation regex, etc.)
+        x=x,            # x.py module (for constants, validation regex, etc.)
         lans=x.lans,
         dictionary=dictionary
     )
@@ -116,15 +116,13 @@ def view_index(lan="english"):
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
-    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
-    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan # Question: Skal vi have det her med = lan??
-        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
+        x.default_language = lan
+        return render_template("signup.html", lan=lan)
 
     if request.method == "POST":
         try:
