@@ -58,9 +58,9 @@
                     <!-- Comment -->
                     <span class="action comment">
                         <a href="/single-post/{{ tweet.post_pk }}" mix-get>
-                            <i class="fa-regular fa-comment"></i> 
+                            <i class="fa-regular fa-comment pointer-e-none"></i> 
                             {% if tweet.post_total_comments > 0 %}
-                                <span>{{ tweet.post_total_comments }}</span>
+                                <span class="pointer-e-none">{{ tweet.post_total_comments }}</span>
                             {% endif %}
                         </a>
                     </span>
