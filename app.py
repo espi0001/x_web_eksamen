@@ -779,6 +779,7 @@ def serve_image(filename):
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
 
+
 ############################## 
 @app.template_filter('avatar')
 def avatar_filter(avatar_path):
@@ -800,6 +801,8 @@ def avatar_filter(avatar_path):
         return f"/{avatar_path}"
     
     return avatar_path
+
+
 
 ############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
