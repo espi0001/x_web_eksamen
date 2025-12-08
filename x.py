@@ -88,7 +88,7 @@ def db():
         return db, cursor
     except Exception as e:
         print(e, flush=True)
-        raise Exception(lans("system_under_maintenance"), 500)
+        raise Exception("System under maintenance", 500)
 
 
 # -------------------- SECURITY & HELPERS --------------------
