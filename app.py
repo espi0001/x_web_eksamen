@@ -1801,7 +1801,7 @@ def unfollow_user(user_pk):
         # Render the follow/unfollow button HTML
         button_follow_user_html = render_template("___button_follow_user.html", suggestion=suggestion)
         return f"""
-        <browser mix-replace=#button_follow_user_{user_pk}>
+        <browser mix-replace=#button_unfollow_user_{user_pk}>
         {button_follow_user_html}
         </browser>
         """
