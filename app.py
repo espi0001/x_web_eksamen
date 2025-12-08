@@ -770,12 +770,11 @@ def api_update_profile():
         if "db" in locals(): db.close()
 
 
-# TODO: RYK HEN TIL PROFILE
-############### IMAGES (AVATARS) ############### FORKLAR DENNE
+
+############### IMAGES (AVATARS) ###############
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
 @app.route('/images/avatars/<path:filename>')
-# TODO: add translation????
 def serve_image(filename):
     """
     Serves avatar images from the static/images/avatars folder
@@ -786,7 +785,6 @@ def serve_image(filename):
 
 ############################## 
 @app.template_filter('avatar')
-# TODO: add translation ???
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
