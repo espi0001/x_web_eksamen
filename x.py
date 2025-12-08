@@ -76,7 +76,7 @@ def db():
         host = "webdevMESS.mysql.eu.pythonanywhere-services.com" if "PYTHONANYWHERE_DOMAIN" in os.environ else "mariadb"
         user = "webdevMESS" if "PYTHONANYWHERE_DOMAIN" in os.environ else "root"
         password = "Webdev2025" if "PYTHONANYWHERE_DOMAIN" in os.environ else "password"
-        database = "webdevMESS$xclone" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
+        database = "webdevMESS$x" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
 
         db = mysql.connector.connect(
             host = host,
@@ -88,7 +88,7 @@ def db():
         return db, cursor
     except Exception as e:
         print(e, flush=True)
-        raise Exception(lans("system_under_maintenance"), 500)
+        raise Exception("System under maintenance", 500)
 
 
 # -------------------- SECURITY & HELPERS --------------------

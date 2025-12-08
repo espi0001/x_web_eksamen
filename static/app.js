@@ -26,57 +26,57 @@ async function server(url, method, data_source_selector, function_after_fetch) {
 }
 
 // ##############################
-function get_search_results(url, method, data_source_selector, function_after_fetch) {
-  const txt_search_for = document.querySelector("#txt_search_for");
-  if (txt_search_for.value == "") {
-    console.log("empty search");
-    document.querySelector("#search_results").innerHTML = "";
-    document.querySelector("#search_results").classList.add("d-none");
-    return false;
-  }
-  server(url, method, data_source_selector, function_after_fetch);
-}
-// ##############################
-function parse_search_results(data_from_server) {
-  data_from_server = JSON.parse(data_from_server);
+// function get_search_results(url, method, data_source_selector, function_after_fetch) {
+//   const txt_search_for = document.querySelector("#txt_search_for");
+//   if (txt_search_for.value == "") {
+//     console.log("empty search");
+//     document.querySelector("#search_results").innerHTML = "";
+//     document.querySelector("#search_results").classList.add("d-none");
+//     return false;
+//   }
+//   server(url, method, data_source_selector, function_after_fetch);
+// }
+// // ##############################
+// function parse_search_results(data_from_server) {
+//   data_from_server = JSON.parse(data_from_server);
 
-  let html_output = "";
+//   let html_output = "";
 
-  if (data_from_server.users && data_from_server.users.length) {
-    data_from_server.users.forEach((user) => {
-      let user_avatar_path = user.user_avatar_path || "unknown.jpg";
+//   if (data_from_server.users && data_from_server.users.length) {
+//     data_from_server.users.forEach((user) => {
+//       let user_avatar_path = user.user_avatar_path || "unknown.jpg";
 
-      html_output += `
-    <div class="d-flex a-items-center mb-2">
-      <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full">
-      <div class="w-full ml-2">
-        <p>${user.user_name}
-          <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
-        </p>
-      </div>
-         ${user.followed_by_user ? user.unfollow_button_html : user.follow_button_html}
-    </div>
-  `;
-    });
-  }
+//       html_output += `
+//     <div class="d-flex a-items-center mb-2">
+//       <img src="/${user_avatar_path}" class="w-8 h-8 rounded-full">
+//       <div class="w-full ml-2">
+//         <p>${user.user_name}
+//           <span class="text-c-gray:+20 text-70">@${user.user_username}</span>
+//         </p>
+//       </div>
+//          ${user.followed_by_user ? user.unfollow_button_html : user.follow_button_html}
+//     </div>
+//   `;
+//     });
+//   }
 
-  if (data_from_server.posts && data_from_server.posts.length) {
-    data_from_server.posts.forEach((post) => {
-      html_output += `
-            <div class="search_post d-flex flex-col mb-2 p-2 bg-c-white">
-                <p class="text-c-gray text-sm">${post.post_message}</p>
-            </div>`;
-    });
-  }
+//   if (data_from_server.posts && data_from_server.posts.length) {
+//     data_from_server.posts.forEach((post) => {
+//       html_output += `
+//             <div class="search_post d-flex flex-col mb-2 p-2 bg-c-white">
+//                 <p class="text-c-gray text-sm">${post.post_message}</p>
+//             </div>`;
+//     });
+//   }
 
-  if (!html_output) {
-    html_output = "<p>No results found.</p>";
-  }
+//   if (!html_output) {
+//     html_output = "<p>No results found.</p>";
+//   }
 
-  const resultsContainer = document.querySelector("#search_results");
-  resultsContainer.innerHTML = html_output;
-  resultsContainer.classList.remove("d-none");
-}
+//   const resultsContainer = document.querySelector("#search_results");
+//   resultsContainer.innerHTML = html_output;
+//   resultsContainer.classList.remove("d-none");
+// }
 
 // ##############################
 burger.addEventListener("click", () => {

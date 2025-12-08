@@ -1,0 +1,15 @@
+{% if users %}
+{% for suggestion in users %}
+{% include "_who_to_follow.html" %}
+{% endfor %}
+{% else %}
+<div class="p-2 text-c-gray">{{ lans('user_not_found') }}</div>
+{% endif %}
+
+{% if posts %}
+{% for post in posts %}
+<div class="p-2 bg-c-white border-t-1 border-c-gray:+50">
+    <p class="text-c-gray text-sm">{{ post.post_message }}</p>
+</div>
+{% endfor %}
+{% endif %}
