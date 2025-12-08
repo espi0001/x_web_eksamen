@@ -424,6 +424,11 @@
         "danish": "Søg på X",
         "spanish": "Buscar en X"
     },
+    "no_users_found": {
+        "english": "No users found",
+        "danish": "Ingen brugere fundet",
+        "spanish": "No se encontraron usuarios"
+    },
     "what_is_happening_now": {
         "english": "What's happening now",
         "danish": "Hvad sker der i verden",
@@ -643,125 +648,5 @@
         "english": "Invalid reset link",
         "danish": "Ugyldigt nulstillingslink",
         "spanish": "Enlace de restablecimiento no válido"
-    },
-    "username_length_error": {
-        "english": "Username must be between {min} and {max} characters.",
-        "danish": "Brugernavnet skal være mellem {min} og {max} tegn.",
-        "spanish": "El nombre de usuario debe tener entre {min} y {max} caracteres."
-    },
-    "name_length_error": {
-        "english": "Name must be between {min} and {max} characters.",
-        "danish": "Navnet skal være mellem {min} og {max} tegn.",
-        "spanish": "El nombre debe tener entre {min} y {max} caracteres."
-    },
-    "password_length_error": {
-        "english": "Password must be between {min} and {max} characters.",
-        "danish": "Adgangskoden skal være mellem {min} og {max} tegn.",
-        "spanish": "La contraseña debe tener entre {min} y {max} caracteres."
-    },
-    "post_length_error": {
-        "english": "Posts must be between {min} and {max} characters.",
-        "danish": "Opslag skal være mellem {min} og {max} tegn.",
-        "spanish": "Las publicaciones deben tener entre {min} y {max} caracteres."
-    },
-    "comment_length_error": {
-        "english": "Comments must be between {min} and {max} characters.",
-        "danish": "Kommentarer skal være mellem {min} og {max} tegn.",
-        "spanish": "Los comentarios deben tener entre {min} y {max} caracteres."
-    },
-    "login_required": {
-        "english": "You must be logged in.",
-        "danish": "Du skal være logget ind.",
-        "spanish": "Debes iniciar sesión."
-    },
-    "invalid_user": {
-        "english": "Invalid user session.",
-        "danish": "Ugyldig bruger-session.",
-        "spanish": "Sesión de usuario no válida."
-    },
-    "avatar_no_file_uploaded": {
-        "english": "No file was uploaded.",
-        "danish": "Ingen fil blev uploadet.",
-        "spanish": "No se subió ningún archivo."
-    },
-    "avatar_no_file_selected": {
-        "english": "Please choose a file to upload.",
-        "danish": "Vælg en fil at uploade.",
-        "spanish": "Selecciona un archivo para subir."
-    },
-    "missing_file_extension": {
-        "english": "The file is missing an extension.",
-        "danish": "Filen mangler en filendelse.",
-        "spanish": "Al archivo le falta una extensión."
-    },
-    "invalid_avatar_file_type": {
-        "english": "Unsupported image type. Allowed: {types}.",
-        "danish": "Billedtypen understøttes ikke. Tilladt: {types}.",
-        "spanish": "Tipo de imagen no compatible. Permitidos: {types}."
-    },
-    "avatar_file_too_large": {
-        "english": "Image is too large. Max size is {max_mb} MB.",
-        "danish": "Billedet er for stort. Maksimal størrelse er {max_mb} MB.",
-        "spanish": "La imagen es demasiado grande. El tamaño máximo es {max_mb} MB."
-    },
-    "invalid_post_media_type": {
-        "english": "Unsupported media type. Allowed: {types}.",
-        "danish": "Medietypen understøttes ikke. Tilladt: {types}.",
-        "spanish": "Tipo de medio no compatible. Permitidos: {types}."
-    },
-    "post_media_file_too_large": {
-        "english": "Media file is too large. Max size is {max_mb} MB.",
-        "danish": "Mediefilen er for stor. Maksimal størrelse er {max_mb} MB.",
-        "spanish": "El archivo multimedia es demasiado grande. El tamaño máximo es {max_mb} MB."
-    },
-    "could_not_load_posts": {
-        "english": "We couldn't load your posts. Please try again.",
-        "danish": "Vi kunne ikke indlæse dine opslag. Prøv igen.",
-        "spanish": "No pudimos cargar tus publicaciones. Inténtalo de nuevo."
-    },
-    "could_not_load_bookmarks": {
-        "english": "We couldn't load your bookmarks. Please try again.",
-        "danish": "Vi kunne ikke indlæse dine bogmærker. Prøv igen.",
-        "spanish": "No pudimos cargar tus marcadores. Inténtalo de nuevo."
-    },
-    "post_requires_text_or_media": {
-        "english": "Add text or media before posting.",
-        "danish": "Tilføj tekst eller medier før du deler.",
-        "spanish": "Añade texto o contenido antes de publicar."
-    },
-    "create_post_error": {
-        "english": "We couldn't create your post. Please try again.",
-        "danish": "Vi kunne ikke oprette dit opslag. Prøv igen.",
-        "spanish": "No pudimos crear tu publicación. Inténtalo de nuevo."
-    },
-    "post_not_found_or_permission": {
-        "english": "Post not found or you do not have permission.",
-        "danish": "Opslaget blev ikke fundet, eller du har ikke adgang.",
-        "spanish": "La publicación no existe o no tienes permiso."
-    },
-    "could_not_load_post": {
-        "english": "We couldn't load this post. Please try again.",
-        "danish": "Vi kunne ikke indlæse dette opslag. Prøv igen.",
-        "spanish": "No pudimos cargar esta publicación. Inténtalo de nuevo."
-    },
-    "post_cannot_be_empty": {
-        "english": "Post cannot be empty.",
-        "danish": "Opslaget må ikke være tomt.",
-        "spanish": "La publicación no puede estar vacía."
-    },
-    "could_not_update_post": {
-        "english": "We couldn't update the post. Please try again.",
-        "danish": "Vi kunne ikke opdatere opslaget. Prøv igen.",
-        "spanish": "No pudimos actualizar la publicación. Inténtalo de nuevo."
-    },
-    "post_not_found": {
-        "english": "Post not found.",
-        "danish": "Opslaget blev ikke fundet.",
-        "spanish": "Publicación no encontrada."
-    },
-    "cannot_post_comment": {
-        "english": "We couldn't post your comment. Please try again.",
-        "danish": "Vi kunne ikke gemme din kommentar. Prøv igen.",
-        "spanish": "No pudimos publicar tu comentario. Inténtalo de nuevo."
     }
 }

@@ -1901,83 +1901,68 @@ def view_all_user_follows():
 @app.post("/api-search")
 def api_search():
     try:
+        search_for = request.form.get("search_for", "").strip()
+
+        # If empty field → hide dropdown
+        if not search_for:
+            return """
+            <browser mix-replace="#search_results">
+                <div id="search_results" class="d-none"></div>
+            </browser>
+            """
 
         user_pk = g.user["user_pk"]
-        # Get the search input from the request
-        search_for = request.form.get("search_for", "")
-        
-        if not search_for:
-            return "empty search field", 400
-
         part_of_query = f"%{search_for}%"
 
-        db, cursor = x.db() 
+        db, cursor = x.db()
 
-        # Look for matches in `user_username` and `user_name` using LIKE
-        # Look for matches in `user_bio` using FULLTEXT search in BOOLEAN MODE
-        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer" # or however you store it
-
+        # Search users WITH follow-state
         q = """
             SELECT 
-            users.*,
-            CASE 
-                WHEN f.follow_user_fk IS NOT NULL THEN 1 
-                ELSE 0 
-            END AS followed_by_user
+                users.*,
+                CASE WHEN f.follow_user_fk IS NOT NULL THEN 1 ELSE 0 END AS followed_by_user
             FROM users
             LEFT JOIN follows f
-            ON f.follow_user_fk = %s
-            AND f.followed_user_fk = users.user_pk
+                ON f.follow_user_fk = %s
+                AND f.followed_user_fk = users.user_pk
             WHERE (
                 user_username LIKE %s
                 OR user_name LIKE %s
-                OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
-                )
-             AND user_is_blocked = 0
-            """
-
-        cursor.execute(q, (user_pk, part_of_query, part_of_query, search_for + "*"))
+            )
+            AND user_is_blocked = 0
+            LIMIT 10
+        """
+        cursor.execute(q, (user_pk, part_of_query, part_of_query))
         users = cursor.fetchall()
 
-        # - Use FULLTEXT search on the `post_message` column in BOOLEAN MODE
-        q = """
-            SELECT * FROM posts
-            WHERE MATCH(post_message) AGAINST(%s IN BOOLEAN MODE)
-        """
+        # Search posts
+        q = "SELECT * FROM posts WHERE MATCH(post_message) AGAINST(%s IN BOOLEAN MODE)"
         cursor.execute(q, (search_for + "*",))
-
         posts = cursor.fetchall()
 
-        users_list = []
-        for user in users:
-            # Make user dict editable
-            user_dict = dict(user)
+        # Prepare dict for template
+        for u in users:
+            u["followed_by_user"] = bool(u["followed_by_user"])
 
-            # Render button templates server-side
-            user_dict["follow_button_html"] = render_template(
-                "___button_follow_user.html",
-                suggestion=user_dict
-            )
+        search_results_html = render_template("_search_results.html", users=users, posts=posts)
 
-            user_dict["unfollow_button_html"] = render_template(
-                "___button_unfollow_user.html",
-                suggestion=user_dict
-            )
-
-            users_list.append(user_dict)
-
-        results = ({
-            "users": users_list,
-            "posts": posts
-        })
-        return jsonify(results)
+        return f"""
+        <browser mix-replace="#search_results">
+            <div id="search_results"
+                 class="p-absolute top-9 left-0 w-full bg-c-white h-auto pa-4
+                        border-1 border-c-gray:+50 rounded-sm shadow-md">
+                {search_results_html}
+            </div>
+        </browser>
+        """
 
     except Exception as ex:
-        return str(ex)
-    
+        return str(ex), 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 
