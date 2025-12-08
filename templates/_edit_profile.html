@@ -45,13 +45,13 @@
             value="{{ user.user_username }}">
     </div>
     <div>
-        <label for="user_first_name">
-            <span>{{ lans("first_name") }}</span> - {{ x.USER_FIRST_NAME_MIN }} {{ lans("to") }} {{
-            x.USER_FIRST_NAME_MAX }}
+        <label for="user_name">
+            <span>{{ lans("name") }}</span> - {{ x.USER_NAME_MIN }} {{ lans("to") }} {{
+            x.USER_NAME_MAX }}
             {{ lans("characters") }}
         </label>
-        <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_FIRST_NAME }}"
-            value="{{ user.user_first_name }}">
+        <input name="user_name" id="user_name" type="text" mix-check="{{ x.REGEX_USER_NAME }}"
+            value="{{ user.user_name }}">
     </div>
     <button class="edit-profile-btn" mix-default="{{ lans('update_profile') }}"
         mix-await="{{ lans('updating_profile') }}">

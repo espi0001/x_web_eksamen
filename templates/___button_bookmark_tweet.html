@@ -1,0 +1,8 @@
+<div id="button_bookmark_container_{{ tweet.post_pk }}">
+    <button class="action bookmark" mix-patch="/bookmark-tweet/{{ tweet.post_pk }}">
+        <i class="fa-regular fa-bookmark pointer-e-none"></i>
+        {% if tweet.post_total_bookmarks > 0 %}
+        <span>{{ tweet.post_total_bookmarks }}</span>
+        {% endif %}
+    </button>
+</div>

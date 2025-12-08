@@ -43,7 +43,7 @@ def global_variables():
     return dict(
         lan=lan,        # Language for current user
         user=g.user,    # Current logged-in user (or None)
-        x=x,             # x.py module (for constants, validation regex, etc.)
+        x=x,            # x.py module (for constants, validation regex, etc.)
         lans=x.lans,
         dictionary=dictionary
     )
@@ -116,15 +116,13 @@ def view_index(lan="english"):
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
-    # Question: skal der stadig være x.allowed_languages hvis vi ikke behøver skrive x??
-    # Ulempen vil være at vi ikke ved hvor tingene kommer fra
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
 
     if request.method == "GET":
-        x.default_language = lan # Question: Skal vi have det her med = lan??
-        return render_template("signup.html", lan=lan) # Question: SKAL VI HAVE LAN=LAN HER??
+        x.default_language = lan
+        return render_template("signup.html", lan=lan)
 
     if request.method == "POST":
         try:
@@ -132,7 +130,7 @@ def signup(lan = "english"):
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
             user_username = x.validate_user_username(lan)
-            user_first_name = x.validate_user_first_name(lan)
+            user_name = x.validate_user_name(lan)
 
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
@@ -149,10 +147,10 @@ def signup(lan = "english"):
             user_hashed_password = generate_password_hash(user_password)
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             # All the values that has NULL in the DB is now None here
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_first_name, None, None, user_avatar_path, 
+            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_name, None, user_avatar_path, 
             user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
 
@@ -160,19 +158,14 @@ def signup(lan = "english"):
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
             ic(email_verify_account)
 
-            x.send_email(user_email=user_email, subject="Verify your account", template=email_verify_account)
+            x.send_email(user_email=user_email, subject=f"{x.lans('verify_your_account')}", template=email_verify_account)
 
-            # Question: skal det her være udkommenteret??
-            # Uncomment when email is configured:
-            # x.send_email(user_email, "Verify your account", email_verify_account)
 
-            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
-            """
-            # Redirect to login page
-            return f"""<browser mix-redirect="{ url_for('login', lan=lan) }"></browser>""", 200 # Question: skal lan=lan være her??
-            
+            """, 200
+
         except Exception as ex:
             ic(ex)
             
@@ -191,12 +184,15 @@ def signup(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
             return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
+
+
+
 
 # -------------------- VERIFY ACCOUNT -------------------- #
 ############## VERIFY ACCOUNT ################
@@ -228,7 +224,7 @@ def verify_account():
             return ex.args[0], 400    
 
         # System error
-        return "Cannot verify user"
+        return f"{x.lans('cannot_verify_user')}"
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -263,9 +259,10 @@ def login(lan = "english"):
             user_email = x.validate_user_email(lan)
             user_password = x.validate_user_password(lan)
             
+            db, cursor = x.db()
+
             # Query database for user -> deleted user cannot log in
             q = "SELECT * FROM users WHERE user_email = %s"
-            db, cursor = x.db() # Question: burde den her linje ikke være over q?
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
             
@@ -347,10 +344,10 @@ def forgot_password(lan = "english"):
             ic(email_forgot_password)
 
             # passing the email, subject and template to the send_email function.
-            x.send_email(user_email=user_email, subject="Update your password", template=email_forgot_password)
+            x.send_email(user_email=user_email, subject=f"{x.lans('update_password')}", template=email_forgot_password)
             
             #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
-            toast_ok = render_template("___toast_ok.html", message=x.lans("check_your_email"))
+            toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
             return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
 
 
@@ -379,7 +376,7 @@ def create_new_password():
         row = cursor.fetchone()
 
         if not row:
-            return "Invalid reset link", 400
+            return "Invalid reset key", 400
 
         # on GET, create_new_password.html is shown and we pass the key from the url
         if request.method == "GET":
@@ -433,7 +430,6 @@ def home(lan = "english"):
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
-        # TODO = Only show the posts from users / posts that are not deleted
 
         is_admin = g.user["user_admin"]
 
@@ -445,13 +441,21 @@ def home(lan = "english"):
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-        ON likes.like_post_fk = posts.post_pk
-        AND likes.like_user_fk = %s
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         """
+
 
         # Add condition ONLY if user is not admin
         if not is_admin:
@@ -460,7 +464,8 @@ def home(lan = "english"):
         # Random order + limit
         base_query += " ORDER BY RAND() LIMIT 5"
 
-        cursor.execute(base_query, (g.user["user_pk"],))
+        # Pass user_pk TWICE (once for likes, once for bookmarks)
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
         tweets = cursor.fetchall()
 
         # Get random trends
@@ -499,6 +504,7 @@ def home(lan = "english"):
         if "db" in locals(): db.close()
 
 
+
 ############## HOME COMP ################
 @app.get("/home-comp")
 # TODO: add translation
@@ -509,8 +515,7 @@ def home_comp():
 
         db, cursor = x.db()
 
-        # Get likes on a post
-         
+        
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -521,13 +526,21 @@ def home_comp():
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
-        ON likes.like_post_fk = posts.post_pk
-        AND likes.like_user_fk = %s
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         """
+
 
         # Add condition ONLY if user is not admin
         if not is_admin:
@@ -536,7 +549,7 @@ def home_comp():
         # Random order + limit
         base_query += " ORDER BY RAND() LIMIT 5"
 
-        cursor.execute(base_query, (g.user["user_pk"],))
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
 
         html = render_template("_home_comp.html", tweets=tweets)
@@ -583,22 +596,75 @@ def profile():
         if not g.user: 
             return "error" # Question: mangler den end http code? f.eks. 400??
         
-        # Fetch fresh user data from database
-        q = "SELECT * FROM users WHERE user_pk = %s"
         db, cursor = x.db()
+
+
+        # Fetch user data from database
+        q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
-        q = """
-        SELECT posts.*, users.user_username, users.user_first_name, users.user_last_name, users.user_avatar_path
-        FROM posts
-        JOIN users ON posts.post_user_fk = users.user_pk
-        WHERE posts.post_user_fk = %s
-        ORDER BY posts.created_at DESC
-        """
-        cursor.execute(q, (g.user["user_pk"],))
+
+        # Check which tab is active (default is "posts")
+        active_tab = request.args.get("tab", "posts")
+        
+        # Fetch posts based on active tab
+        if active_tab == "bookmarks":
+            # Get bookmarked posts
+            q = """
+            SELECT 
+                posts.*,
+                users.user_username,
+                users.user_name,
+                users.user_avatar_path,
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS liked_by_user,
+                1 AS bookmarked_by_user
+            FROM posts
+            JOIN users ON posts.post_user_fk = users.user_pk
+            JOIN bookmarks ON bookmarks.bookmark_post_fk = posts.post_pk
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk
+                AND likes.like_user_fk = %s
+            WHERE bookmarks.bookmark_user_fk = %s
+            ORDER BY bookmarks.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"]))
+        else:
+            # Get user's own posts (default tab)
+            q = """
+            SELECT 
+                posts.*,                    -- All from posts-table
+                users.user_username,        -- Users username
+                users.user_name,            -- User name
+                users.user_avatar_path,     -- User avartar
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1      -- you have liked
+                    ELSE 0                                          -- You have not likes
+                END AS liked_by_user,
+                CASE 
+                    WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1  -- you have bookmarked
+                    ELSE 0                                              -- You have not likes
+                END AS bookmarked_by_user
+            FROM posts                                                  -- start with posts table
+            JOIN users ON posts.post_user_fk = users.user_pk            -- Join with users table (match posts with the user that made them)
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk           -- Match post pk
+                AND likes.like_user_fk = %s                     -- Match the users pk
+            LEFT JOIN bookmarks
+                ON bookmarks.bookmark_post_fk = posts.post_pk   -- Match post pk
+                AND bookmarks.bookmark_user_fk = %s             -- Match the users pk
+            WHERE posts.post_user_fk = %s
+            ORDER BY posts.created_at DESC
+            """
+            cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"]))
+                            #1 for likes     #2 for bookmarks  #3 for WHERE
+        
         posts = cursor.fetchall()
+
         # Render profile template
-        profile_html = render_template("_profile.html", row=row, posts=posts)
+        profile_html = render_template("_profile.html", row=row, posts=posts, active_tab=active_tab)
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
         
     except Exception as ex:
@@ -652,22 +718,22 @@ def api_update_profile():
         # Validate inputs
         user_email = x.validate_user_email()
         user_username = x.validate_user_username()
-        user_first_name = x.validate_user_first_name()
+        user_name = x.validate_user_name()
 
         # timestamp for when the profile updates
         updated_at = int(time.time())
 
         # Update database
-        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, updated_at = %s WHERE user_pk = %s"
+        q = "UPDATE users SET user_email = %s, user_username = %s, user_name = %s, updated_at = %s WHERE user_pk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_first_name, updated_at, g.user["user_pk"]))
+        cursor.execute(q, (user_email, user_username, user_name, updated_at, g.user["user_pk"]))
         db.commit()
 
         # Send success response
         toast_ok = render_template("___toast_ok.html", message="Profile updated successfully")
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-update="#profile_tag .name">{user_first_name}</browser>
+            <browser mix-update="#profile_tag .name">{user_name}</browser>
             <browser mix-update="#profile_tag .handle">@{user_username}</browser>
         """, 200
         
@@ -717,8 +783,8 @@ def serve_image(filename):
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
-   - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
-   - Ingen kompliceret if/else logik i templates
+    - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
+    - Ingen kompliceret if/else logik i templates
     """
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
@@ -820,7 +886,7 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_upload_avatar'): {str(ex)}}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:
@@ -898,6 +964,127 @@ def api_delete_profile(lan = "english"):
         if "db" in locals(): db.close()
 
 
+############## GET USERS POSTS (profile tabs) ################
+@app.get("/api-get-users-posts")
+def api_get_users_posts():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+        
+        user_pk = g.user["user_pk"]
+        db, cursor = x.db()
+
+        q = """
+        SELECT 
+            posts.*, 
+            users.user_username, 
+            users.user_name, 
+            users.user_avatar_path,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
+        FROM posts
+        JOIN users ON posts.post_user_fk = users.user_pk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
+        WHERE posts.post_user_fk = %s
+        ORDER BY posts.created_at DESC
+        """
+        cursor.execute(q, (user_pk, user_pk, user_pk))
+        posts = cursor.fetchall()
+
+        # Render posts
+        if posts:
+            posts_html = ""
+            for tweet in posts:
+                posts_html += render_template("_tweet.html", tweet=tweet)
+            return f"""<browser mix-update="#profile-posts">{posts_html}</browser>"""
+        else:
+            no_posts = f"""
+            <div class="no-posts">
+                <p>{x.lans("no_posts_yet")}</p>
+            </div>
+            """
+            return f"""<browser mix-update="#profile-posts">{no_posts}</browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        toast_error = render_template("___toast_error.html", message="Could not load posts")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+############## GET USER BOOKMARKS (profile tabs) ################
+@app.get("/api-get-bookmarks")
+def api_get_bookmarks():
+    try:
+        # Check if user is logged in
+        if not g.user:
+            return "invalid user", 400
+
+        user_pk = g.user["user_pk"]
+        db, cursor = x.db()
+
+        # Get all posts that the user has bookmarked
+        q = """
+            SELECT 
+                posts.*,
+                users.user_username,
+                users.user_name,
+                users.user_avatar_path,
+                CASE 
+                    WHEN likes.like_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS liked_by_user,
+                1 AS bookmarked_by_user          -- Always 1 because we're showing bookmarked posts
+            FROM posts
+            JOIN users ON posts.post_user_fk = users.user_pk
+            JOIN bookmarks ON bookmarks.bookmark_post_fk = posts.post_pk
+            LEFT JOIN likes 
+                ON likes.like_post_fk = posts.post_pk
+                AND likes.like_user_fk = %s
+            WHERE bookmarks.bookmark_user_fk = %s
+            ORDER BY bookmarks.created_at DESC
+        """
+        cursor.execute(q, (user_pk, user_pk))
+        posts = cursor.fetchall()
+
+
+        # Render just the posts list
+        if posts:
+            posts_html = ""
+            for tweet in posts:
+                posts_html += render_template("_tweet.html", tweet=tweet)
+            return f"""<browser mix-update="#profile-posts">{posts_html}</browser>"""
+
+        else:
+            no_posts = f"""
+            <div class="no-posts>
+                <p>{x.lans("no_bookmarks_yet")}</p>
+            </div>
+            """
+            return f"""<browser mix-update="#profile-posts">{no_posts}</browser>"""
+
+    except Exception as ex:
+        ic(ex)
+        toast_error = render_template("___toast_error.html", message="Could not load bookmarks")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
 
 
 # -------------------- POST/TWEET -------------------- #
@@ -974,23 +1161,28 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
+        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!") # TODO: translate
         
+        # Dictionary
         tweet = {
             "post_pk": post_pk,
-            "user_first_name": g.user["user_first_name"],
-            "user_last_name": g.user["user_last_name"],
+            "post_user_fk": user_pk,
+            "user_name": g.user["user_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "post_message": post_message,
             "post_media_path": post_media_path,
             "post_is_blocked": 0,
-            "post_total_likes": 0,
-            "post_total_comments": 0
+            "post_total_likes": post_total_likes,
+            "post_total_comments": post_total_comments,
+            "post_total_bookmarks": post_total_bookmarks,  # needed for bookmark button
+            "liked_by_user": 0,  # For new post, user hasn't liked it yet
+            "bookmarked_by_user": 0,  # For new post, user hasn't bookmarked it yet
+            "created_at": created_at,  # For timestamp
         }
         
         html_post_container = render_template("___post_container.html")
-        html_post = render_template("_tweet.html", tweet=tweet, user=user_pk) # passing user so delete post will show us as soon as its posted
+        html_post = render_template("_tweet.html", tweet=tweet, user=g.user) # passing user so delete post will show us as soon as its posted
         
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1057,6 +1249,8 @@ def edit_post(post_pk):
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+
 ############### API EDIT POST - POST ############### 
 @app.route("/api-update-post/<post_pk>", methods=["POST"])
 def api_update_post(post_pk):
@@ -1120,7 +1314,7 @@ def api_update_post(post_pk):
                 WHEN posts.updated_at = (
                 SELECT MAX(updated_at) FROM posts WHERE updated_at IS NOT NULL
                 ) THEN 0
-                 ELSE 1
+                ELSE 1
             END,
             RAND()
             LIMIT 5
@@ -1158,9 +1352,8 @@ def api_update_post(post_pk):
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-   
 
-    
+
 
 
 ############### API DELETE POST ###############
@@ -1201,6 +1394,7 @@ def api_delete_post(post_pk):
         if "db" in locals(): db.close()
 
 
+
 ############## SINGLE POST/TWEET ################
 # TODO: add translation
 @app.get("/single-post/<post_pk>")
@@ -1212,7 +1406,7 @@ def view_single_post(post_pk):
 
         db, cursor = x.db() # Question: hvorfor skal linjen være her?
 
-        # Get likes on a post
+        # Get likes + bookmarks on a post
         q = """
         SELECT 
             users.*,
@@ -1220,15 +1414,23 @@ def view_single_post(post_pk):
             CASE 
                 WHEN likes.like_user_fk IS NOT NULL THEN 1
                 ELSE 0
-            END AS liked_by_user
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
         FROM posts
         JOIN users ON users.user_pk = posts.post_user_fk
         LEFT JOIN likes 
             ON likes.like_post_fk = posts.post_pk 
             AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
         WHERE posts.post_pk = %s
         """
-        cursor.execute(q, (g.user["user_pk"], post_pk,))
+
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], post_pk))
         
         tweet = cursor.fetchone()
 
@@ -1240,7 +1442,7 @@ def view_single_post(post_pk):
         q = """
         SELECT
             comments.*,
-            users.user_first_name,
+            users.user_name,
             users.user_username,
             users.user_avatar_path
         FROM comments
@@ -1279,10 +1481,6 @@ def api_create_comment(post_pk):
             return "invalid user", 400
         
         # Get and validate the comment from the comment form
-        # ic("FORM", request.form.to_dict())
-        # comment_raw = request.form.get("comment", "")
-        # ic(comment_raw, len(comment_raw))
-        # comment_message = x.validate_comment(comment_raw)
         comment_message = x.validate_comment(request.form.get("comment", ""))
 
         # Generate comment data
@@ -1303,7 +1501,7 @@ def api_create_comment(post_pk):
         
         comment = {
             "comment_pk": comment_pk,
-            "user_first_name": g.user["user_first_name"],
+            "user_name": g.user["user_name"],
             "user_username": g.user["user_username"],
             "user_avatar_path": g.user["user_avatar_path"],
             "comment_message": comment_message,
@@ -1328,7 +1526,7 @@ def api_create_comment(post_pk):
         q = """
         SELECT
             comments.*,
-            users.user_first_name,
+            users.user_name,
             users.user_username,
             users.user_avatar_path
         FROM comments
@@ -1378,7 +1576,7 @@ def api_create_comment(post_pk):
 def api_like_tweet(post_pk):
     try:
 
-        like_user_fk = session.get("user_pk")  # The user who is liking the tweet
+        like_user_fk = g.user["user_pk"]  # The user who is liking the tweet
         like_post_fk = post_pk                 # The tweet/post being liked
         created_at = int(time.time())         # Get the current timestamp
 
@@ -1418,7 +1616,6 @@ def api_like_tweet(post_pk):
 @x.no_cache 
 def api_unlike_tweet(post_pk):
     try:
-  
         like_user_fk = g.user["user_pk"]  # The user who is unliking the tweet
         like_post_fk = post_pk                 # The tweet/post being unliked
 
@@ -1452,13 +1649,100 @@ def api_unlike_tweet(post_pk):
         if "db" in locals(): db.close()
 
 
+############## BOOKMARK POST/TWEET ################
+@app.patch("/bookmark-tweet/<post_pk>")
+@x.no_cache
+def api_bookmark_tweet(post_pk):
+    try:
+        if not g.user:
+            return "invalid user", 400
+
+        
+        
+        bookmark_user_fk = g.user["user_pk"]    # The user who is bookmarking the tweet
+        bookmark_post_fk = post_pk              # The tweet/post being bookmarked
+        created_at = int(time.time())           # Get the current timestamp
+
+        db, cursor = x.db()
+
+        # Insert the bookmark record in the databse
+        q = "INSERT INTO bookmarks VALUES(%s, %s, %s, %s)"
+        cursor.execute(q, (bookmark_user_fk, bookmark_post_fk, created_at, None))
+        db.commit()  # Commit the change
+
+        # Fetch the post data
+        # Used to re-render the unbookmark button with updated state
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        # Render the unbookmark button HTML
+        button_unbookmark_tweet = render_template("___button_unbookmark_tweet.html", tweet=tweet)
+        return f"""
+            <browser mix-replace="#button_bookmark_container_{post_pk}">
+                {button_unbookmark_tweet}
+            </browser>
+        """
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+
+############## UNBOOKMARK TWEET ################
+@app.delete("/unbookmark-tweet/<post_pk>")
+@x.no_cache 
+def api_unbookmark_tweet(post_pk):
+    try:
+        if not g.user:
+            return "invalid user", 400
+
+        bookmark_user_fk = g.user["user_pk"]  # The user who is unbookmarking the tweet
+        bookmark_post_fk = post_pk                 # The tweet/post being unbookmarkd
+
+        db, cursor = x.db()
+
+        # Delete the bookmark from database
+        q = "DELETE FROM bookmarks WHERE bookmark_user_fk = %s AND bookmark_post_fk = %s"
+        cursor.execute(q, (bookmark_user_fk, bookmark_post_fk))
+        db.commit()
+
+        # Fetch the tweet data
+        # This is used to re-render the bookmark/unbookmark button with updated state
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        # Render the bookmark button HTML
+        button_bookmark_tweet = render_template("___button_bookmark_tweet.html", tweet=tweet)
+        return f"""
+            <browser mix-replace="#button_bookmark_container_{post_pk}">
+                {button_bookmark_tweet}
+            </browser>
+        """
+
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+        return "error", 500
+
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
 
 # -------------------- FOLLOW -------------------- #
 ############## FOLLOW USER ################
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
-  
         follow_user_fk = g.user["user_pk"]  # The user who is performing the follow
         followed_user_fk = user_pk           # The user being followed 
         created_at = int(time.time())         # Get the current timestamp
@@ -1608,6 +1892,8 @@ def view_all_user_follows():
 @app.post("/api-search")
 def api_search():
     try:
+
+        user_pk = g.user["user_pk"]
         # Get the search input from the request
         search_for = request.form.get("search_for", "")
         
@@ -1618,20 +1904,30 @@ def api_search():
 
         db, cursor = x.db() 
 
-        # Look for matches in `user_username` and `user_first_name` using LIKE
+        # Look for matches in `user_username` and `user_name` using LIKE
         # Look for matches in `user_bio` using FULLTEXT search in BOOLEAN MODE
-        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer"
-        q = """
-            SELECT * FROM users
-            WHERE (
-             user_username LIKE %s
-               OR user_first_name LIKE %s
-               OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
-               )
-               AND user_is_blocked = 0
-        """
-        cursor.execute(q, (part_of_query, part_of_query, search_for + "*"))
+        # BOOLEAN MODE allows prefix search with "*", fx. "dev*" to match "developer" # or however you store it
 
+        q = """
+            SELECT 
+            users.*,
+            CASE 
+                WHEN f.follow_user_fk IS NOT NULL THEN 1 
+                ELSE 0 
+            END AS followed_by_user
+            FROM users
+            LEFT JOIN follows f
+            ON f.follow_user_fk = %s
+            AND f.followed_user_fk = users.user_pk
+            WHERE (
+                user_username LIKE %s
+                OR user_name LIKE %s
+                OR MATCH(user_bio) AGAINST(%s IN BOOLEAN MODE)
+                )
+             AND user_is_blocked = 0
+            """
+
+        cursor.execute(q, (user_pk, part_of_query, part_of_query, search_for + "*"))
         users = cursor.fetchall()
 
         # - Use FULLTEXT search on the `post_message` column in BOOLEAN MODE
@@ -1643,13 +1939,28 @@ def api_search():
 
         posts = cursor.fetchall()
 
-        # The JSON response will have two keys: "users" and "posts"
-        results = {
-            "users": users,
-            "posts": posts
-        }
+        users_list = []
+        for user in users:
+            # Make user dict editable
+            user_dict = dict(user)
 
-        # Return the combined results as JSON
+            # Render button templates server-side
+            user_dict["follow_button_html"] = render_template(
+                "___button_follow_user.html",
+                suggestion=user_dict
+            )
+
+            user_dict["unfollow_button_html"] = render_template(
+                "___button_unfollow_user.html",
+                suggestion=user_dict
+            )
+
+            users_list.append(user_dict)
+
+        results = ({
+            "users": users_list,
+            "posts": posts
+        })
         return jsonify(results)
 
     except Exception as ex:
@@ -1658,10 +1969,6 @@ def api_search():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
-
-
-
 
 
 
@@ -1752,6 +2059,7 @@ def admin_block_user(user_pk):
         if "db" in locals(): db.close()
 
 
+
 ############# ADMIN-BLOCK-POST #################
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
@@ -1764,8 +2072,7 @@ def admin_block_post(post_pk):
         # SQL query to fetch a specific post along with data on the user who created the post.
         q = """SELECT 
         posts.*,
-        users.user_first_name,
-        users.user_last_name,
+        users.user_name,
         users.user_username,
         users.user_avatar_path
         FROM posts

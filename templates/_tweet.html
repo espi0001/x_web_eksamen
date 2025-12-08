@@ -18,15 +18,11 @@
             <div class="post-content">
                 <div class="post-header">
                     <span class="name">
-                        {{ tweet.user_first_name }}
-                        {% if tweet.user_last_name %}
-                        {{ tweet.user_last_name }}
-                        {% endif %}
+                        {{ tweet.user_name }}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
-                    <span class="time">1d</span> <!-- TODO: Add timestamp + translate -->
+                    <span class="time">{{ x.format_timestamp(tweet.created_at) }}</span> <!-- TODO: change timestamp + translate -->
 
-                    <!-- edit knap > vises kun på brugerens egne posts -->
                     <!-- edit knap > vises kun på brugerens egne posts -->
                     {% if user.user_pk == tweet.post_user_fk %}
                     <button class="edit-post-btn" mix-get="/edit-post/{{ tweet.post_pk }}"
@@ -37,7 +33,8 @@
                 </div>
 
                 <p class="text">{{ tweet.post_message }}</p>
-
+                
+                <!-- Question: Jeg tror der er fejl her -->
                 <!-- Media display  -->
                 {% if tweet.post_media_path %}
                 {% set file_ext = tweet.post_media_path.split('.')[-1].lower() %}
@@ -54,14 +51,23 @@
                 </video>
                 {% endif %}
                 {% endif %}
+                <!-- TODO: Jeg tror der er fejl her -->
+                
 
                 <div class="post-actions">
-                    <span class="action">
+                    <!-- Comment -->
+                    <span class="action comment">
                         <a href="/single-post/{{ tweet.post_pk }}" mix-get>
-                            <i class="fa-regular fa-comment"></i> 12
+                            <i class="fa-regular fa-comment pointer-e-none"></i> 
+                            {% if tweet.post_total_comments > 0 %}
+                                <span class="pointer-e-none">{{ tweet.post_total_comments }}</span>
+                            {% endif %}
                         </a>
                     </span>
-                    <span class="action"><i class="fa-solid fa-retweet"></i> 5</span>
+
+                    <span class="action"><i class="fa-solid fa-retweet"></i> </span>
+                    
+                    <!-- Like -->
                     <span class="action">
                         {% if tweet.liked_by_user %}
                         {% include "___button_unlike_tweet.html" %}
@@ -69,13 +75,21 @@
                         {% include "___button_like_tweet.html" %}
                         {% endif %}
                     </span>
-                    <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
+
+                    <!-- Bookmark -->
+                    <span class="action">
+                        {% if tweet.bookmarked_by_user %}
+                        {% include "___button_unbookmark_tweet.html" %}
+                        {% else %}
+                        {% include "___button_bookmark_tweet.html" %}
+                        {% endif %}
+                    </span>
                     <span class="action"><i class="fa-solid fa-share"></i></span>
 
 
                     {% if user and user.user_pk == tweet.post_user_fk %}
                     <form action="/api-delete-post/{{ tweet.post_pk }}" mix-delete style="display:inline" class="action"
-                        mix-delay="3000" mix-await="{{ lans('deleting_post') }}...">
+                        mix-delay="1000" mix-await="{{ lans('deleting_post') }}...">
                         <button type="submit" class="action text-c-red" class="text-c-red" hover="cursor-pointer">
                             <i class="fa-solid fa-trash"></i>
                         </button>
