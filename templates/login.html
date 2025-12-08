@@ -42,7 +42,8 @@
       <!-- Login form -->
       <form action="/login/{{ lan }}" mix-post class="x-dialog__form" autocomplete="off">
         <input name="user_email" type="text" placeholder="{{ lans('email') }}" mix-check="{{ x.REGEX_EMAIL }}">
-        <input name="user_password" type="password" placeholder="{{ lans('password') }}">
+        <input name="user_password" type="password" placeholder="{{ lans('password') }}"
+          mix-check="{{ x.REGEX_USER_PASSWORD }}">
         <button class="x-dialog__btn" mix-default="Login" mix-await="{{ lans('logging_in') }}...">
           {{ lans("login") }}
         </button>
