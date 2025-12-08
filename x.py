@@ -9,26 +9,32 @@ This module contains:
 - Security helpers (no_cache decorator)
 """
 
-# ==================== IMPORTS ====================
+# -------------------- IMPORTS --------------------
 from flask import request, make_response, render_template
 from functools import wraps
 from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import smtplib # handles the connection to an email server so for us gmail
+from email.mime.multipart import MIMEMultipart # allows adding both text and attachments
+from email.mime.text import MIMEText # allows adding the email body text, in plain or HTML format
+
 import mysql.connector
-import smtplib
 import json
 import re
 import dictionary
+import time
+import os
+
 import traceback
 from icecream import ic
 ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 
-# ==================== LANGUAGE CONFIGURATION ====================
+# -------------------- LANGUAGE CONFIGURATION --------------------
 allowed_languages = ["english", "danish", "spanish"]
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
+
 
 def lans(key):
     """
@@ -40,7 +46,8 @@ def lans(key):
     return data[key][default_language]
 
 
-# ==================== FILE UPLOAD CONFIGURATION ====================
+
+# -------------------- FILE UPLOAD CONFIGURATION --------------------
 UPLOAD_ITEM_FOLDER = './images'
 
 # Avatar uploads (profile pictures only)
@@ -56,7 +63,7 @@ MAX_IMAGE_WIDTH = 1080
 MAX_IMAGE_HEIGHT = 1080
 
 
-# ==================== DATABASE ====================
+# -------------------- DATABASE --------------------
 def db():
     """
     Create database connection
@@ -66,20 +73,25 @@ def db():
         Exception: If connection fails
     """
     try:
+        host = "webdevMESS.mysql.eu.pythonanywhere-services.com" if "PYTHONANYWHERE_DOMAIN" in os.environ else "mariadb"
+        user = "webdevMESS" if "PYTHONANYWHERE_DOMAIN" in os.environ else "root"
+        password = "Webdev2025" if "PYTHONANYWHERE_DOMAIN" in os.environ else "password"
+        database = "webdevMESS$xclone" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
+
         db = mysql.connector.connect(
-            host="mariadb",
-            user="root",  
-            password="password",
-            database="x"
+            host = host,
+            user = user,  
+            password = password,
+            database = database
         )
         cursor = db.cursor(dictionary=True)
         return db, cursor
     except Exception as e:
         print(e, flush=True)
-        raise Exception("Twitter exception - Database under maintenance", 500)
+        raise Exception(lans("system_under_maintenance"), 500)
 
 
-# ==================== SECURITY & HELPERS ====================
+# -------------------- SECURITY & HELPERS --------------------
 def no_cache(view):
     """
     Decorator to prevent browser caching
@@ -117,7 +129,7 @@ def format_timestamp(timestamp):
     except:
         return "Unknown"
 
-# ==================== VALIDATION RULES ====================
+# -------------------- VALIDATION RULES --------------------
 # Email
 REGEX_EMAIL = "^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$"
 
@@ -126,10 +138,10 @@ USER_USERNAME_MIN = 2
 USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
 
-# First name
-USER_FIRST_NAME_MIN = 2
-USER_FIRST_NAME_MAX = 20
-REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
+# Name
+USER_NAME_MIN = 2
+USER_NAME_MAX = 50
+REGEX_USER_NAME = f"^.{{{USER_NAME_MIN},{USER_NAME_MAX}}}$"
 
 # Password
 USER_PASSWORD_MIN = 6
@@ -141,27 +153,26 @@ POST_MIN_LEN = 2
 POST_MAX_LEN = 250
 REGEX_POST = f"^.{{{POST_MIN_LEN},{POST_MAX_LEN}}}$"
 
+# comment
+COMMENT_MIN_LEN = 1
+COMMENT_MAX_LEN = 200
+REGEX_COMMENT = f"^.{{{COMMENT_MIN_LEN},{COMMENT_MAX_LEN}}}$"
+
 # UUID patterns
 REGEX_UUID4 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 REGEX_UUID4_WITHOUT_DASHES = "^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$"
 
-# ==================== USER VALIDATION ====================
+# -------------------- USER VALIDATION --------------------
+# Email - Validate email from form input
 def validate_user_email(lan="en"):
-    """
-    Validate email from form input
-    
-    """
     user_email = request.form.get("user_email", "").strip()
     if not re.match(REGEX_EMAIL, user_email): 
         raise Exception(dictionary.invalid_email[lan], 400)
     return user_email
 
 
+# Username - Validate username from form input
 def validate_user_username(lan="en"):
-    """
-    Validate username from form input
-
-    """
     user_username = request.form.get("user_username", "").strip()
     error = f"username min {USER_USERNAME_MIN} max {USER_USERNAME_MAX} characters"
     if len(user_username) < USER_USERNAME_MIN: 
@@ -171,33 +182,25 @@ def validate_user_username(lan="en"):
     return user_username
 
 
-def validate_user_first_name(lan="en"):
-    """
-    Validate first name from form input
-    
-    """
-    user_first_name = request.form.get("user_first_name", "").strip()
-    error = f"first name min {USER_FIRST_NAME_MIN} max {USER_FIRST_NAME_MAX} characters"
-    if not re.match(REGEX_USER_FIRST_NAME, user_first_name): 
+# Name - Validate name from form input
+def validate_user_name(lan="en"):
+    user_name = request.form.get("user_name", "").strip()
+    error = f"name min {USER_NAME_MIN} max {USER_NAME_MAX} characters"
+    if not re.match(REGEX_USER_NAME, user_name): 
         raise Exception(error, 400)
-    return user_first_name
+    return user_name
 
-
+# password - Validate password from form input
 def validate_user_password(lan="en"):
-    """
-    Validate password from form input
-    
-    """
     user_password = request.form.get("user_password", "").strip()
     if not re.match(REGEX_USER_PASSWORD, user_password): 
         raise Exception(dictionary.invalid_password[lan], 400)
     return user_password
 
-
+# password confirm
 def validate_user_password_confirm():
     """
     Validate password confirmation from form input
-    
     """
     user_password = request.form.get("user_password_confirm", "").strip()
     if not re.match(REGEX_USER_PASSWORD, user_password): 
@@ -205,11 +208,12 @@ def validate_user_password_confirm():
     return user_password
 
 
-# ==================== POST VALIDATION ====================
+
+
+# -------------------- POST VALIDATION --------------------
 def validate_post(post="", allow_empty=False):
     """
     Validate post/tweet message
-    
     """
     post = post.strip()
     
@@ -224,24 +228,28 @@ def validate_post(post="", allow_empty=False):
     return post
 
 
-# ==================== COMMENT VALIDATION ====================
-def validate_comment(comment_message):
+# -------------------- COMMENT VALIDATION --------------------
+def validate_comment(comment_message="", lan="en"):
+    """
+    Validate comment message
+    - tillader linjeskift
+    - tjekker kun længde (1-200 tegn)
+    """
+
+    # Remove whitespace in both ends
     comment_message = comment_message.strip()
 
-    if len (comment_message) < 1:
-        raise Exception("Comment must be at least 1 character", 400)
-    
-    if len (comment_message) > 250:
-        raise Exception("Comment must be at least 1 and 250 characters", 400)
+    # Validate length (min 1, max 200 characters)
+    if not re.match(REGEX_COMMENT, comment_message): 
+        raise Exception(f"Comment must be between {COMMENT_MIN_LEN} and {COMMENT_MAX_LEN} characters", 400)
 
     return comment_message
 
 
-# ==================== FILE UPLOAD VALIDATION ====================
+# -------------------- FILE UPLOAD VALIDATION --------------------
 def validate_avatar_upload():
     """
     Validate avatar image upload
-    
     """
     # Check if file exists in request
     if 'avatar' not in request.files:
@@ -313,7 +321,9 @@ def validate_post_media():
     # Return file without any processing
     return file, file_extension
 
-# ==================== UUID VALIDATION ====================
+
+# -------------------- UUID VALIDATION --------------------
+# Question: Hvorfor har vi både med og uden dashes?
 def validate_uuid4(uuid4=""):
     """
     Validate UUID4 format (with dashes)
@@ -331,7 +341,6 @@ def validate_uuid4_without_dashes(uuid4=""):
     """
     Validate UUID4 format (without dashes)
     
-    
     Example: 550e8400e29b41d4a716446655440000
     """
     error = "Invalid uuid4 without dashes"
@@ -343,8 +352,8 @@ def validate_uuid4_without_dashes(uuid4=""):
     return uuid4
 
 
-# ==================== EMAIL ====================
-def send_email(user_email, subject, template):
+# -------------------- SEND EMAIL --------------------
+def send_email(user_email, subject, template, lan="en"):
     """
     Send HTML email via Gmail SMTP
     
@@ -360,11 +369,18 @@ def send_email(user_email, subject, template):
         sender_email = "webdevxclone@gmail.com"
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 
+        user_email=user_email
+        print(f"SENDING EMAIL TO: {user_email}")
+        ic(f"Sending to: {user_email}")
+        ic(f"Subject: {subject}")
+
         # Create email message
         message = MIMEMultipart()
         message["From"] = "X clone"
         message["To"] = user_email
         message["Subject"] = subject
+
+        # Body of the email
         message.attach(MIMEText(template, "html"))
 
         # Send email via Gmail SMTP
@@ -372,10 +388,10 @@ def send_email(user_email, subject, template):
             server.starttls()  # Upgrade to secure connection
             server.login(sender_email, password)
             server.sendmail(sender_email, user_email, message.as_string())
-        
+        print("Email sent successfully!")
         ic("Email sent successfully!")
         return "email sent"
-       
+    
     except Exception as ex:
         ic(ex)
         raise Exception("cannot send email", 500)

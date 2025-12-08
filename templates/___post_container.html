@@ -1,9 +1,11 @@
 <div id="post_container">
+    <!-- Question: Multipart for at kunne tilføje media? -->
     <form mix-post="/api-create-post" enctype="multipart/form-data" class="create-post-form">
         <div class="post-form-top">
             <img src="{{ user.user_avatar_path | avatar }}" alt="Avatar" class="w-8 h-8 rounded-full">
 
-            <textarea name="post" placeholder="What's happening?" class="post-form-textarea" rows="3"></textarea>
+            <textarea name="post" placeholder="{{ lans('whats_happening') }}" class="post-form-textarea"
+                rows="3"></textarea>
         </div>
 
         <!-- PREVIEW  -->
@@ -14,10 +16,10 @@
             <input type="file" id="post_media_input" name="post_media" accept="image/*,video/*" style="display: none;">
 
             <label for="post_media_input" class="media-btn">
-                <i class="fa-regular fa-image"></i> Add photo or video
+                <i class="fa-regular fa-image"></i> {{ lans("add_photo_or_video") }}
             </label>
 
-            <button type="submit" class="submit-post-btn">Post</button>
+            <button type="submit" class="submit-post-btn">{{ lans("post") }}</button>
         </div>
     </form>
 </div>

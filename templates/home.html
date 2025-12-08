@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/mojocss"></script>
 
     <title>
-        Fresh news
+        {{ lans("fresh_news") }}
     </title>
 </head>
 
@@ -48,18 +48,17 @@
                 <li><a href="#"><i class="fa-solid fa-star"></i><span>{{ lans("premium") }}</span></a></li>
 
                 <li>
-                    <a href="/profile" mix-get mix-default="<i class='fa-regular fa-user'></i> Profile"
+                    <a href="/profile" mix-get mix-default="<i class='fa-regular fa-user'></i> {{ lans('profile') }}"
                         mix-await="{{ lans('loading') }} ...">
                         <i class="fa-regular fa-user"></i>
                         <span class="pointer-e-none">{{ lans("profile") }}</span>
                     </a>
-                </li>
-                <!-- TODO: Missing translation -->
+                </li> 
+                <!-- Question: hvad er Profile" til? -->
 
                 <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a></li>
 
-                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{
-                            lans("logout") }}</span></a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{ lans("logout") }}</span></a></li>
 
                 {% if user.user_admin %}
                 <li>
@@ -74,7 +73,7 @@
                 <img src="{{ user.user_avatar_path | avatar }}" alt="Profile" id="nav_avatar">
                 <div>
                     <div class="name">
-                        {{ user.user_first_name }}
+                        {{ user.user_name }}
                     </div>
                     <div class="handle">
                         @{{ user.user_username }}

@@ -1,16 +1,21 @@
-<div class="profile-container">
-    <div class="profile-header">
-        <a href="/home-comp" mix-get>
-            <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
-        </a>
-    </div>
-    {% include "_tweet.html" %}
+<div class="profile-header">
+    {% include "___button_back.html" %}
 
-    {% include "___comment_post.html" %}
-
-    <div class="comments mt-4">
-        <div id="post-comments">
-            {% include "___comments_list.html" %}
-        </div>
+    <div class="header-info">
+        <h2>{{ lans("post") }}</h2>
     </div>
+</div>
+
+<!-- Tweet that we want to comment on -->
+{% include "_tweet.html" %}
+
+<!-- Create comment section -->
+{% include "___comment_container.html" %}
+
+
+<!-- Comments feed -->
+<div id="comments" class="mt-4">
+    {% for comment in comments: %}
+    {% include "_comment.html" %}
+    {% endfor %}
 </div>

@@ -3,18 +3,18 @@
         <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
     </a>
     <div class="header-info">
-        <h2>{{ user.user_first_name }}</h2>
+        <h2>{{ user.user_name }}</h2>
     </div>
 </div>
 
-<h2>{{ x.lans("following") }}</h2>
+<h2>{{ lans("following") }}</h2>
 
 {% for suggestion in suggestions: %}
 <div class="d-flex a-items-center">
     <img src="{{ suggestion.user_avatar_path | avatar }}" class="w-8 h-8 rounded-full" alt="Profile Picture">
     <div class="w-full ml-2">
         <p class="">
-            {{ suggestion.user_first_name }}
+            {{ suggestion.user_name }}
             <span class="text-c-gray:+20 text-70">@{{ suggestion.user_username }}</span>
         </p>
 
