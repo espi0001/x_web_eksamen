@@ -594,8 +594,6 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
-# Question: mangler vi language og methods?
-# TODO: add translation
 @app.get("/profile")
 def profile():
     try:
@@ -683,7 +681,6 @@ def profile():
 
 
 ############### EDIT PROFILE ###############
-# TODO: add translation
 @app.get("/edit_profile")
 def edit_profile():
     try:
@@ -711,7 +708,6 @@ def edit_profile():
 
 
 ############## API UPDATE PROFILE ################
-# TODO: add translation
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
@@ -770,12 +766,11 @@ def api_update_profile():
         if "db" in locals(): db.close()
 
 
-# TODO: RYK HEN TIL PROFILE
-############### IMAGES (AVATARS) ############### FORKLAR DENNE
+
+############### IMAGES (AVATARS) ###############
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
 @app.route('/images/avatars/<path:filename>')
-# TODO: add translation????
 def serve_image(filename):
     """
     Serves avatar images from the static/images/avatars folder
@@ -784,9 +779,9 @@ def serve_image(filename):
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
 
+
 ############################## 
 @app.template_filter('avatar')
-# TODO: add translation ???
 def avatar_filter(avatar_path):
     """
     Ensures avatar path works in HTML
@@ -806,6 +801,8 @@ def avatar_filter(avatar_path):
         return f"/{avatar_path}"
     
     return avatar_path
+
+
 
 ############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
