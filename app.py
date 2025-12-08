@@ -1094,6 +1094,8 @@ def api_get_bookmarks():
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
+        ic(g.user)
+        ic(g.user.keys())
         # Check if user is logged in
         if not g.user: 
             return "invalid user", 400
