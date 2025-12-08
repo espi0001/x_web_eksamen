@@ -22,7 +22,7 @@ import mysql.connector
 import json
 import re
 import dictionary
-
+import time
 import os
 
 import traceback
@@ -76,7 +76,7 @@ def db():
         host = "webdevMESS.mysql.eu.pythonanywhere-services.com" if "PYTHONANYWHERE_DOMAIN" in os.environ else "mariadb"
         user = "webdevMESS" if "PYTHONANYWHERE_DOMAIN" in os.environ else "root"
         password = "Webdev2025" if "PYTHONANYWHERE_DOMAIN" in os.environ else "password"
-        database = "webdevMESS$xclone" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
+        database = "webdevMESS$x" if "PYTHONANYWHERE_DOMAIN" in os.environ else "x"
 
         db = mysql.connector.connect(
             host = host,
@@ -88,7 +88,7 @@ def db():
         return db, cursor
     except Exception as e:
         print(e, flush=True)
-        raise Exception(lans("system_under_maintenance"), 500)
+        raise Exception("System under maintenance", 500)
 
 
 # -------------------- SECURITY & HELPERS --------------------
@@ -151,7 +151,7 @@ REGEX_USER_PASSWORD = f"^.{{{USER_PASSWORD_MIN},{USER_PASSWORD_MAX}}}$"
 # Post
 POST_MIN_LEN = 2
 POST_MAX_LEN = 250
-REGEX_POST = f"^[\\s\\S]{{{POST_MIN_LEN},{POST_MAX_LEN}}}$"
+REGEX_POST = f"^.{{{POST_MIN_LEN},{POST_MAX_LEN}}}$"
 
 # comment
 COMMENT_MIN_LEN = 1
@@ -222,7 +222,7 @@ def validate_post(post="", allow_empty=False):
         return post
     
     # Validate length (min 2, max 250 characters)
-    if len(post) < POST_MIN_LEN or len(post) > POST_MAX_LEN:
+    if not re.match(REGEX_POST, post): 
         raise Exception(f"Post must be between {POST_MIN_LEN} and {POST_MAX_LEN} characters", 400)
     
     return post

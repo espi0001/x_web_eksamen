@@ -53,12 +53,13 @@
                         <i class="fa-regular fa-user"></i>
                         <span class="pointer-e-none">{{ lans("profile") }}</span>
                     </a>
-                </li> 
+                </li>
                 <!-- Question: hvad er Profile" til? -->
 
                 <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a></li>
 
-                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{ lans("logout") }}</span></a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{
+                            lans("logout") }}</span></a></li>
 
                 {% if user.user_admin %}
                 <li>
@@ -92,7 +93,7 @@
             <form id="search_form" class="p-relative">
                 <!-- <input mix-post="/api-search" mix-input mix-delay="300" name="search_for" type="text" placeholder="Search Twitter"> -->
                 <input id="txt_search_for" name="search_for" type="text" placeholder="{{ lans('search_x') }}"
-                    oninput="get_search_results('/api-search', 'post', '#search_form', 'parse_search_results')">
+                    mix-post="/api-search" mix-input>
                 <button class="cursor-pointer">{{ lans("search") }}</button>
 
                 <div id="search_results"
