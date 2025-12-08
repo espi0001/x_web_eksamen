@@ -22,6 +22,17 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 app = Flask(__name__)
 
+#### SAT DET HER IND ####
+# Absolute paths der virker i production
+AVATAR_FOLDER = os.path.join(app.root_path, 'static', 'images', 'avatars')
+POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
+
+# Opret folders
+os.makedirs(AVATAR_FOLDER, exist_ok=True)
+os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
+#### SAT DET HER IND ####
+
+
 # Set the maximum file size to 1 MB
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
 
@@ -806,7 +817,6 @@ def avatar_filter(avatar_path):
 
 ############## API UPLOAD AVATAR ################
 @app.route("/api-upload-avatar", methods=["POST"])
-# TODO: add translation???
 def api_upload_avatar():
     """
     Handles avatar/profile picture upload
@@ -819,58 +829,49 @@ def api_upload_avatar():
         # Validate uploaded file
         file, file_extension = x.validate_avatar_upload()
         
-        # Create unique filename > we could make it a uuid instead
-        # timestamp = int(time.time())
-        # filename = f"{g.user['user_pk']}_{timestamp}.{file_extension}"
-    
         # Create unique filename with UUID
         unique_id = uuid.uuid4().hex
         filename = f"{unique_id}.{file_extension}"
 
-        # Build filepath
-        # Creating the avatar folder inside static / images  
-        filepath = os.path.join('static','images','avatars', filename)
-        
-        # Ensure avatars folder exists
-        avatar_folder = os.path.join('static', 'images', 'avatars')
-        
-        if not os.path.exists(avatar_folder):
-            os.makedirs(avatar_folder)
+        # Build filepath - brug AVATAR_FOLDER konstant
+        filepath = os.path.join(AVATAR_FOLDER, filename)
         
         # Delete old avatar if it exists (not external URL)
         if g.user["user_avatar_path"] and not g.user["user_avatar_path"].startswith("http"):
             old_avatar = g.user["user_avatar_path"]
-            if os.path.exists(old_avatar):
+            # Fjern leading slash hvis der er en
+            if old_avatar.startswith("/"):
+                old_avatar = old_avatar[1:]
+            old_avatar_full_path = os.path.join(app.root_path, old_avatar)
+            if os.path.exists(old_avatar_full_path):
                 try:
-                    os.remove(old_avatar)
-                    ic(f"Deleted old avatar: {old_avatar}")
+                    os.remove(old_avatar_full_path)
+                    ic(f"Deleted old avatar: {old_avatar_full_path}")
                 except Exception as e:
                     ic(f"Could not delete old avatar: {e}")
         
         # Save new file to disk
         file.save(filepath)
         
+        # Gem KUN relativ path til database
+        db_path = f"static/images/avatars/{filename}"
+        
         # Update database
         db, cursor = x.db()
         q = "UPDATE users SET user_avatar_path = %s WHERE user_pk = %s"
-        cursor.execute(q, (filepath, g.user["user_pk"]))
+        cursor.execute(q, (db_path, g.user["user_pk"]))
         db.commit()
         
         # Update g.user in memory
-        g.user["user_avatar_path"] = filepath
+        g.user["user_avatar_path"] = db_path
         
-        # Send success response and redirect
+        # Send success response
         toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
-
-        avatar_url = f"/static/images/avatars/{filename}"
-        # finding the element with the id #current_avatar
-        # replaces it with the new <img> tag that has the updated src (the new image)
-        # mix-replace="#nav_avatar" > finds the element with the id nav_avatar
-        # replaces it with the new <img> tag
+        
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-replace="#current_avatar"><img id="current_avatar" src="{avatar_url}" alt="Current avatar"></browser>
-            <browser mix-replace="#nav_avatar"><img src="/{filepath}" alt="Profile" id="nav_avatar"></browser>
+            <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar"></browser>
+            <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
         """, 200
         
     except Exception as ex:
@@ -890,7 +891,7 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_upload_avatar'): {str(ex)}}")
+        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:
