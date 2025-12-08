@@ -36,14 +36,18 @@ Session(app)
 # You don't need to pass these variables manually to each render_template()
 @app.context_processor
 def global_variables():
-    # Get language from user or default to english
-    lan = g.user.get("user_language", "english") if g.user else "english"
+    # Tjek hvor sproget kommer fra (prioriteret rækkefølge):
+    if hasattr(g, 'lan'):                           # 1. Fra URL (f.eks. /danish)
+        lan = g.lan
+    elif g.user:                                     # 2. Fra logget ind bruger
+        lan = g.user.get("user_language", "english")
+    else:                                            # 3. Standard engelsk
+        lan = "english"
     
-    # Return dictionary of global template variables
     return dict(
-        lan=lan,        # Language for current user
-        user=g.user,    # Current logged-in user (or None)
-        x=x,            # x.py module (for constants, validation regex, etc.)
+        lan=lan,
+        user=g.user,
+        x=x,
         lans=x.lans,
         dictionary=dictionary
     )
@@ -104,11 +108,12 @@ def view_index(lan="english"):
 # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
-
+        # gem sproget
+    g.lan = lan
     # Set default language in x module
     x.default_language = lan
 
-    return render_template("index.html", lan=lan)
+    return render_template("index.html")
 
 
 # -------------------- SIGNUP -------------------- #
@@ -121,8 +126,9 @@ def signup(lan = "english"):
         lan = "english"
 
     if request.method == "GET":
+        g.lan = lan
         x.default_language = lan
-        return render_template("signup.html", lan=lan)
+        return render_template("signup.html")
 
     if request.method == "POST":
         try:
@@ -250,8 +256,8 @@ def login(lan = "english"):
         # If user already logged in, redirect to home
         if g.user: 
             return redirect(url_for("home"))
-        
-        return render_template("login.html", lan=lan) # Question: skal vi stadig have lan=lan???
+        g.lan = lan
+        return render_template("login.html") # 
 
     if request.method == "POST":
         try:
@@ -324,7 +330,8 @@ def forgot_password(lan = "english"):
 
         # GET to view the template
         if request.method == "GET":
-            return render_template("forgot_password.html", lan=lan)
+            g.lan = lan
+            return render_template("forgot_password.html")
         
         # POST to begin process of creating new password
         if request.method == "POST":
@@ -1801,7 +1808,7 @@ def unfollow_user(user_pk):
         # Render the follow/unfollow button HTML
         button_follow_user_html = render_template("___button_follow_user.html", suggestion=suggestion)
         return f"""
-        <browser mix-replace=#button_follow_user_{user_pk}>
+        <browser mix-replace=#button_unfollow_user_{user_pk}>
         {button_follow_user_html}
         </browser>
         """
