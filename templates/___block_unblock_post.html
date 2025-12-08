@@ -2,7 +2,7 @@
     <a href="/admin-block-post/{{ tweet.post_pk }}" mix-post
         mix-await="{% if tweet.post_is_blocked %}{{ lans('unblocking') }}...{% else %}{{ lans('blocking') }}...{% endif %}">
         {% if tweet.post_is_blocked %}
-        {{ lans("unblock_post") }}
+        {{ lans("un block_post") }}
         {% else %}
         {{ lans("block_post") }}
         {% endif %}
