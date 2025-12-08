@@ -594,8 +594,6 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
-# Question: mangler vi language og methods?
-# TODO: add translation
 @app.get("/profile")
 def profile():
     try:
@@ -683,7 +681,6 @@ def profile():
 
 
 ############### EDIT PROFILE ###############
-# TODO: add translation
 @app.get("/edit_profile")
 def edit_profile():
     try:
@@ -711,7 +708,6 @@ def edit_profile():
 
 
 ############## API UPDATE PROFILE ################
-# TODO: add translation
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
