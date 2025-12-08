@@ -29,6 +29,9 @@ app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app.config["send_from_directory"] = os.path.join(BASE_DIR, "static", "images", "avatars")
 
 # -------------------- GLOBAL VARIABLES -------------------- #
 ############## GLOBAL PROCESSOR     ################
@@ -141,7 +144,7 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            user_avatar_path = "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
+            user_avatar_path = f"{BASE_DIR}/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
             user_verification_key = uuid.uuid4().hex
             user_total_follows = 0
             user_total_followers = 0
@@ -776,7 +779,7 @@ def serve_image(filename):
     Serves avatar images from the static/images/avatars folder
     Example: /images/avatars/a1b2c3d4e5f6.jpg
     """
-    return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
+    return send_from_directory(filename)
 
 
 
@@ -789,8 +792,8 @@ def avatar_filter(avatar_path):
     - Ingen kompliceret if/else logik i templates
     """
     # returnerer default billede hvis ingen avatar
-    if not avatar_path:
-        return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
+    #if not avatar_path:
+    #   return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
     
     # håndterer eksterne URLs (fra tredjeparts services)
     if avatar_path.startswith("http"):
@@ -829,10 +832,10 @@ def api_upload_avatar():
 
         # Build filepath
         # Creating the avatar folder inside static / images  
-        filepath = os.path.join('static','images','avatars', filename)
+        filepath = os.path.join(BASE_DIR, 'static','images','avatars', filename)
         
         # Ensure avatars folder exists
-        avatar_folder = os.path.join('static', 'images', 'avatars')
+        avatar_folder = os.path.join(BASE_DIR, 'static', 'images', 'avatars')
         
         if not os.path.exists(avatar_folder):
             os.makedirs(avatar_folder)
@@ -862,7 +865,7 @@ def api_upload_avatar():
         # Send success response and redirect
         toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
 
-        avatar_url = f"/static/images/avatars/{filename}"
+        avatar_url = f"{BASE_DIR}/static/images/avatars/{filename}"
         # finding the element with the id #current_avatar
         # replaces it with the new <img> tag that has the updated src (the new image)
         # mix-replace="#nav_avatar" > finds the element with the id nav_avatar
@@ -1145,14 +1148,14 @@ def api_create_post():
             unique_id = uuid.uuid4().hex
             filename = f"{unique_id}.{file_extension}"
             
-            media_folder = os.path.join('static', 'images', 'posts')
+            media_folder = os.path.join(BASE_DIR, 'static', 'images', 'posts')
             filepath = os.path.join(media_folder, filename)
             
             if not os.path.exists(media_folder):
                 os.makedirs(media_folder)
             
             file.save(filepath)
-            post_media_path = f"images/posts/{filename}"
+            post_media_path = f"{BASE_DIR}/images/posts/{filename}"
         
         # Insert post into DB
         db, cursor = x.db()
