@@ -587,11 +587,9 @@ def home_comp():
 # -------------------- LOGOUT -------------------- #
 
 ############## LOGOUT - GET ################
-# TODO: add translation
 @app.get("/logout")
 def logout():
     try:
-        # Clear all session data
         session.clear()
         return redirect(url_for("login"))
     except Exception as ex:
