@@ -152,7 +152,7 @@ def signup(lan = "english"):
             # Generate unique user ID
             user_pk = uuid.uuid4().hex
             
-            user_avatar_path = "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
+            user_avatar_path = "/static/images/avatars/bb2cf009d3594973bfa1bdf915682439.png"
             user_verification_key = uuid.uuid4().hex
             user_total_follows = 0
             user_total_followers = 0
