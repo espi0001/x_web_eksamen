@@ -71,9 +71,15 @@ def load_logged_in_user():
     # Initialize g.user as None
     g.user = None
     
+    # find the language in session (or fallback to english)
+    lan = session.get("lan", "english")
+    if lan not in x.allowed_languages:
+        lan = "english"
+        
+    x.default_language = lan # will always follow sessions language
+
     # Get user_pk from session (stored during login)
     user_pk = session.get("user_pk") # Example of session
-    
     # If no user_pk in session, user is not logged in
     if not user_pk:
         return
@@ -370,7 +376,8 @@ def forgot_password(lan = "english"):
 
     except Exception as ex:
         ic(ex)
-        return "System under maintenance", 500
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -378,9 +385,17 @@ def forgot_password(lan = "english"):
 
 ############# CREATE NEW PASSWORD #################
 @app.route("/create-new-password", methods=["GET", "POST"])
-def create_new_password():
+@app.route("/create-new-password/<lan>", methods=["GET", "POST"])
+def create_new_password(lan = "english"):
     try:
+        # Validate language parameter
+        if lan not in x.allowed_languages: 
+            lan = "english"
+        
+        # Set default language in x module
+        x.default_language = lan
 
+        
         # getting the key from the url or the form
         key = request.args.get("key") or request.form.get("key")
 
@@ -420,7 +435,9 @@ def create_new_password():
 
     except Exception as ex:
         ic(ex)
-        return "Server error", 500   #
+        # return "System under maintenance", 500
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -516,7 +533,8 @@ def home(lan = "english"):
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -575,8 +593,7 @@ def home_comp():
 
     except Exception as ex:
         ic(ex)
-        # Show a user-friendly toast instead of just returning "error"
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -591,7 +608,7 @@ def home_comp():
 @app.get("/logout")
 def logout():
     try:
-        session.clear()
+        session.clear() # removes everything from session (user_pk + lan)
         return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)

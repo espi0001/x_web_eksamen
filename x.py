@@ -35,12 +35,8 @@ allowed_languages = ["english", "danish", "spanish"]
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 
-
+# Load translation from dictionary.json
 def lans(key):
-    """
-    Load translation from dictionary.json
-
-    """
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
     return data[key][default_language]
