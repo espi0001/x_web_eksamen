@@ -418,7 +418,7 @@ def create_new_password():
 
     except Exception as ex:
         ic(ex)
-        return "Server error", 500   # ← RETURN SOMETHING HERE
+        return "Server error", 500   #
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -523,9 +523,9 @@ def home(lan = "english"):
 
 ############## HOME COMP ################
 @app.get("/home-comp")
-# TODO: add translation
 def home_comp():
     try:
+        # If no user in g, the session is probably expired or user not logged in
         if not g.user:
             return "error"
 
@@ -573,8 +573,9 @@ def home_comp():
 
     except Exception as ex:
         ic(ex)
-        return "error"
-        # TODO: better error messages
+        # Show a user-friendly toast instead of just returning "error"
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -592,7 +593,9 @@ def logout():
         return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)
-        return "error"
+        # Show a user-friendly toast instead of just returning "error"
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         pass
 
@@ -606,7 +609,7 @@ def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error" # Question: mangler den end http code? f.eks. 400??
+            return "error"
         
         db, cursor = x.db()
 
