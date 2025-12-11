@@ -64,6 +64,7 @@ MAX_IMAGE_HEIGHT = 1080
 
 
 # -------------------- DATABASE --------------------
+# This could have been a envioment variable in a .env file
 def db():
     """
     Create database connection
@@ -365,7 +366,7 @@ def send_email(user_email, subject, template, lan="en"):
     5. Update credentials below
     """
     try:
-        # Gmail SMTP credentials
+        # Gmail SMTP credentials - - This could have been a envioment variable in a .env file
         sender_email = "webdevxclone@gmail.com"
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 

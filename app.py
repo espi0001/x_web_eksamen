@@ -177,6 +177,8 @@ def signup(lan = "english"):
 
 
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
+
+            # Example of f-string
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
             """, 200
@@ -362,13 +364,13 @@ def forgot_password(lan = "english"):
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject=f"{x.lans('update_password')}", template=email_forgot_password)
             
-            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
-            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
-
+            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>""", 200
 
     except Exception as ex:
         ic(ex)
+        return "System under maintenance", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -871,7 +873,7 @@ def api_upload_avatar():
         <browser mix-bottom="#toast">{toast_ok}</browser>
         <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar" class="profile-avatar"></browser>
         <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
-         """, 200
+        """, 200
         
     except Exception as ex:
         ic(f"Exception: {ex}")
@@ -1167,7 +1169,7 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!") # TODO: translate
+        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
         
         # Dictionary
         tweet = {
@@ -1194,7 +1196,7 @@ def api_create_post():
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#posts">{html_post}</browser>
             <browser mix-replace="#post_container">{html_post_container}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1338,7 +1340,7 @@ def api_update_post(post_pk):
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="main">{home_html}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1524,7 +1526,7 @@ def api_create_comment(post_pk):
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#comments">{html_comment}</browser>
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
-        """
+        """, 200
 
         # Success
         return redirect(url_for("view_single_post", post_pk=post_pk))
@@ -2143,7 +2145,7 @@ def get_data_from_sheet():
         toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
         return f"""
                 <browser mix-bottom="#toast">{toast_ok}</browser>
-                """
+                """, 200
         
     except Exception as ex:
         ic(ex)
