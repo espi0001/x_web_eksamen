@@ -1096,7 +1096,6 @@ def api_get_bookmarks():
 # -------------------- POST/TWEET -------------------- #
 
 ############### API CREATE POST/TWEET ###############
-# TODO: add translation
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
@@ -1372,7 +1371,7 @@ def api_delete_post(post_pk):
     try:
         # Check if user is logged in
         if not g.user:
-            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
+            return "invalid user", 400
 
         db, cursor = x.db()
 
@@ -1382,7 +1381,7 @@ def api_delete_post(post_pk):
         cursor.execute(q, (post_pk, g.user["user_pk"],))
         db.commit()
 
-        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted") #TODO: Translate
+        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted")
         
         # Remove the post from the DOM + show toast
         # return "ok"
@@ -1404,13 +1403,12 @@ def api_delete_post(post_pk):
 
 
 ############## SINGLE POST/TWEET ################
-# TODO: add translation
 @app.get("/single-post/<post_pk>")
 def view_single_post(post_pk):
     # Check if user is logged in
     try:
         if not g.user:
-            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
+            return "invalid user", 400
 
         db, cursor = x.db() # Question: hvorfor skal linjen være her?
 
@@ -1471,7 +1469,7 @@ def view_single_post(post_pk):
     except Exception as ex:
         
         # SYSTEM ERROR
-        toast_error = render_template("___toast_error.html", message="Error") # TODO: lav en message der passer til error
+        toast_error = render_template("___toast_error.html", message="Error") 
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1480,7 +1478,6 @@ def view_single_post(post_pk):
 
 
 ############## CREATE COMMENT ON POST/TWEET ################
-# TODO: add translation
 @app.route("/api-create-comment/<post_pk>", methods=["POST"])
 def api_create_comment(post_pk):
     try:
@@ -2115,9 +2112,7 @@ def admin_block_post(post_pk):
 ############# GET DATA FROM SHEET #################
 @app.get("/get-data-from-sheet")
 def get_data_from_sheet():
-    try:
-        # TODO: Check if admin is running this endpoint
-        
+    try:    
         # Fetch Google Sheet data as CSV
         url = f"https://docs.google.com/spreadsheets/d/{x.google_spread_sheet_key}/export?format=csv&id={x.google_spread_sheet_key}"
         res = requests.get(url=url)
