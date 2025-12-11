@@ -435,7 +435,6 @@ def create_new_password(lan = "english"):
 
     except Exception as ex:
         ic(ex)
-        # return "System under maintenance", 500
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
@@ -612,8 +611,7 @@ def logout():
         return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)
-        # Show a user-friendly toast instead of just returning "error"
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         pass
@@ -703,7 +701,8 @@ def profile():
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -729,7 +728,9 @@ def edit_profile():
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        # return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -762,7 +763,7 @@ def api_update_profile():
         db.commit()
 
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Profile updated successfully")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('profile_updated_successfully')}")
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="#profile_tag .name">{user_name}</browser>
@@ -779,16 +780,16 @@ def api_update_profile():
         
         # Database duplicate errors
         if "Duplicate entry" in str(ex) and user_email in str(ex): 
-            toast_error = render_template("___toast_error.html", message="Email already registered")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('email_already_registered')}")
             return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
         if "Duplicate entry" in str(ex) and user_username in str(ex): 
-            toast_error = render_template("___toast_error.html", message="Username already registered")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('username_already_registered')}")
             return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -884,7 +885,7 @@ def api_upload_avatar():
         g.user["user_avatar_path"] = db_path
         
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
+        toast_ok = render_template("___toast_ok.html", message=""f"{x.lans('avatar_updated_successfully')}")
         
         return f"""
         <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -909,7 +910,7 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_upload_avatar')}: {str(ex)}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:
@@ -945,7 +946,11 @@ def delete_profile(lan = "english"):
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        # return "error"
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     
     finally:
         if "cursor" in locals(): cursor.close()
@@ -979,8 +984,10 @@ def api_delete_profile(lan = "english"):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1042,8 +1049,10 @@ def api_get_users_posts():
 
     except Exception as ex:
         ic(ex)
-        toast_error = render_template("___toast_error.html", message="Could not load posts")
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_posts')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1102,7 +1111,7 @@ def api_get_bookmarks():
 
     except Exception as ex:
         ic(ex)
-        toast_error = render_template("___toast_error.html", message="Could not load bookmarks")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_bookmarks')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1139,7 +1148,7 @@ def api_create_post():
         
         # Must have either text or media
         if not post_message and not file:
-            toast_error = render_template("___toast_error.html", message="Post must contain text or media")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_must_contain_text_or_media')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # Validate text ONLY if there is text
@@ -1185,7 +1194,7 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('the_world_is_reading_your_post')}!")
         
         # Dictionary
         tweet = {
@@ -1257,7 +1266,7 @@ def edit_post(post_pk):
         post = cursor.fetchone()
 
         if not post:
-            toast_error = render_template("___toast_error.html", message="Post not found or you don't have permission")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_not_found_or_you_dont_have_permission')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 403
         
         edit_post_html = render_template("_edit_post.html", post=post)
@@ -1265,7 +1274,7 @@ def edit_post(post_pk):
     except Exception as ex:
         ic(ex) 
             
-        toast_error = render_template("___toast_error.html", message="Could not load post")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_posts')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
 
@@ -1288,7 +1297,7 @@ def api_update_post(post_pk):
         
         # Validate: must have text (can't be empty for edit)
         if not post_message:
-            toast_error = render_template("___toast_error.html", message="Post cannot be empty")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_cannot_be_empty')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # Validate post length
@@ -1349,7 +1358,7 @@ def api_update_post(post_pk):
 
         
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Post updated successfully!")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('post_updated_successfully')}!")
         # tweet_html = render_template("_tweet.html", tweet=tweets)
         home_html = render_template("_home_comp.html", tweets=tweets)
         # <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
@@ -1370,7 +1379,7 @@ def api_update_post(post_pk):
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message="Could not update post")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_update_post')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
     finally:
@@ -1381,8 +1390,6 @@ def api_update_post(post_pk):
 
 
 ############### API DELETE POST ###############
-# @app.route("/api-delete-post", methods=["GET", "DELETE"])
-# question: skal vi have language her??
 @app.route("/api-delete-post/<post_pk>", methods=["DELETE"])
 def api_delete_post(post_pk):
     try:
@@ -1398,7 +1405,7 @@ def api_delete_post(post_pk):
         cursor.execute(q, (post_pk, g.user["user_pk"],))
         db.commit()
 
-        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('your_post_has_been_deleted')}")
         
         # Remove the post from the DOM + show toast
         # return "ok"
@@ -1410,8 +1417,9 @@ def api_delete_post(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
     finally: 
         if "cursor" in locals(): cursor.close()
@@ -1484,10 +1492,11 @@ def view_single_post(post_pk):
         return f"""<browser mix-update="main">{ single_post_html }</browser>"""
 
     except Exception as ex:
-        
+        ic(ex)
         # SYSTEM ERROR
-        toast_error = render_template("___toast_error.html", message="Error") 
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1517,9 +1526,6 @@ def api_create_comment(post_pk):
         q = """INSERT INTO comments VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"""
         cursor.execute(q, (comment_pk, comment_user_fk, comment_post_fk, comment_message, comment_is_blocked, created_at, None, None,),)
         db.commit()
-
-        # Prepare response
-        # toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
         
         comment = {
             "comment_pk": comment_pk,
@@ -1532,7 +1538,7 @@ def api_create_comment(post_pk):
         }
 
         # Render templates
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('the_world_is_reading_your_comment')}")
         html_comment_container = render_template("___comment_container.html", post_pk=post_pk)
         html_comment = render_template("_comment.html", comment=comment)
         
@@ -1542,33 +1548,6 @@ def api_create_comment(post_pk):
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
         """, 200
 
-        # Success
-        return redirect(url_for("view_single_post", post_pk=post_pk))
-        # Get all comments again, so the list will get updated
-        q = """
-        SELECT
-            comments.*,
-            users.user_name,
-            users.user_username,
-            users.user_avatar_path
-        FROM comments
-        JOIN users ON users.user_pk = comments.comment_user_fk
-        WHERE comments.comment_post_fk = %s
-        ORDER BY comments.created_at DESC
-        """
-        # ORDER BY comments.created_at DESC (means: Show the newest comments first)
-
-        cursor.execute(q, (post_pk,))
-        comments = cursor.fetchall()
-
-        comments_html = render_template("___comments_list.html", comments=comments)
-        toast_ok = render_template("___toast_ok.html", message="Comment posted")
-
-        return f"""
-            <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-replace="#post-comments">{comments_html}</browser>
-            <browser mix-reset="#comment_frm"></browser> 
-        """, 200
 
     except Exception as ex:
         ic(ex)
@@ -1583,8 +1562,9 @@ def api_create_comment(post_pk):
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
 
         # SYSTEM ERROR
-        toast_error = render_template("___toast_error.html", message="Cannot post comment")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("cannot_post_comment"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1625,7 +1605,9 @@ def api_like_tweet(post_pk):
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1664,7 +1646,9 @@ def api_unlike_tweet(post_pk):
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1679,8 +1663,6 @@ def api_bookmark_tweet(post_pk):
         if not g.user:
             return "invalid user", 400
 
-        
-        
         bookmark_user_fk = g.user["user_pk"]    # The user who is bookmarking the tweet
         bookmark_post_fk = post_pk              # The tweet/post being bookmarked
         created_at = int(time.time())           # Get the current timestamp
@@ -1709,7 +1691,9 @@ def api_bookmark_tweet(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        return "error", 500
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1752,7 +1736,9 @@ def api_unbookmark_tweet(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        return "error", 500
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1792,6 +1778,10 @@ def follow_user(user_pk):
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1828,6 +1818,10 @@ def unfollow_user(user_pk):
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1868,6 +1862,10 @@ def view_all_user_followers():
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1903,6 +1901,10 @@ def view_all_user_follows():
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1962,7 +1964,7 @@ def api_search():
         return f"""
         <browser mix-replace="#search_results">
             <div id="search_results"
-                 class="p-absolute top-9 left-0 w-full bg-c-white h-auto pa-4
+                class="p-absolute top-9 left-0 w-full bg-c-white h-auto pa-4
                         border-1 border-c-gray:+50 rounded-sm shadow-md">
                 {search_results_html}
             </div>

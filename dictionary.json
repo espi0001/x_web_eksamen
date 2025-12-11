@@ -648,5 +648,55 @@
         "english": "Invalid reset link",
         "danish": "Ugyldigt nulstillingslink",
         "spanish": "Enlace de restablecimiento no válido"
+    },
+    "avatar_updated_successfully": {
+        "english": "Avatar updated successfully!",
+        "danish": "Avatar opdateret!",
+        "spanish": "¡Avatar actualizado con éxito!"
+    },
+    "could_not_load_posts": {
+        "english": "Could not load posts",
+        "danish": "Kunne ikke indlæse opslag",
+        "spanish": "No se pudieron cargar las publicaciones"
+    },
+    "could_not_load_bookmarks": {
+        "english": "Could not load bookmarks",
+        "danish": "Kunne ikke indlæse bogmærker",
+        "spanish": "No se pudieron cargar los marcadores"
+    },
+    "post_must_contain_text_or_media": {
+        "english": "Post must contain text or media",
+        "danish": "Opslaget skal indeholde tekst eller medier",
+        "spanish": "La publicación debe contener texto o medios"
+    },
+    "post_not_found_or_you_dont_have_permission": {
+        "english": "Post not found or you don't have permission",
+        "danish": "Opslag ikke fundet, eller du har ikke tilladelse",
+        "spanish": "Publicación no encontrada o no tienes permiso"
+    },
+    "post_cannot_be_empty": {
+        "english": "Post cannot be empty",
+        "danish": "Opslaget må ikke være tomt",
+        "spanish": "La publicación no puede estar vacía"
+    },
+    "post_updated_successfully": {
+        "english": "Post updated successfully",
+        "danish": "Opslag opdateret",
+        "spanish": "Publicación actualizada con éxito"
+    },
+    "could_not_update_post": {
+        "english": "Could not update post",
+        "danish": "Kunne ikke opdatere opslag",
+        "spanish": "No se pudo actualizar la publicación"
+    },
+    "the_world_is_reading_your_comment": {
+        "english": "The world is reading your comment!",
+        "danish": "Verden læser din kommentar!",
+        "spanish": "¡El mundo está leyendo tu comentario!"
+    },
+    "cannot_post_comment": {
+        "english": "Cannot post comment",
+        "danish": "Kan ikke poste kommentar",
+        "spanish": "No se puede publicar el comentario"
     }
 }
