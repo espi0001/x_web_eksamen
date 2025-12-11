@@ -31,9 +31,8 @@ os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
 
 
-
-# Set the maximum file size to 1 MB
-app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
+# Set the maximum file size to 30 MB
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  
 
 
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -103,8 +102,15 @@ def load_logged_in_user():
             g.user = user
     finally:
         # Always close database connections
+        """
+            # Close cursor/db only if they exist.
+            # If an error happens before the database connection is created,
+            # "cursor" or "db" may not exist. Using `if "cursor" in locals()` prevents
+            # NameError and ensures safe cleanup in all cases.
+        """
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 
@@ -260,7 +266,7 @@ def verify_account():
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
-@x.no_cache 
+# @x.no_cache # dont need this here
 def login(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
@@ -542,11 +548,12 @@ def home(lan = "english"):
 
 ############## HOME COMP ################
 @app.get("/home-comp")
+@x.no_cache
 def home_comp():
     try:
         # If no user in g, the session is probably expired or user not logged in
         if not g.user:
-            return "error"
+            return "invalid user", 400
 
         db, cursor = x.db()
 
@@ -622,11 +629,12 @@ def logout():
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
 @app.get("/profile")
+@x.no_cache
 def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         db, cursor = x.db()
 
@@ -714,7 +722,7 @@ def edit_profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -728,7 +736,6 @@ def edit_profile():
         
     except Exception as ex:
         ic(ex)
-        # return "error"
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
@@ -932,7 +939,7 @@ def delete_profile(lan = "english"):
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -946,7 +953,7 @@ def delete_profile(lan = "english"):
 
     except Exception as ex:
         ic(ex)
-        # return "error"
+        
         # System error
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
@@ -1257,7 +1264,7 @@ def edit_post(post_pk):
     try:
         # check if user is logged in
         if not g.user:
-            return "error", 400
+            return "invalid user", 400
         
         # get post from db
         db, cursor = x.db()
@@ -1429,6 +1436,7 @@ def api_delete_post(post_pk):
 
 ############## SINGLE POST/TWEET ################
 @app.get("/single-post/<post_pk>")
+@x.no_cache
 def view_single_post(post_pk):
     # Check if user is logged in
     try:
@@ -1829,6 +1837,7 @@ def unfollow_user(user_pk):
 
 ############## ALL USER FOLLOWERS ################
 @app.get("/all-user-followers")
+@x.no_cache
 def view_all_user_followers():
     try:
         user_pk = g.user["user_pk"]
@@ -1874,6 +1883,7 @@ def view_all_user_followers():
 
 ############## ALL USER FOLLOWS ################
 @app.get("/all-user-follows")
+@x.no_cache
 def view_all_user_follows():
     try:
         # Get the current logged-in user's primary key
@@ -1988,6 +1998,7 @@ def api_search():
 
 ############# ADMIN #################
 @app.get("/admin")
+@x.no_cache
 def view_admin():
     try:
         
@@ -2009,7 +2020,9 @@ def view_admin():
         return f"""<browser mix-update="main">{ admin_html }</browser>"""
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -2050,19 +2063,22 @@ def admin_block_user(user_pk):
         
         # Send an email to the user depending on their new blocked status
         if row["user_is_blocked"]:
-            x.send_email(user_email=user_email, subject="You have been blocked from X", template=email_user_is_blocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_blocked')}", template=email_user_is_blocked)
         else:
-            x.send_email(user_email=user_email, subject="You have been unblocked from X", template=email_user_is_unblocked)     
+            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_unblocked')}", template=email_user_is_unblocked)     
 
         block_unblock_html = render_template("___block_unblock_user.html", row=row)
         admin_html = render_template("_admin.html", rows=rows, blocked_rows=blocked_rows)
+        
         return f"""
         <browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>
         <browser mix-update="main">{ admin_html }</browser>
         """
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -2104,9 +2120,9 @@ def admin_block_post(post_pk):
 
         # Send an email to the user
         if tweet["post_is_blocked"]:
-            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('post_has_been_blocked')}", template=email_post_is_blocked)
         else:
-            x.send_email(user_email=user_email, subject="Your post has been unblocked", template=email_post_is_unblocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('post_has_been_unblocked')}", template=email_post_is_unblocked)
 
 
         block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
@@ -2117,7 +2133,9 @@ def admin_block_post(post_pk):
         """
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()  

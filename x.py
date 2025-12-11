@@ -93,7 +93,10 @@ def no_cache(view):
     """
     Decorator to prevent browser caching
     Used for pages that should always reload (login, profile, etc.)
-    
+    Without no_cache, the user may see old content (e.g. home page after logout)
+    when using the back button. This decorator forces the browser to always
+    request a fresh version from the server.
+
     Usage:
         @app.get("/profile")
         @x.no_cache
