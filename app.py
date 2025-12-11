@@ -22,11 +22,11 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 app = Flask(__name__)
 
 
-# Absolute paths der virker i production
+# Absolute paths (used locally and in production)
 AVATAR_FOLDER = os.path.join(app.root_path, 'static', 'images', 'avatars')
 POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
 
-# Opret folders
+# Ensure folders exist so uploads do not crash
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
 
@@ -40,9 +40,10 @@ Session(app)
 
 
 # -------------------- GLOBAL VARIABLES -------------------- #
-############## GLOBAL PROCESSOR     ################
-# Context processor - makes variables available in ALL templates
-# You don't need to pass these variables manually to each render_template()
+############## GLOBAL PROCESSOR ################
+"""
+    Makes common variables available in ALL templates
+    so we don't have to pass them into every render_template() call. """
 @app.context_processor
 def global_variables():
     # Check where language comes from (prioritized sequence):
@@ -62,9 +63,12 @@ def global_variables():
     )
 
 
-
-# Load logged-in user before each request
-# Runs automatically before every route
+##############################
+"""
+    Runs before every request:
+    - Reads user_pk and language from the session
+    - Loads the user from the database (if logged in)
+    - Stores the user on g.user so all routes can use it """
 @app.before_request
 def load_logged_in_user():
     # Initialize g.user as None
@@ -139,6 +143,12 @@ def view_index(lan="english"):
 
 # -------------------- SIGNUP -------------------- #
 ############## SIGNUP ################
+"""
+    Handles both GET (show signup form) and POST (create a new user).
+    On success:
+    - Creates the user in the database with a verification key
+    - Sends a verification email
+    - Shows a toast and redirects to login """
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 def signup(lan = "english"):
@@ -224,7 +234,10 @@ def signup(lan = "english"):
 
 
 # -------------------- VERIFY ACCOUNT -------------------- #
-############## VERIFY ACCOUNT ################
+############## VERIFY ACCOUNT ################ 
+"""
+    Verifies a user based on the email verification key in the URL.
+    If the key is valid: mark user as verified and redirect to login. """
 @app.route("/verify-account", methods=["GET"])
 def verify_account():
     try:
@@ -268,11 +281,11 @@ def verify_account():
 @app.route("/login/<lan>", methods=["GET", "POST"])
 # @x.no_cache # dont need this here
 def login(lan = "english"):
-    # Validate language parameter
+    # Validate language from the URL (fallback to english)
     if lan not in x.allowed_languages: 
         lan = "english"
     
-    # Set default language in x module
+    # Keep x.default_language in sync with the current request language
     x.default_language = lan
 
     if request.method == "GET":
@@ -339,6 +352,10 @@ def login(lan = "english"):
 
 # -------------------- FORGOT PASSWORD -------------------- #
 ############# FORGOT PASSWORD #################
+"""
+    Starts the "forgot password" flow:
+    - User submits email
+    - We generate a reset key and send a reset email """
 @app.route("/forgot-password", methods=["GET", "POST"])
 @app.route("/forgot-password/<lan>", methods=["GET", "POST"])
 def forgot_password(lan = "english"):
@@ -384,12 +401,18 @@ def forgot_password(lan = "english"):
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
+
 ############# CREATE NEW PASSWORD #################
+"""
+    Finishes the "forgot password" flow:
+    - Validates the reset key from URL/form
+    - On POST: updates the password and clears the reset key """
 @app.route("/create-new-password", methods=["GET", "POST"])
 @app.route("/create-new-password/<lan>", methods=["GET", "POST"])
 def create_new_password(lan = "english"):
@@ -443,6 +466,7 @@ def create_new_password(lan = "english"):
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -454,6 +478,11 @@ def create_new_password(lan = "english"):
 # -------------------- HOME --------------------
 
 ############## HOME - GET ################
+"""
+    Home feed:
+    - Shows random posts with like/bookmark-state for the current user
+    - Hides blocked users/posts for non-admins
+    - Also loads random trends and user-suggestions """
 @app.route("/home", methods=["GET"])
 @app.route("/home/<lan>", methods=["GET"]) 
 @x.no_cache # prevents showing cached content after logout / "back" button
@@ -540,6 +569,7 @@ def home(lan = "english"):
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -628,6 +658,10 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
+"""
+    Profile page:
+    - Shows either the user's own posts or their bookmarks
+    - Uses the 'tab' query parameter to switch between views """
 @app.get("/profile")
 @x.no_cache
 def profile():
@@ -711,9 +745,11 @@ def profile():
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 ############### EDIT PROFILE ###############
@@ -745,6 +781,11 @@ def edit_profile():
 
 
 ############## API UPDATE PROFILE ################
+"""
+    Updates basic profile fields (email, username, name).
+    Returns:
+        - Toast message
+        - Live DOM updates of the profile tag in the UI """
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
@@ -842,11 +883,15 @@ def avatar_filter(avatar_path):
 
 
 ############## API UPLOAD AVATAR ################
+"""
+    Uploads and updates the user's avatar:
+    - Validates the uploaded file (extension, size etc.)
+    - Deletes the old avatar file if it exists
+    - Saves the new file to AVATAR_FOLDER
+    - Stores only the relative path in the database
+    - Updates avatar in navbar and profile via <browser> DOM updates """
 @app.route("/api-upload-avatar", methods=["POST"])
 def api_upload_avatar():
-    """
-    Handles avatar/profile picture upload
-    """
     try:
         # Check if user is logged in
         if not g.user: 
@@ -1128,7 +1173,14 @@ def api_get_bookmarks():
 
 # -------------------- POST/TWEET -------------------- #
 
-############### API CREATE POST/TWEET ###############
+############### API CREATE POST/TWEET ############### Post CRUD (create/edit/delete)
+"""
+    Creates a new post:
+    - Accepts text, optional media file, or both
+    - Validates text and media
+    - Saves media to disk if present
+    - Inserts post into DB with counters set to 0
+    - Returns HTML for the new post + toast via <browser> tags """
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
@@ -1283,7 +1335,6 @@ def edit_post(post_pk):
             
         toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_posts')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
-        
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1291,7 +1342,12 @@ def edit_post(post_pk):
 
 
 
-############### API EDIT POST - POST ############### 
+############### API EDIT POST ############### 
+"""
+    Updates the text of an existing post:
+    - Only allows the post owner to edit
+    - Requires non-empty text
+    - Updates 'updated_at' and re-renders the home component """
 @app.route("/api-update-post/<post_pk>", methods=["POST"])
 def api_update_post(post_pk):
     try:
@@ -1363,7 +1419,6 @@ def api_update_post(post_pk):
         cursor.execute(q, (post_pk,))
         tweets = cursor.fetchall()
 
-        
         # Send success response
         toast_ok = render_template("___toast_ok.html", message=f"{x.lans('post_updated_successfully')}!")
         # tweet_html = render_template("_tweet.html", tweet=tweets)
@@ -1406,7 +1461,6 @@ def api_delete_post(post_pk):
 
         db, cursor = x.db()
 
-
         # Delete post from database IF its the users post
         q = "DELETE FROM posts WHERE post_pk = %s and post_user_fk = %s"
         cursor.execute(q, (post_pk, g.user["user_pk"],))
@@ -1427,7 +1481,6 @@ def api_delete_post(post_pk):
         toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
-
     finally: 
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1435,6 +1488,10 @@ def api_delete_post(post_pk):
 
 
 ############## SINGLE POST/TWEET ################
+"""
+    Shows a single post with:
+    - Full like/bookmark state for the current user
+    - All comments for that post (newest first) """
 @app.get("/single-post/<post_pk>")
 @x.no_cache
 def view_single_post(post_pk):
@@ -1476,7 +1533,6 @@ def view_single_post(post_pk):
         if not tweet:
             return "Post not found", 404
 
-
         # Get comments on a post
         q = """
         SELECT
@@ -1512,6 +1568,11 @@ def view_single_post(post_pk):
 
 
 ############## CREATE COMMENT ON POST/TWEET ################
+"""
+    Creates a new comment on a post:
+    - Validates the comment text
+    - Inserts into DB
+    - Returns a toast and the new comment HTML to prepend to the list """
 @app.route("/api-create-comment/<post_pk>", methods=["POST"])
 def api_create_comment(post_pk):
     try:
@@ -1556,7 +1617,6 @@ def api_create_comment(post_pk):
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
         """, 200
 
-
     except Exception as ex:
         ic(ex)
         ic(traceback.format_exc())
@@ -1572,7 +1632,6 @@ def api_create_comment(post_pk):
         # SYSTEM ERROR
         toast_error = render_template("___toast_error.html", message=x.lans("cannot_post_comment"))
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1756,6 +1815,10 @@ def api_unbookmark_tweet(post_pk):
 
 # -------------------- FOLLOW -------------------- #
 ############## FOLLOW USER ################
+"""
+    Creates a follow relationship:
+    - Current user follows the given user
+    - Re-renders the follow button to 'Unfollow' """
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
@@ -1836,6 +1899,10 @@ def unfollow_user(user_pk):
 
 
 ############## ALL USER FOLLOWERS ################
+"""
+    Shows a list of all users who follow the current user.
+    Also includes a flag 'followed_by_user' so the UI can show
+    either Follow or Unfollow buttons. """
 @app.get("/all-user-followers")
 @x.no_cache
 def view_all_user_followers():
@@ -1923,6 +1990,11 @@ def view_all_user_follows():
 
 # -------------------- SEARCH -------------------- #
 ############## API SEARCH ################
+"""
+    Live search for users and posts:
+    - Searches users by username/name and includes follow-state
+    - Searches posts using FULLTEXT search on post_message
+    - Returns a dropdown with mixed results (users + posts) """
 @app.post("/api-search")
 def api_search():
     try:
@@ -1991,12 +2063,13 @@ def api_search():
 
 
 
-
-
-
 # -------------------- ADMIN -------------------- #
 
 ############# ADMIN #################
+"""
+    Admin dashboard:
+    - Lists all users grouped into blocked and unblocked
+    - Used to manage user and post status """
 @app.get("/admin")
 @x.no_cache
 def view_admin():
@@ -2023,12 +2096,18 @@ def view_admin():
         # SYSTEM ERROR
         toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
 ############# ADMIN-BLOCK-USER #################
+"""
+    Toggles a user's blocked state:
+    - Updates user_is_blocked in the database
+    - Sends an email to the user about block/unblock
+    - Re-renders the admin panel and the specific row """
 @app.post("/admin-block-user/<user_pk>")
 def admin_block_user(user_pk):
     try:
@@ -2074,11 +2153,13 @@ def admin_block_user(user_pk):
         <browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>
         <browser mix-update="main">{ admin_html }</browser>
         """
+    
     except Exception as ex:
         ic(ex)
         # SYSTEM ERROR
         toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -2086,6 +2167,11 @@ def admin_block_user(user_pk):
 
 
 ############# ADMIN-BLOCK-POST #################
+"""
+    Toggles a post's blocked state:
+    - Updates post_is_blocked
+    - Notifies the post owner by email
+    - Re-renders both the admin row and the tweet in the feed """
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
     try:
@@ -2143,10 +2229,13 @@ def admin_block_post(post_pk):
 
 
 
-
-
 # -------------------- DICTIONARY -------------------- #
 ############# GET DATA FROM SHEET #################
+"""
+    Syncs translation data from a Google Sheet:
+    - Downloads the sheet as CSV
+    - Builds a dict: key -> {english, danish, spanish}
+    - Writes everything to dictionary.json for use in the app """
 @app.get("/get-data-from-sheet")
 def get_data_from_sheet():
     try:    
@@ -2174,7 +2263,7 @@ def get_data_from_sheet():
         with open("dictionary.json", 'w', encoding='utf-8') as f:
             f.write(json_data)
 
-        toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('dictionary_updated')}")
         return f"""
                 <browser mix-bottom="#toast">{toast_ok}</browser>
                 """, 200
@@ -2182,5 +2271,6 @@ def get_data_from_sheet():
     except Exception as ex:
         ic(ex)
         return str(ex)
+
     finally: 
         pass
