@@ -72,7 +72,7 @@ def load_logged_in_user():
     g.user = None
     
     # Get user_pk from session (stored during login)
-    user_pk = session.get("user_pk")
+    user_pk = session.get("user_pk") # Example of session
     
     # If no user_pk in session, user is not logged in
     if not user_pk:
@@ -90,7 +90,7 @@ def load_logged_in_user():
             user.pop("user_password", None)
             
             # Add language preference from session
-            user["user_language"] = session.get("lan", "english")
+            user["user_language"] = session.get("lan", "english") # Example of session
             
             # Store user in Flask global g object
             # Now available in all routes and templates as g.user
@@ -300,7 +300,7 @@ def login(lan = "english"):
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
-            session["user_pk"] = user["user_pk"]
+            session["user_pk"] = user["user_pk"] # Example of session
             session["lan"] = lan
             
             # Redirect to home page
@@ -448,7 +448,7 @@ def home(lan = "english"):
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
-
+        # Example of session
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
