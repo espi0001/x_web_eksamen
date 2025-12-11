@@ -344,6 +344,7 @@ def forgot_password(lan = "english"):
         
         # POST to begin process of creating new password
         if request.method == "POST":
+            g.lan = lan
             user_email = x.validate_user_email(lan)
 
             # uuid to insert on the user_password_reset
