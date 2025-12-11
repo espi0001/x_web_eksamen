@@ -169,3 +169,42 @@ document.addEventListener("click", function (e) {
     e.target.classList.add("active");
   }
 });
+// ==================== AVATAR PREVIEW ====================
+document.addEventListener("change", function (e) {
+  // Kun kør hvis det er avatar input der ændres
+  if (e.target && e.target.id === "avatar") {
+    const fileInput = e.target;
+    const avatarImg = document.getElementById("current_avatar");
+
+    if (!avatarImg) return;
+
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // Validering: Skal være et billede
+    if (!file.type.startsWith("image/")) {
+      alert("Vælg venligst et billedfil");
+      fileInput.value = "";
+      return;
+    }
+
+    // Validering: Max størrelse (1MB)
+    const maxSize = 1024 * 1024; // 1MB
+    if (file.size > maxSize) {
+      alert("Billedet er for stort. Max 1MB");
+      fileInput.value = "";
+      return;
+    }
+
+    // Vis preview med FileReader
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      // Opdater avatar billedet med det nye
+      avatarImg.src = event.target.result;
+    };
+
+    // Læs filen som data URL
+    reader.readAsDataURL(file);
+  }
+});

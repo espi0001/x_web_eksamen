@@ -865,10 +865,10 @@ def api_upload_avatar():
         toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
         
         return f"""
-            <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar"></browser>
-            <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
-        """, 200
+        <browser mix-bottom="#toast">{toast_ok}</browser>
+        <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar" class="profile-avatar"></browser>
+        <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
+         """, 200
         
     except Exception as ex:
         ic(f"Exception: {ex}")
