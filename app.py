@@ -1,6 +1,5 @@
 from crypt import methods
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory 
-# Question: Hvorfor har vi send_from_directory og hvad er det?
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
@@ -22,7 +21,7 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 app = Flask(__name__)
 
-#### SAT DET HER IND ####
+
 # Absolute paths der virker i production
 AVATAR_FOLDER = os.path.join(app.root_path, 'static', 'images', 'avatars')
 POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
@@ -30,7 +29,7 @@ POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
 # Opret folders
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
-#### SAT DET HER IND ####
+
 
 
 # Set the maximum file size to 1 MB
@@ -47,12 +46,12 @@ Session(app)
 # You don't need to pass these variables manually to each render_template()
 @app.context_processor
 def global_variables():
-    # Tjek hvor sproget kommer fra (prioriteret rækkefølge):
-    if hasattr(g, 'lan'):                           # 1. Fra URL (f.eks. /danish)
+    # Check where language comes from (prioritized sequence):
+    if hasattr(g, 'lan'):                            # 1. From URL (e.g. /danish)
         lan = g.lan
-    elif g.user:                                     # 2. Fra logget ind bruger
+    elif g.user:                                     # 2. From logged in user
         lan = g.user.get("user_language", "english")
-    else:                                            # 3. Standard engelsk
+    else:                                            # 3. Standard english
         lan = "english"
     
     return dict(
@@ -65,7 +64,6 @@ def global_variables():
 
 
 
-############################## FORKLAR DENNE
 # Load logged-in user before each request
 # Runs automatically before every route
 @app.before_request
