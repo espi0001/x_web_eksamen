@@ -189,20 +189,20 @@ def signup(lan = "english"):
             # User validation errors
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # System or developer error
             toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
-            return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
@@ -312,7 +312,7 @@ def login(lan = "english"):
             # User errors (validation, wrong password, etc.)
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
 
             # System or developer error (database down, etc.)
             toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance"))
@@ -758,20 +758,20 @@ def api_update_profile():
         # User validation errors
         if len(ex.args) > 1 and ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # Database duplicate errors
         if "Duplicate entry" in str(ex) and user_email in str(ex): 
             toast_error = render_template("___toast_error.html", message="Email already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
         if "Duplicate entry" in str(ex) and user_username in str(ex): 
             toast_error = render_template("___toast_error.html", message="Username already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # System error
         toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1604,9 +1604,9 @@ def api_like_tweet(post_pk):
         # Render the unlike button HTML
         button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_unlike_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:
@@ -1643,9 +1643,9 @@ def api_unlike_tweet(post_pk):
         # Render the like button HTML
         button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_like_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:
