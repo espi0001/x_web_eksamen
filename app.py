@@ -1,6 +1,5 @@
 from crypt import methods
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify, g, send_from_directory 
-# Question: Hvorfor har vi send_from_directory og hvad er det?
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
@@ -22,7 +21,7 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 app = Flask(__name__)
 
-#### SAT DET HER IND ####
+
 # Absolute paths der virker i production
 AVATAR_FOLDER = os.path.join(app.root_path, 'static', 'images', 'avatars')
 POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
@@ -30,7 +29,7 @@ POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
 # Opret folders
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
-#### SAT DET HER IND ####
+
 
 
 # Set the maximum file size to 1 MB
@@ -47,12 +46,12 @@ Session(app)
 # You don't need to pass these variables manually to each render_template()
 @app.context_processor
 def global_variables():
-    # Tjek hvor sproget kommer fra (prioriteret rækkefølge):
-    if hasattr(g, 'lan'):                           # 1. Fra URL (f.eks. /danish)
+    # Check where language comes from (prioritized sequence):
+    if hasattr(g, 'lan'):                            # 1. From URL (e.g. /danish)
         lan = g.lan
-    elif g.user:                                     # 2. Fra logget ind bruger
+    elif g.user:                                     # 2. From logged in user
         lan = g.user.get("user_language", "english")
-    else:                                            # 3. Standard engelsk
+    else:                                            # 3. Standard english
         lan = "english"
     
     return dict(
@@ -65,7 +64,6 @@ def global_variables():
 
 
 
-############################## FORKLAR DENNE
 # Load logged-in user before each request
 # Runs automatically before every route
 @app.before_request
@@ -179,6 +177,8 @@ def signup(lan = "english"):
 
 
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
+
+            # Example of f-string
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
             """, 200
@@ -364,13 +364,13 @@ def forgot_password(lan = "english"):
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject=f"{x.lans('update_password')}", template=email_forgot_password)
             
-            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
-            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
-
+            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>""", 200
 
     except Exception as ex:
         ic(ex)
+        return "System under maintenance", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -420,7 +420,7 @@ def create_new_password():
 
     except Exception as ex:
         ic(ex)
-        return "Server error", 500   # ← RETURN SOMETHING HERE
+        return "Server error", 500   #
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -525,9 +525,9 @@ def home(lan = "english"):
 
 ############## HOME COMP ################
 @app.get("/home-comp")
-# TODO: add translation
 def home_comp():
     try:
+        # If no user in g, the session is probably expired or user not logged in
         if not g.user:
             return "error"
 
@@ -575,8 +575,9 @@ def home_comp():
 
     except Exception as ex:
         ic(ex)
-        return "error"
-        # TODO: better error messages
+        # Show a user-friendly toast instead of just returning "error"
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -594,7 +595,9 @@ def logout():
         return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)
-        return "error"
+        # Show a user-friendly toast instead of just returning "error"
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         pass
 
@@ -608,7 +611,7 @@ def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error" # Question: mangler den end http code? f.eks. 400??
+            return "error"
         
         db, cursor = x.db()
 
@@ -870,7 +873,7 @@ def api_upload_avatar():
         <browser mix-bottom="#toast">{toast_ok}</browser>
         <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar" class="profile-avatar"></browser>
         <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
-         """, 200
+        """, 200
         
     except Exception as ex:
         ic(f"Exception: {ex}")
@@ -1166,7 +1169,7 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!") # TODO: translate
+        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!")
         
         # Dictionary
         tweet = {
@@ -1193,7 +1196,7 @@ def api_create_post():
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#posts">{html_post}</browser>
             <browser mix-replace="#post_container">{html_post_container}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1337,7 +1340,7 @@ def api_update_post(post_pk):
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="main">{home_html}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1523,7 +1526,7 @@ def api_create_comment(post_pk):
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#comments">{html_comment}</browser>
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
-        """
+        """, 200
 
         # Success
         return redirect(url_for("view_single_post", post_pk=post_pk))
@@ -2142,7 +2145,7 @@ def get_data_from_sheet():
         toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
         return f"""
                 <browser mix-bottom="#toast">{toast_ok}</browser>
-                """
+                """, 200
         
     except Exception as ex:
         ic(ex)
