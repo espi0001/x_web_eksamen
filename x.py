@@ -35,12 +35,8 @@ allowed_languages = ["english", "danish", "spanish"]
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 
-
+# Load translation from dictionary.json
 def lans(key):
-    """
-    Load translation from dictionary.json
-
-    """
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
     return data[key][default_language]
@@ -97,7 +93,10 @@ def no_cache(view):
     """
     Decorator to prevent browser caching
     Used for pages that should always reload (login, profile, etc.)
-    
+    Without no_cache, the user may see old content (e.g. home page after logout)
+    when using the back button. This decorator forces the browser to always
+    request a fresh version from the server.
+
     Usage:
         @app.get("/profile")
         @x.no_cache
