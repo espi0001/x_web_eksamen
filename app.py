@@ -168,6 +168,7 @@ def signup(lan = "english"):
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username, user_name, None, user_avatar_path, 
             user_verification_key, None, None, user_total_follows, user_total_followers, user_admin, user_is_blocked, None, created_at, None, None))
             db.commit()
+            
 
             # Send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key)
@@ -485,6 +486,7 @@ def home(lan = "english"):
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
         tweets = cursor.fetchall()
+        
 
         # Get random trends
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
@@ -620,6 +622,7 @@ def profile():
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (g.user["user_pk"],))
         row = cursor.fetchone()
+        ic(row)
 
         # Check which tab is active (default is "posts")
         active_tab = request.args.get("tab", "posts")
