@@ -31,7 +31,7 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 
 # -------------------- LANGUAGE CONFIGURATION --------------------
-allowed_languages = ["english", "danish", "spanish"]
+allowed_languages = ["english", "danish", "spanish"] # should maybe have been set (dont allow duplicates)
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 
