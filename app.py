@@ -502,6 +502,7 @@ def home(lan = "english"):
         # Get random posts with user data (JOIN)
         # Example of session
         is_admin = g.user["user_admin"]
+        next_page = 1
 
         # Base query (same for everyone)
         base_query = """
@@ -532,7 +533,7 @@ def home(lan = "english"):
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Random order + limit
-        base_query += " ORDER BY RAND() LIMIT 5"
+        base_query += " ORDER BY RAND() LIMIT 2"
 
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
@@ -565,7 +566,7 @@ def home(lan = "english"):
         ic(suggestions)
 
 
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions)
+        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
         
     except Exception as ex:
         ic(ex)
@@ -576,7 +577,85 @@ def home(lan = "english"):
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+@app.get("/api-get-tweets")
+def api_get_tweets():
+    """
+    API endpoint for infinite scroll / "load more" functionality
+    """
+    try:
+        # Get current page number from query string
+        next_page = int(request.args.get("page", "1"))
+        ic(f"Loading page: {next_page}")
+        
+        # Check if user is logged in
+        if not g.user:
+            return "Unauthorized", 401
+        
+        db, cursor = x.db()
+        is_admin = g.user["user_admin"]
 
+        # Same query structure as home()
+        base_query = """
+        SELECT 
+            users.*,
+            posts.*,
+            CASE 
+                WHEN likes.like_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS liked_by_user,
+            CASE 
+                WHEN bookmarks.bookmark_user_fk IS NOT NULL THEN 1
+                ELSE 0
+            END AS bookmarked_by_user
+        FROM posts
+        JOIN users ON users.user_pk = posts.post_user_fk
+        LEFT JOIN likes 
+            ON likes.like_post_fk = posts.post_pk
+            AND likes.like_user_fk = %s
+        LEFT JOIN bookmarks
+            ON bookmarks.bookmark_post_fk = posts.post_pk
+            AND bookmarks.bookmark_user_fk = %s
+        """
+
+        # Add blocking condition if not admin
+        if not is_admin:
+            base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
+
+        # Pagination: LIMIT offset, count
+        base_query += " ORDER BY posts.created_at DESC LIMIT %s, 3"
+        
+        offset = next_page * 2
+        cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"], offset))
+        tweets = cursor.fetchall()
+        ic(f"Found {len(tweets)} tweets")
+
+        # Render first 2 tweets
+        container = ""
+        for tweet in tweets[:2]:
+            html_item = render_template("_tweet.html", tweet=tweet)
+            container += html_item
+
+        # If fewer than 3 results, no more tweets
+        if len(tweets) < 3:
+            return f"""
+            <browser mix-bottom="#posts">{container}</browser>
+            <browser mix-replace="#show_more_tweets"></browser>
+            """
+
+        # Otherwise, update button with next page
+        new_hyperlink = render_template("___show_more_tweets.html", next_page=next_page + 1)
+        return f"""
+        <browser mix-bottom="#posts">{container}</browser>
+        <browser mix-replace="#show_more_tweets">{new_hyperlink}</browser>
+        """
+    
+    except Exception as ex:
+        ic(ex)
+        traceback.print_exc()
+        return f"Error loading tweets: {str(ex)}", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 ############## HOME COMP ################
 @app.get("/home-comp")

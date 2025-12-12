@@ -1170,3 +1170,30 @@ span.comment > a {
   background-color: rgb(26, 140, 216);
 }
 /* ==================== AVATAR UPLOAD ==================== */
+
+/* Show More Button */
+.show-more-container {
+  text-align: center;
+  margin: 30px 0;
+  padding: 20px;
+}
+
+.btn-show-more {
+  padding: 12px 30px;
+  background: #1da1f2;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-show-more:hover {
+  background: #1a91da;
+}
+
+.btn-show-more:active {
+  transform: scale(0.98);
+}
