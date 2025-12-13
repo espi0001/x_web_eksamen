@@ -82,7 +82,7 @@ def load_logged_in_user():
     x.default_language = lan # will always follow sessions language
 
     # Get user_pk from session (stored during login)
-    user_pk = session.get("user_pk") # Example of session
+    user_pk = session.get("user_pk") # Example: session
     # If no user_pk in session, user is not logged in
     if not user_pk:
         return
@@ -99,7 +99,7 @@ def load_logged_in_user():
             user.pop("user_password", None)
             
             # Add language preference from session
-            user["user_language"] = session.get("lan", "english") # Example of session
+            user["user_language"] = session.get("lan", "english") # Example: session
             
             # Store user in Flask global g object
             # Now available in all routes and templates as g.user
@@ -150,7 +150,7 @@ def view_index(lan="english"):
     - Sends a verification email
     - Shows a toast and redirects to login """
 @app.route("/signup", methods=["GET", "POST"])
-@app.route("/signup/<lan>", methods=["GET", "POST"])
+@app.route("/signup/<lan>", methods=["GET", "POST"]) # Example: language (translation) in URL
 def signup(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
@@ -181,7 +181,7 @@ def signup(lan = "english"):
             created_at = int(time.time())
 
             # Hash password before storing (NEVER store plain text passwords!)
-            user_hashed_password = generate_password_hash(user_password)
+            user_hashed_password = generate_password_hash(user_password) # Example: Hash password
 
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -200,7 +200,7 @@ def signup(lan = "english"):
 
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
 
-            # Example of f-string
+            # Example: f-string (multi-line) + Redirect uses url_for("login") to return a rediret to login page
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
             """, 200
@@ -255,6 +255,7 @@ def verify_account():
         if cursor.rowcount != 1: 
             raise Exception("Invalid key", 400)
         
+        # Example: Redirect uses url_for("login") to return a rediret to login page
         return redirect(url_for('login'))
         
     except Exception as ex:
@@ -325,7 +326,7 @@ def login(lan = "english"):
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
-            session["user_pk"] = user["user_pk"] # Example of session
+            session["user_pk"] = user["user_pk"] # Example: session
             session["lan"] = lan
             
             # Redirect to home page
@@ -448,7 +449,7 @@ def create_new_password(lan = "english"):
         if request.method == "POST":
             user_password = x.validate_user_password()
 
-            user_hashed_password = generate_password_hash(user_password)
+            user_hashed_password = generate_password_hash(user_password) # Example: Hash new pqssword
 
             # We update the user_password and set the user_password_reset key back to 0
             q = """
@@ -484,7 +485,7 @@ def create_new_password(lan = "english"):
     - Hides blocked users/posts for non-admins
     - Also loads random trends and user-suggestions """
 @app.route("/home", methods=["GET"])
-@app.route("/home/<lan>", methods=["GET"]) 
+@app.route("/home/<lan>", methods=["GET"]) # Example: Friendly URL with <lan>
 @x.no_cache # prevents showing cached content after logout / "back" button
 def home(lan = "english"):
     # Validate language parameter
@@ -493,13 +494,14 @@ def home(lan = "english"):
 
     try:
         # Check if user is logged in (g.user set by @app.before_request)
+        # Example: session - Protected page pattern (uses g.user from session)
         if not g.user: 
             return redirect(url_for("login"))
         
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
-        # Example of session
+        # Example: session
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -562,7 +564,7 @@ def home(lan = "english"):
         suggestions = cursor.fetchall()
         ic(suggestions)
 
-
+        # Example: Render full page (the whole home page) (render_template)
         return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions)
         
     except Exception as ex:
@@ -624,8 +626,8 @@ def home_comp():
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
 
-        html = render_template("_home_comp.html", tweets=tweets)
-        return f"""<browser mix-update="main">{ html }</browser>"""
+        html = render_template("_home_comp.html", tweets=tweets) # Example: Render components/partials (render_template)
+        return f"""<browser mix-update="main">{ html }</browser>""" # Example: returns updated component
 
     except Exception as ex:
         ic(ex)
@@ -639,13 +641,14 @@ def home_comp():
 
 
 # -------------------- LOGOUT -------------------- #
-
+# Example: simple get route
 ############## LOGOUT - GET ################
 @app.get("/logout")
 def logout():
     try:
-        session.clear() # removes everything from session (user_pk + lan)
-        return redirect(url_for("login"))
+        # removes everything from session (user_pk + lan)
+        session.clear() # Example: clear session after logging out
+        return redirect(url_for("login")) # Example: redirect
     except Exception as ex:
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
@@ -753,6 +756,7 @@ def profile():
 
 
 ############### EDIT PROFILE ###############
+# Example: try / except / finally + db cleanup
 @app.get("/edit_profile")
 def edit_profile():
     try:
@@ -848,24 +852,20 @@ def api_update_profile():
 ############### IMAGES (AVATARS) ###############
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
+# Example: /images/avatars/a1b2c3d4e5f6.jpg
 @app.route('/images/avatars/<path:filename>')
 def serve_image(filename):
-    """
-    Serves avatar images from the static/images/avatars folder
-    Example: /images/avatars/a1b2c3d4e5f6.jpg
-    """
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
 
 
 ############################## 
-@app.template_filter('avatar')
-def avatar_filter(avatar_path):
-    """
+"""
     Ensures avatar path works in HTML
     - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
-    - Ingen kompliceret if/else logik i templates
-    """
+    - Ingen kompliceret if/else logik i templates """
+@app.template_filter('avatar')
+def avatar_filter(avatar_path):
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
         return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
@@ -1028,7 +1028,7 @@ def api_delete_profile(lan = "english"):
         cursor.execute(q, (g.user["user_pk"],))
         db.commit()
 
-        session.clear()
+        session.clear() # Example: Clear session on delete profile 
 
         # Redirect to index page
         return f"""<browser mix-redirect="/"></browser>"""
@@ -1193,7 +1193,7 @@ def api_create_post():
         user_pk = g.user["user_pk"]
         
         # Get post text (CAN BE EMPTY if there's media)
-        post_message = request.form.get("post", "").strip()
+        post_message = request.form.get("post", "").strip() # Example: POST form data of request.form.get
         
         # Validate uploaded media (if any)
         file = None
@@ -1242,6 +1242,7 @@ def api_create_post():
         
         # Insert post into DB
         db, cursor = x.db()
+        # Example of %s placeholders (parameterzed SQL)
         q = """INSERT INTO posts VALUES(
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
@@ -1255,7 +1256,7 @@ def api_create_post():
         # Prepare response
         toast_ok = render_template("___toast_ok.html", message=f"{x.lans('the_world_is_reading_your_post')}!")
         
-        # Dictionary
+        # Example og dictionary
         tweet = {
             "post_pk": post_pk,
             "post_user_fk": user_pk,
@@ -1320,6 +1321,7 @@ def edit_post(post_pk):
         
         # get post from db
         db, cursor = x.db()
+        # Example of %s placeholders (parameterzed SQL)
         q = "SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
         cursor.execute(q, (post_pk, g.user["user_pk"]))
         post = cursor.fetchone()
@@ -1374,7 +1376,7 @@ def api_update_post(post_pk):
         q = "UPDATE posts SET post_message = %s, updated_at = %s WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
         
         cursor.execute(q, (post_message, updated_at, post_pk, g.user["user_pk"]))
-        db.commit()
+        db.commit() # commit to the db
         
         # Check if update was successful
         if cursor.rowcount != 1:
@@ -1424,6 +1426,8 @@ def api_update_post(post_pk):
         # tweet_html = render_template("_tweet.html", tweet=tweets)
         home_html = render_template("_home_comp.html", tweets=tweets)
         # <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+
+        # Example: mixhtml responses - toast + update main
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="main">{home_html}</browser>
@@ -1469,7 +1473,7 @@ def api_delete_post(post_pk):
         toast_ok = render_template("___toast_ok.html", message=f"{x.lans('your_post_has_been_deleted')}")
         
         # Remove the post from the DOM + show toast
-        # return "ok"
+        # Example: Remove element from DOM (mix-remove)
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-remove="#post_container_{post_pk}"></browser>
@@ -1616,6 +1620,7 @@ def api_create_comment(post_pk):
             <browser mix-top="#comments">{html_comment}</browser>
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
         """, 200
+        # kan også skrive return f"<browser mix-bottom='#toast'>{toast_ok}</browser>" + f"<browser mix-top='#comments'>{html_comment}</browser>" + f"<browser mix-replace='#comment_container'>{html_comment_container}</browser>", 200
 
     except Exception as ex:
         ic(ex)
@@ -1998,7 +2003,8 @@ def view_all_user_follows():
 @app.post("/api-search")
 def api_search():
     try:
-        search_for = request.form.get("search_for", "").strip()
+        # Example: POST form data of request.form.get
+        search_for = request.form.get("search_for", "").strip() 
 
         # If empty field → hide dropdown
         if not search_for:
@@ -2009,9 +2015,11 @@ def api_search():
             """
 
         user_pk = g.user["user_pk"]
+        
+        # Example: F-string used in search LIKE pattern
         part_of_query = f"%{search_for}%"
 
-        db, cursor = x.db()
+        db, cursor = x.db() # connect to the db
 
         # Search users WITH follow-state
         q = """
@@ -2029,6 +2037,7 @@ def api_search():
             AND user_is_blocked = 0
             LIMIT 10
         """
+        # Example: Multiple placeholders (%s)
         cursor.execute(q, (user_pk, part_of_query, part_of_query))
         users = cursor.fetchall()
 
@@ -2142,7 +2151,7 @@ def admin_block_user(user_pk):
         
         # Send an email to the user depending on their new blocked status
         if row["user_is_blocked"]:
-            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_blocked')}", template=email_user_is_blocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_blocked')}", template=email_user_is_blocked) # Example: F-string used in email subject
         else:
             x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_unblocked')}", template=email_user_is_unblocked)     
 
