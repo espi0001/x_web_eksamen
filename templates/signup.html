@@ -44,12 +44,14 @@
         <!-- Email -->
         <div>
           <label for="user_email">{{ lans("email") }}</label>
+          <!-- Example: name attribute + mix-check -->
           <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}">
         </div>
         
         <!-- Username -->
         <div>
           <label for="user_username">{{ lans("username") }}</label>
+          <!-- Example: Frontend regex validation (mix-check): usersname input uses x.REGEX_USER_USERNAME  -->
           <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}">
           <p class="validation_rules">{{ lans("your_username_must_be_between") }}  {{ x.USER_USERNAME_MIN }} {{ lans("to") }} {{ x.USER_USERNAME_MAX }} {{ lans("characters") }}</p>
         </div>

@@ -58,7 +58,7 @@
                 <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ lans("more") }}</span></a></li>
 
                 <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{ lans("logout") }}</span></a></li>
-
+                <!-- Example: Conditional - if / endif (Jinja2) -->
                 {% if user.user_admin %}
                     <li>
                         <a href="/admin" mix-get>{{ lans("admin_panel") }}</a>
@@ -66,7 +66,7 @@
                 {% endif %}
             </ul>
 
-            <button class="post-btn">{{ lans("post") }}</button>
+            <button class="post-btn">{{ lans("post") }}</button> <!-- Example: Variable + language (Jinja2) -->
 
             <div id="profile_tag">
                 <img src="{{ user.user_avatar_path | avatar }}" alt="Profile" id="nav_avatar">
@@ -84,11 +84,12 @@
 
         <main class="px-4">
             {% include "_home_comp.html" %}
-        </main>
+        </main> <!-- Example: Include (Template & Jinja2 + Component) -->
 
         <aside>
             <form id="search_form" class="p-relative">
                 <!-- <input mix-post="/api-search" mix-input mix-delay="300" name="search_for" type="text" placeholder="Search Twitter"> -->
+                <!-- Example: Async search - fronted uses mix-post"/api-search" -->
                 <input id="txt_search_for" name="search_for" type="text" placeholder="{{ lans('search_x') }}"
                     mix-post="/api-search" mix-input>
                 <button class="cursor-pointer">{{ lans("search") }}</button>
