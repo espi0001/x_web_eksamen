@@ -567,13 +567,9 @@ def home(lan = "english"):
         suggestions = cursor.fetchall()
         ic(suggestions)
 
-<<<<<<< HEAD
         # Example: Render full page (the whole home page) (render_template)
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions)
-=======
-
         return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
->>>>>>> db824402efa71a4ad263d4d9b4beaac86e3e9904
+
         
     except Exception as ex:
         ic(ex)
