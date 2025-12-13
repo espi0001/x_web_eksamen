@@ -757,95 +757,92 @@ def profile():
 
 ############### EDIT PROFILE ###############
 # Example: try / except / finally + db cleanup
-@app.get("/edit_profile")
+@app.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
-    try:
-        # Check if user is logged in
-        if not g.user: 
-            return "invalid user", 400
-        
-        # Fetch fresh user data from database
-        q = "SELECT * FROM users WHERE user_pk = %s"
-        db, cursor = x.db()
-        cursor.execute(q, (g.user["user_pk"],))
-        row = cursor.fetchone()
-        
-        # Render profile template
-        edit_profile_html = render_template("_edit_profile.html", row=row)
-        return f"""<browser mix-update="main">{ edit_profile_html }</browser>"""
-        
-    except Exception as ex:
-        ic(ex)
-        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
-
-
-
-############## API UPDATE PROFILE ################
-"""
-    Updates basic profile fields (email, username, name).
-    Returns:
-        - Toast message
-        - Live DOM updates of the profile tag in the UI """
-@app.route("/api-update-profile", methods=["POST"])
-def api_update_profile():
-    try:
-        # Check if user is logged in
-        if not g.user: 
-            return "invalid user"
-
-        # Get user's language
-        lan = g.user["user_language"]
-
-        # Validate inputs
-        user_email = x.validate_user_email()
-        user_username = x.validate_user_username()
-        user_name = x.validate_user_name()
-
-        # timestamp for when the profile updates
-        updated_at = int(time.time())
-
-        # Update database
-        q = "UPDATE users SET user_email = %s, user_username = %s, user_name = %s, updated_at = %s WHERE user_pk = %s"
-        db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_name, updated_at, g.user["user_pk"]))
-        db.commit()
-
-        # Send success response
-        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('profile_updated_successfully')}")
-        return f"""
-            <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-update="#profile_tag .name">{user_name}</browser>
-            <browser mix-update="#profile_tag .handle">@{user_username}</browser>
-        """, 200
-        
-    except Exception as ex:
-        ic(ex)
-        
-        # User validation errors
-        if len(ex.args) > 1 and ex.args[1] == 400:
-            toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
-        
-        # Database duplicate errors
-        if "Duplicate entry" in str(ex) and user_email in str(ex): 
-            toast_error = render_template("___toast_error.html", message=f"{x.lans('email_already_registered')}")
-            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
+    # Check if user is logged in
+    if not g.user: 
+        return "invalid user", 400
+    
+    # ---------- GET ----------
+    if request.method == "GET":
+        try:
+            # Fetch fresh user data from database
+            q = "SELECT * FROM users WHERE user_pk = %s"
+            db, cursor = x.db()
+            cursor.execute(q, (g.user["user_pk"],))
+            row = cursor.fetchone()
             
-        if "Duplicate entry" in str(ex) and user_username in str(ex): 
-            toast_error = render_template("___toast_error.html", message=f"{x.lans('username_already_registered')}")
-            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
-        
-        # System error
-        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+            # Render profile template
+            edit_profile_html = render_template("_edit_profile.html", row=row)
+            return f"""<browser mix-update="main">{ edit_profile_html }</browser>"""
+            
+        except Exception as ex:
+            ic(ex)
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
+    
+    # ---------- POST ----------
+    """
+        Updates basic profile fields (email, username, name).
+        Returns:
+            - Toast message
+            - Live DOM updates of the profile tag in the UI """
+    if request.method == "POST":
+        try:
+            # Get user's language
+            lan = g.user["user_language"]
 
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+            # Validate inputs
+            user_email = x.validate_user_email()
+            user_username = x.validate_user_username()
+            user_name = x.validate_user_name()
+
+            # timestamp for when the profile updates
+            updated_at = int(time.time())
+
+            # Update database
+            q = "UPDATE users SET user_email = %s, user_username = %s, user_name = %s, updated_at = %s WHERE user_pk = %s"
+            db, cursor = x.db()
+            cursor.execute(q, (user_email, user_username, user_name, updated_at, g.user["user_pk"]))
+            db.commit()
+
+            # Send success response
+            toast_ok = render_template("___toast_ok.html", message=f"{x.lans('profile_updated_successfully')}")
+            return f"""
+                <browser mix-bottom="#toast">{toast_ok}</browser>
+                <browser mix-update="#profile_tag .name">{user_name}</browser>
+                <browser mix-update="#profile_tag .handle">@{user_username}</browser>
+            """, 200
+            
+        except Exception as ex:
+            ic(ex)
+            
+            # User validation errors
+            if len(ex.args) > 1 and ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
+            
+            # Database duplicate errors
+            if "Duplicate entry" in str(ex) and user_email in str(ex): 
+                toast_error = render_template("___toast_error.html", message=f"{x.lans('email_already_registered')}")
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
+                
+            if "Duplicate entry" in str(ex) and user_username in str(ex): 
+                toast_error = render_template("___toast_error.html", message=f"{x.lans('username_already_registered')}")
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
+            
+            # System error
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
+
+
 
 
 
@@ -974,76 +971,64 @@ def api_upload_avatar():
 
         
 ############### DELETE PROFILE ###############
-@app.route("/delete-profile", methods=["GET"])
-@app.route("/delete-profile/<lan>", methods=["GET"])
-def delete_profile(lan = "english"):
-    # Validate language parameter
-    if lan not in x.allowed_languages: 
-        lan = "english"
+@app.route("/delete-profile", methods=["GET", "DELETE"])
+def delete_profile():    
+    # Check if user is logged in
+    if not g.user: 
+        return "invalid user", 400
     
-    try:
-        # Check if user is logged in
-        if not g.user: 
-            return "invalid user", 400
+    # ---------- GET ----------
+    if request.method == "GET":
+        try:
+            
+            # Fetch fresh user data from database
+            q = "SELECT * FROM users WHERE user_pk = %s"
+            db, cursor = x.db()
+            cursor.execute(q, (g.user["user_pk"],))
+            row = cursor.fetchone()
+
+            # Render delete profile template
+            delete_profile_html = render_template("___delete_profile.html", row=row)
+            return f"""<browser mix-update="main">{ delete_profile_html }</browser>"""
+
+        except Exception as ex:
+            ic(ex)
+            
+            # System error
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
-        # Fetch fresh user data from database
-        q = "SELECT * FROM users WHERE user_pk = %s"
-        db, cursor = x.db()
-        cursor.execute(q, (g.user["user_pk"],))
-        row = cursor.fetchone()
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
 
-        # Render delete profile template
-        delete_profile_html = render_template("___delete_profile.html", row=row)
-        return f"""<browser mix-update="main">{ delete_profile_html }</browser>"""
+    # ---------- DELETE ----------
+    if request.method == "DELETE":
+        try:
+            db, cursor = x.db()
+            # Delete user from database
+            q = "DELETE FROM users WHERE user_pk = %s"
+            cursor.execute(q, (g.user["user_pk"],))
+            db.commit()
 
-    except Exception as ex:
-        ic(ex)
+            session.clear() # Example: Clear session on delete profile 
+
+            # Redirect to index page
+            return f"""<browser mix-redirect="/"></browser>"""
         
-        # System error
-        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        except Exception as ex:
+            ic(ex)
+            if "db" in locals(): db.rollback()
+            # System error
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+            return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
-    
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
-
-
-############## API DELETE PROFILE ################
-@app.route("/api-delete-profile", methods=["GET", "DELETE"])
-@app.route("/api-delete-profile/<lan>", methods=["GET", "DELETE"])
-def api_delete_profile(lan = "english"):
-    # Validate language parameter
-    if lan not in x.allowed_languages: 
-        lan = "english"
-
-    try:
-        # Check if user is logged in
-        if not g.user: 
-            return "invalid user"
         
-        # Delete user from database
-        q = "DELETE FROM users WHERE user_pk = %s"
-        db, cursor = x.db()
-        cursor.execute(q, (g.user["user_pk"],))
-        db.commit()
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
 
-        session.clear() # Example: Clear session on delete profile 
 
-        # Redirect to index page
-        return f"""<browser mix-redirect="/"></browser>"""
-    
-    except Exception as ex:
-        ic(ex)
-        if "db" in locals(): db.rollback()
-        # System error
-        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
-
-    
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
 
 
 ############## GET USERS POSTS (profile tabs) ################
