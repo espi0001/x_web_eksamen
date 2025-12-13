@@ -533,7 +533,7 @@ def home(lan = "english"):
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Random order + limit
-        base_query += " ORDER BY RAND() LIMIT 2"
+        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT 2"
 
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
@@ -622,7 +622,7 @@ def api_get_tweets():
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Pagination: LIMIT offset, count
-        base_query += " ORDER BY posts.created_at DESC LIMIT %s, 3"
+        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT %s, 3"
         
         offset = next_page * 2
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"], offset))
@@ -700,7 +700,8 @@ def home_comp():
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Random order + limit
-        base_query += " ORDER BY RAND() LIMIT 5"
+        # Random order + limit  
+        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT 5"
 
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
