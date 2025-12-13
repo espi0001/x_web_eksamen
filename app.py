@@ -535,13 +535,12 @@ def home(lan = "english"):
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Random order + limit
-        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT 2"
+        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT 5"
 
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
         tweets = cursor.fetchall()
         
-
         # Get random trends
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)
@@ -570,7 +569,6 @@ def home(lan = "english"):
         # Example: Render full page (the whole home page) (render_template)
         return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
 
-        
     except Exception as ex:
         ic(ex)
         toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
@@ -580,6 +578,8 @@ def home(lan = "english"):
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+############# GET TWEEETS/POSTS ####################
 @app.get("/api-get-tweets")
 def api_get_tweets():
     """
@@ -625,21 +625,21 @@ def api_get_tweets():
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
         # Pagination: LIMIT offset, count
-        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT %s, 3"
+        base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT %s, 6"
         
-        offset = next_page * 2
+        offset = next_page * 5
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"], offset))
         tweets = cursor.fetchall()
         ic(f"Found {len(tweets)} tweets")
 
         # Render first 2 tweets
         container = ""
-        for tweet in tweets[:2]:
+        for tweet in tweets[:5]:
             html_item = render_template("_tweet.html", tweet=tweet)
             container += html_item
 
         # If fewer than 3 results, no more tweets
-        if len(tweets) < 3:
+        if len(tweets) < 6:
             return f"""
             <browser mix-bottom="#posts">{container}</browser>
             <browser mix-replace="#show_more_tweets"></browser>
@@ -656,6 +656,7 @@ def api_get_tweets():
         ic(ex)
         traceback.print_exc()
         return f"Error loading tweets: {str(ex)}", 500
+        
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -673,6 +674,7 @@ def home_comp():
 
         
         is_admin = g.user["user_admin"]
+        next_page = 1
 
         # Base query (same for everyone)
         base_query = """
@@ -702,14 +704,20 @@ def home_comp():
         if not is_admin:
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
 
-        # Random order + limit
+        
         # Random order + limit  
         base_query += " GROUP BY posts.post_pk ORDER BY posts.created_at DESC LIMIT 5"
 
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
 
-        html = render_template("_home_comp.html", tweets=tweets) # Example: Render components/partials (render_template)
+        # Get random trends
+        q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
+        cursor.execute(q)
+        trends = cursor.fetchall()
+        ic(trends)
+
+        html = render_template("_home_comp.html", tweets=tweets, next_page=next_page) # Example: Render components/partials (render_template)
         return f"""<browser mix-update="main">{ html }</browser>""" # Example: returns updated component
 
     except Exception as ex:
