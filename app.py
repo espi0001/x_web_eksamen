@@ -2361,55 +2361,15 @@ def get_data_from_sheet():
     finally: 
         pass
 
-# ##########
-# @app.route("/test")
-# def view_test():
-#     try:
-#         data = {"name": "Sara", "age": 10}
-#         return render_template ("test.html", data=data)
-#     except:
-#         pass
-#     finally:
-#         pass
-
-# ##########
-# @app.route("/login-test")
-# def view_login():
-#     try:
-#         return render_template ("login.html")
-#     except:
-#         pass
-#     finally:
-#         pass
 
 
-# @app.get("/signup-test")
-# def view_signup_test():
-#     return render_template("test.html")
-
-# @app.post("/signup-test")
-# def handle_signup_test():
-#     user_name = request.form.get("user_name", "").strip()
-#     name = request.form.get("name", "").strip()
-#     return f"Hey my username is {user_name} and my name is {name}"
+@app.get("/tuple")
+def view_tuple():
+    user = ("Sara", 25)
+    return render_template ("test.html", user=user)
 
 
 
-# @app.route("/signup-test", methods=["GET", "POST"])
-# def view_signup_test():
-#     if request.method == "GET":
-#         return render_template("test.html")
-    
-#     if request.method == "POST":
-#         user_name = request.form.get("user_name", "").strip()
-#         name = request.form.get("name", "").strip()
 
-#         return f"Hello my username is {user_name} and my name is {name}"
 
-# @app.get("/posts")
-# def posts():
-#     posts = [
-#         {"text": "hello world"},
-#         {"text": "hellooo"}
-#     ]
-#     return render_template("test.html", posts=posts)
+

@@ -703,5 +703,10 @@
         "english": "Cannot post comment",
         "danish": "Kan ikke poste kommentar",
         "spanish": "No se puede publicar el comentario"
+    },
+    "show_more_posts": {
+        "english": "Show more posts",
+        "danish": "Vis flere opslag",
+        "spanish": "Mostrar más publicaciones"
     }
 }
