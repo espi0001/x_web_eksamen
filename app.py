@@ -2361,15 +2361,3 @@ def get_data_from_sheet():
     finally: 
         pass
 
-
-
-@app.get("/tuple")
-def view_tuple():
-    user = ("Sara", 25)
-    return render_template ("test.html", user=user)
-
-
-
-
-
-
