@@ -2,7 +2,7 @@
     <button class="action bookmark" mix-delete="/unbookmark-tweet/{{ tweet.post_pk }}">
         <i class="fa-solid fa-bookmark pointer-e-none"></i>
         {% if tweet.post_total_bookmarks > 0 %}
-        <span>{{ tweet.post_total_bookmarks }}</span>
+            <span>{{ tweet.post_total_bookmarks }}</span>
         {% endif %}
     </button>
 </div>

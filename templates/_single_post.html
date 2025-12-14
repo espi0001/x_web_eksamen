@@ -10,12 +10,14 @@
 {% include "_tweet.html" %}
 
 <!-- Create comment section -->
+    <!-- Example: include -->
 {% include "___comment_container.html" %}
 
 
 <!-- Comments feed -->
+    <!-- Example: loop comments -->
 <div id="comments" class="mt-4">
     {% for comment in comments: %}
-    {% include "_comment.html" %}
+        {% include "_comment.html" %}
     {% endfor %}
 </div>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- <form action="/signup-test" method="POST">
+        <input type="text" name="username" placeholder="Username">
+
+        <input type="text" name="name" placeholder="Name">
+
+        <button type="submit">submit</button>
+    </form> -->
+
+    <!-- {% if posts|length == 0: %}
+        <li>No posts</li>
+    {% else %}
+        {% for post in posts %}
+        <li>{{ post.text }}</li>
+        {% endfor %}
+    {% endif %} -->
+    <ul>
+        {% for post in posts %}
+            <li>{{ post.text }}</li>
+        {% endfor %}
+    </ul>
+
+    <p>{{ post.text }}</p>
+</body>
+</html>

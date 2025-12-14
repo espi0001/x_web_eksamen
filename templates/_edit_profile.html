@@ -19,10 +19,8 @@
             <label for="avatar">{{ lans("choose_new_picture") }}</label>
             <input type="file" name="avatar" id="avatar" accept="image/png, image/jpeg, image/jpg, image/webp" required>
         </div>
-        <button class="edit-profile-btn" mix-default="{{ lans('upload_avatar') }}"
-            mix-await="{{ lans('uploading') }}...">
+        <button class="edit-profile-btn" mix-default="{{ lans('upload_avatar') }}" mix-await="{{ lans('uploading') }}...">
             {{ lans("upload_avatar") }}
-
         </button>
     </form>
 </section>
@@ -37,24 +35,18 @@
     </div>
     <div>
         <label for="user_username">
-            <span>{{ lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ lans("to") }}
-            {{ x.USER_USERNAME_MAX }}
-            {{ lans("characters") }}
+            <span>{{ lans("username") }}</span> - {{ x.USER_USERNAME_MIN }} {{ lans("to") }} {{ x.USER_USERNAME_MAX }} {{ lans("characters") }}
         </label>
         <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
             value="{{ user.user_username }}">
     </div>
     <div>
         <label for="user_name">
-            <span>{{ lans("name") }}</span> - {{ x.USER_NAME_MIN }} {{ lans("to") }} {{
-            x.USER_NAME_MAX }}
-            {{ lans("characters") }}
+            <span>{{ lans("name") }}</span> - {{ x.USER_NAME_MIN }} {{ lans("to") }} {{ x.USER_NAME_MAX }} {{ lans("characters") }}
         </label>
-        <input name="user_name" id="user_name" type="text" mix-check="{{ x.REGEX_USER_NAME }}"
-            value="{{ user.user_name }}">
+        <input name="user_name" id="user_name" type="text" mix-check="{{ x.REGEX_USER_NAME }}" value="{{ user.user_name }}">
     </div>
-    <button class="edit-profile-btn" mix-default="{{ lans('update_profile') }}"
-        mix-await="{{ lans('updating_profile') }}">
+    <button class="edit-profile-btn" mix-default="{{ lans('update_profile') }}" mix-await="{{ lans('updating_profile') }}">
         {{ lans("update_profile") }}
     </button>
 </form>

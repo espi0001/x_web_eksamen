@@ -6,14 +6,14 @@
     <h2>{{ lans("active_users") }}</h2>
     <div id="unblocked_user_list">
         {% for row in rows: %}
-        {% include "_user.html" %}
+            {% include "_user.html" %}
         {% endfor %}
     </div>
 
     <div id="blocked_user_list">
         <h2>{{ lans("blocked_users") }}</h2>
         {% for row in blocked_rows: %}
-        {% include "_user.html" %}
+            {% include "_user.html" %}
         {% endfor %}
     </div>
 

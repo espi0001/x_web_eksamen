@@ -4,8 +4,12 @@
             {{ trend.trend_title }}
         </p>
         <p class="text-c-black">
-            {{ trend.trend_message }} <button class="text-c-tealblue text-60"> ... {{ lans("more") }}</button>
+            {{ trend.trend_message }} 
+            
+            {% if trend.trend_message|length > 120 %}
+                <button class="text-c-tealblue text-60"> ... {{ lans("more") }}</button>
+            {% endif %}
         </p>
     </div>
-    <span class="option">⋮</span>
+    <!-- <span class="option">⋮</span> -->
 </div>

@@ -2,7 +2,7 @@
     <button class="action like" mix-patch="/like-tweet/{{ tweet.post_pk }}">
         <i class="fa-regular fa-heart pointer-e-none"></i>
         {% if tweet.post_total_likes > 0 %}
-        <span>{{ tweet.post_total_likes }}</span>
+            <span>{{ tweet.post_total_likes }}</span>
         {% endif %}
     </button>
 </div>

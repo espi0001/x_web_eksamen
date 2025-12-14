@@ -18,17 +18,17 @@
             </div>
 
             {% if post.post_media_path %}
-            <div class="edit-media-preview">
-                {% set file_ext = post.post_media_path.split('.')[-1].lower() %}
+                <div class="edit-media-preview">
+                    {% set file_ext = post.post_media_path.split('.')[-1].lower() %}
 
-                {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
-                <img src="{{ url_for('static', filename=post.post_media_path) }}" alt="Post image" class="post-media">
-                {% elif file_ext in ['mp4', 'mov', 'webm'] %}
-                <video controls class="post-media">
-                    <source src="{{ url_for('static', filename=post.post_media_path) }}" type="video/{{ file_ext }}">
-                </video>
-                {% endif %}
-            </div>
+                    {% if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                        <img src="{{ url_for('static', filename=post.post_media_path) }}" alt="Post image" class="post-media">
+                    {% elif file_ext in ['mp4', 'mov', 'webm'] %}
+                        <video controls class="post-media">
+                            <source src="{{ url_for('static', filename=post.post_media_path) }}" type="video/{{ file_ext }}">
+                        </video>
+                    {% endif %}
+                </div>
             {% endif %}
 
             <div class="edit-form-actions">

@@ -501,6 +501,7 @@ def home(lan = "english"):
         
         db, cursor = x.db()
         
+        # ---- POSTS ----
         # Get random posts with user data (JOIN)
         # Example: session
         is_admin = g.user["user_admin"]
@@ -529,7 +530,6 @@ def home(lan = "english"):
             AND bookmarks.bookmark_user_fk = %s
         """
 
-
         # Add condition ONLY if user is not admin
         if not is_admin:
             base_query += " WHERE posts.post_is_blocked = 0 AND users.user_is_blocked = 0"
@@ -540,34 +540,53 @@ def home(lan = "english"):
         # Pass user_pk TWICE (once for likes, once for bookmarks)
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"]))
         tweets = cursor.fetchall()
-        
-        # Get random trends
+
+
+        # ---- TRENDS ----
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)
         trends = cursor.fetchall()
         ic(trends)
 
-        # Get user suggestions (exclude current user)
+
+        # ---- SUGGESTIONS ---- (exclude current user)
+        suggestions_page = 1
+        limit = 3
+        offset = (suggestions_page - 1) * limit
+
         q = """
             SELECT 
-                users.*
-            FROM users 
+                users.*,
+                CASE
+                    WHEN follows.follow_user_fk IS NOT NULL THEN 1
+                    ELSE 0
+                END AS followed_by_user
+            FROM users
+            LEFT JOIN follows
+                ON follows.follow_user_fk = %s
+                AND follows.followed_user_fk = users.user_pk
             WHERE users.user_pk != %s
-            AND users.user_is_blocked = 0
-            AND users.user_pk NOT IN (
-                SELECT followed_user_fk
-                FROM follows
-                WHERE follow_user_fk = %s
-            )
-            ORDER BY RAND()
-            LIMIT 3
-            """
-        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"]))
-        suggestions = cursor.fetchall()
-        ic(suggestions)
+                AND users.user_is_blocked = 0
+                AND users.user_pk NOT IN (
+                    SELECT follows.followed_user_fk
+                    FROM follows
+                    WHERE follows.follow_user_fk = %s
+                )
+            ORDER BY users.created_at DESC
+            LIMIT %s, %s
+        """
+        # Feth 1 extra row to dectect "has more" -> 3 placeholders to user_pk + 2 to LIMIT (offset, count)
+        # 3x user_pk + offset + limit+1  => 5 parametre til 5 placeholders
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"], offset, limit + 1))
+        rows = cursor.fetchall()
+        ic(rows)
+
+        has_more_suggestions = len(rows) > limit
+        suggestions = rows[:limit]
+        next_suggestions_page = suggestions_page + 1
 
         # Example: Render full page (the whole home page) (render_template)
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
+        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page, has_more_suggestions=has_more_suggestions, next_suggestions_page=next_suggestions_page)
 
     except Exception as ex:
         ic(ex)
@@ -579,7 +598,7 @@ def home(lan = "english"):
         if "db" in locals(): db.close()
 
 
-############# GET TWEEETS/POSTS ####################
+############# GET TWEEETS/POSTS #############
 @app.get("/api-get-tweets")
 def api_get_tweets():
     """
@@ -592,7 +611,7 @@ def api_get_tweets():
         
         # Check if user is logged in
         if not g.user:
-            return "Unauthorized", 401
+            return "invalid user", 400
         
         db, cursor = x.db()
         is_admin = g.user["user_admin"]
@@ -656,10 +675,89 @@ def api_get_tweets():
         ic(ex)
         traceback.print_exc()
         return f"Error loading tweets: {str(ex)}", 500
-        
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+
+
+############# GET SUGGESTIONS #############
+@app.get("/api-get-suggestions")
+def api_get_suggestions():
+    try:
+        # Get current page number from query string
+        page = int(request.args.get("page", "1"))
+        ic(f"Loading suggestions page: {page}")
+        
+        if not g.user:
+            return "invalid user", 400
+
+        limit = 3
+        offset = (page - 1) * limit
+
+        db, cursor = x.db()
+
+        # Fetch 1 extra row to detcht "has more"
+        q = """
+            SELECT
+                users.*,
+                CASE
+                    WHEN follows.follow_user_fk IS NOT NULL THEN 1 
+                    ELSE 0
+                END AS followed_by_user
+            FROM users
+            LEFT JOIN follows
+                ON follows.follow_user_fk = %s
+                AND follows.followed_user_fk = users.user_pk
+            WHERE  users.user_pk != %s
+                AND users.user_is_blocked = 0
+                AND users.user_pk NOT IN (
+                    SELECT followed_user_fk
+                    FROM follows
+                    WHERE follow_user_fk = %s
+                )
+            ORDER BY users.created_at DESC
+            LIMIT %s, %s
+        """
+
+        # Fetch 1 extra row to detect "has more"
+        cursor.execute(q, (g.user["user_pk"], g.user["user_pk"], g.user["user_pk"], offset, limit + 1))
+        rows = cursor.fetchall()
+        ic(f"Found {len(rows)} suggestion rows")
+
+        has_more = len(rows) > limit
+        suggestions = rows[:limit]
+
+        container = ""
+        for suggestion in suggestions:
+            container += render_template("_who_to_follow.html", suggestion=suggestion)
+        
+        
+        # If fewer than 3 results, no more users
+        if not has_more:
+            return f"""
+            <browser mix-bottom="#suggestions">{container}</browser>
+            <browser mix-replace="#show_more_suggestions"></browser>
+            """
+
+        # otherwise, update button with next page
+        new_button = render_template("___show_more_suggestions.html", next_suggestions_page=page + 1)
+        return f"""
+        <browser mix-bottom="#suggestions">{container}</browser>
+        <browser mix-replace="#show_more_suggestions">{new_button}</browser>
+        """
+
+    except Exception as ex:
+        ic(ex)
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
 
 ############## HOME COMP ################
 @app.get("/home-comp")
@@ -1026,7 +1124,7 @@ def api_upload_avatar():
         g.user["user_avatar_path"] = db_path
         
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message=""f"{x.lans('avatar_updated_successfully')}")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('avatar_updated_successfully')}")
         
         return f"""
         <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1323,6 +1421,7 @@ def api_create_post():
         q = """INSERT INTO posts VALUES(
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
+        # Example: tuple
         cursor.execute(q, (
             post_pk, user_pk, post_message, post_total_comments, 
             post_total_likes, post_total_bookmarks, post_media_path, 
@@ -2360,3 +2459,46 @@ def get_data_from_sheet():
 
     finally: 
         pass
+
+
+
+
+
+
+################
+# @app.route("/signup-test", methods=["GET", "POST"])
+# def view_signup_test():
+#     if request.method == "GET":
+#         return render_template("/signup_test.html")
+    
+#     if request.method == "POST":
+#         username = request.form.get("username", "").strip()
+#         name = request.form.get("name", "").strip()
+#         return f"Hello my username is {username}, and my name is {name}"
+
+
+
+################
+# @app.get("/signup-test")
+# def view_signup_test():
+#     return render_template("signup_test.html")
+
+
+# @app.post("/signup-test")
+# def handle_signup_test():
+#     username = request.form.get("username", "").strip()
+#     name = request.form.get("name", "").strip()
+#     return f"Hi my username is {username} and my name is {name}"
+
+
+
+################
+@app.get("/posts")
+def posts():
+    posts = [
+        {"text": "Hello World"},
+        {"text": "My second post"},
+        {"text": "Learning flask"}
+    ]
+    return render_template("signup_test.html", posts=posts)
+

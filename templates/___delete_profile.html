@@ -1,14 +1,25 @@
-<h1>
-    {{ lans("are_you_sure") }}
-</h1>
-
-<!-- Question: Burde det her være en form -->
-<div class="py-8 d-flex flex-col a-items-center gap-3">
-    <a href="/delete-profile" mix-delete class="text-c-red mt-4" hover="cursor-pointer" mix-delay="3000" mix-await="{{ lans('deleting_profile') }}...">
-        {{ lans("yes_delete_my_profile") }}
-    </a>
-
-    <a href="/edit_profile" mix-get class="edit-profile-btn mt-4">
-        {{ lans("no_cancel") }}
-    </a>
+<div class="profile-container">
+    <div class="profile-header">
+        <button mix-get="/profile" class="back-button">
+            <i class="fa-solid fa-arrow-left pointer-e-none back-button"></i>
+        </button>
+        <div class="header-info">
+            <h2>{{ user.user_name }}</h2>
+        </div>
+    </div>
+    
+    <h1>
+        {{ lans("are_you_sure") }}
+    </h1>
+    
+    <!-- Question: Burde det her være en form -->
+    <div class="py-8 d-flex flex-col a-items-center gap-3">
+        <a href="/delete-profile" mix-delete class="text-c-red mt-4" hover="cursor-pointer" mix-delay="3000" mix-await="{{ lans('deleting_profile') }}...">
+            {{ lans("yes_delete_my_profile") }}
+        </a>
+    
+        <a href="/edit-profile" mix-get class="edit-profile-btn mt-4">
+            {{ lans("no_cancel") }}
+        </a>
+    </div>
 </div>

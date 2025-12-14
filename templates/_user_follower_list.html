@@ -10,19 +10,19 @@
 <h2>{{ lans("followers") }}</h2>
 
 {% for suggestion in suggestions: %}
-<div class="d-flex a-items-center">
-    <img src="{{ suggestion.user_avatar_path | avatar }}" class="w-8 h-8 rounded-full" alt="Profile Picture">
-    <div class="w-full ml-2">
-        <p class="">
-            {{ suggestion.user_name }}
-            <span class="text-c-gray:+20 text-70">@{{ suggestion.user_username }}</span>
-        </p>
+    <div class="d-flex a-items-center">
+        <img src="{{ suggestion.user_avatar_path | avatar }}" class="w-8 h-8 rounded-full" alt="Profile Picture">
+        <div class="w-full ml-2">
+            <p class="">
+                {{ suggestion.user_name }}
+                <span class="text-c-gray:+20 text-70">@{{ suggestion.user_username }}</span>
+            </p>
 
+        </div>
+        {% if suggestion.followed_by_user %}
+            {% include "___button_unfollow_user.html" %}
+        {% else %}
+            {% include "___button_follow_user.html" %}
+        {% endif %}
     </div>
-    {% if suggestion.followed_by_user %}
-    {% include "___button_unfollow_user.html" %}
-    {% else %}
-    {% include "___button_follow_user.html" %}
-    {% endif %}
-</div>
 {% endfor %}

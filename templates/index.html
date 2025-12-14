@@ -12,21 +12,21 @@
   <div class="x-landing__right">
     <div class="d-flex gap-3">
       {% if lan != "english": %}
-      <a href="/english">
-        <img src="/static/images/flag_english.png" class="w-5">
-      </a>
+        <a href="/english">
+          <img src="/static/images/flag_english.png" class="w-5">
+        </a>
       {% endif %}
 
       {% if lan != "danish": %}
-      <a href="/danish">
-        <img src="/static/images/flag_danish.png" class="w-5">
-      </a>
+        <a href="/danish">
+          <img src="/static/images/flag_danish.png" class="w-5">
+        </a>
       {% endif %}
 
       {% if lan != "spanish": %}
-      <a href="/spanish">
-        <img src="/static/images/flag_spanish.png" class="w-5">
-      </a>
+        <a href="/spanish">
+          <img src="/static/images/flag_spanish.png" class="w-5">
+        </a>
       {% endif %}
     </div>
     <h1 class="x-landing__title">{{ lans("happening_now") }}</h1>

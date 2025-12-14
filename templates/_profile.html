@@ -27,7 +27,7 @@
 
         <!-- Bio (if user has one) -->
         {% if user.user_bio %}
-        <p class="profile-bio">{{ user.user_bio }}</p>
+            <p class="profile-bio">{{ user.user_bio }}</p>
         {% endif %}
 
         <!-- Joined Date -->
@@ -66,14 +66,13 @@
     <div class="posts">
         <div id="profile-posts">
             {% if posts|length == 0: %}
-            <div class="no-posts">
-                <p>{{ lans("no_posts_yet") }}</p>
-            </div>
+                <div class="no-posts">
+                    <p>{{ lans("no_posts_yet") }}</p>
+                </div>
             {% else: %}
-            {% for tweet in posts: %}
-            {% include "_tweet.html" %}
-
-            {% endfor %}
+                {% for tweet in posts: %}
+                    {% include "_tweet.html" %}
+                {% endfor %}
             {% endif %}
         </div>
     </div>
