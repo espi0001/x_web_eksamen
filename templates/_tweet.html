@@ -21,7 +21,8 @@
                         {{ tweet.user_name }}
                     </span>
                     <span class="handle">@{{ tweet.user_username }}</span> ·
-                    <span class="time">{{ x.format_timestamp(tweet.created_at) }}</span> <!-- TODO: change timestamp + translate -->
+                    <span class="time">{{ x.format_timestamp(tweet.created_at) }}</span>
+                    <!-- TODO: change timestamp + translate -->
 
                     <!-- edit knap > vises kun på brugerens egne posts -->
                     {% if user.user_pk == tweet.post_user_fk %}
@@ -33,7 +34,7 @@
                 </div>
 
                 <p class="text">{{ tweet.post_message }}</p>
-                
+
                 <!-- Question: Jeg tror der er fejl her -->
                 <!-- Media display  -->
                 {% if tweet.post_media_path %}
@@ -51,21 +52,21 @@
                 </video>
                 {% endif %}
                 {% endif %}
-                
+
 
                 <div class="post-actions">
                     <!-- Comment -->
                     <span class="action comment">
                         <a href="/single-post/{{ tweet.post_pk }}" mix-get>
-                            <i class="fa-regular fa-comment pointer-e-none"></i> 
+                            <i class="fa-regular fa-comment pointer-e-none"></i>
                             {% if tweet.post_total_comments > 0 %}
-                                <span class="pointer-e-none">{{ tweet.post_total_comments }}</span>
+                            <span class="pointer-e-none">{{ tweet.post_total_comments }}</span>
                             {% endif %}
                         </a>
                     </span>
 
                     <span class="action"><i class="fa-solid fa-retweet"></i> </span>
-                    
+
                     <!-- Like -->
                     <span class="action">
                         {% if tweet.liked_by_user %}

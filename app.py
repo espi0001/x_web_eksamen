@@ -492,7 +492,7 @@ def home(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
         lan = "english"
-
+    
     try:
         # Check if user is logged in (g.user set by @app.before_request)
         # Example: session - Protected page pattern (uses g.user from session)
@@ -2360,4 +2360,20 @@ def get_data_from_sheet():
 
     finally: 
         pass
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
 
