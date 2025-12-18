@@ -31,16 +31,12 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 
 
 # -------------------- LANGUAGE CONFIGURATION --------------------
-allowed_languages = ["english", "danish", "spanish"]
+allowed_languages = ["english", "danish", "spanish"] # should maybe have been set (dont allow duplicates)
 default_language = "english"
 google_spread_sheet_key = "1uKk3qc3sQihW1VmnWle57LDaLJZYiygSsEmONfBTeO0"
 
-
+# Load translation from dictionary.json
 def lans(key):
-    """
-    Load translation from dictionary.json
-
-    """
     with open("dictionary.json", 'r', encoding='utf-8') as file:
         data = json.load(file)
     return data[key][default_language]
@@ -64,6 +60,7 @@ MAX_IMAGE_HEIGHT = 1080
 
 
 # -------------------- DATABASE --------------------
+# This could have been a envioment variable in a .env file
 def db():
     """
     Create database connection
@@ -96,7 +93,10 @@ def no_cache(view):
     """
     Decorator to prevent browser caching
     Used for pages that should always reload (login, profile, etc.)
-    
+    Without no_cache, the user may see old content (e.g. home page after logout)
+    when using the back button. This decorator forces the browser to always
+    request a fresh version from the server.
+
     Usage:
         @app.get("/profile")
         @x.no_cache
@@ -365,7 +365,7 @@ def send_email(user_email, subject, template, lan="en"):
     5. Update credentials below
     """
     try:
-        # Gmail SMTP credentials
+        # Gmail SMTP credentials - - This could have been a envioment variable in a .env file
         sender_email = "webdevxclone@gmail.com"
         password = "hmpv qlnn rqzc ytrg"  # App password (not regular password)
 

@@ -22,18 +22,17 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 app = Flask(__name__)
 
 
-# Absolute paths der virker i production
+# Absolute paths (used locally and in production)
 AVATAR_FOLDER = os.path.join(app.root_path, 'static', 'images', 'avatars')
 POST_MEDIA_FOLDER = os.path.join(app.root_path, 'static', 'images', 'posts')
 
-# Opret folders
+# Ensure folders exist so uploads do not crash
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(POST_MEDIA_FOLDER, exist_ok=True)
 
 
-
-# Set the maximum file size to 1 MB
-app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024   # 1 MB
+# Set the maximum file size to 30 MB
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  
 
 
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -41,9 +40,10 @@ Session(app)
 
 
 # -------------------- GLOBAL VARIABLES -------------------- #
-############## GLOBAL PROCESSOR     ################
-# Context processor - makes variables available in ALL templates
-# You don't need to pass these variables manually to each render_template()
+############## GLOBAL PROCESSOR ################
+"""
+    Makes common variables available in ALL templates
+    so we don't have to pass them into every render_template() call. """
 @app.context_processor
 def global_variables():
     # Check where language comes from (prioritized sequence):
@@ -63,17 +63,26 @@ def global_variables():
     )
 
 
-
-# Load logged-in user before each request
-# Runs automatically before every route
+##############################
+"""
+    Runs before every request:
+    - Reads user_pk and language from the session
+    - Loads the user from the database (if logged in)
+    - Stores the user on g.user so all routes can use it """
 @app.before_request
 def load_logged_in_user():
     # Initialize g.user as None
     g.user = None
     
+    # find the language in session (or fallback to english)
+    lan = session.get("lan", "english")
+    if lan not in x.allowed_languages:
+        lan = "english"
+        
+    x.default_language = lan # will always follow sessions language
+
     # Get user_pk from session (stored during login)
-    user_pk = session.get("user_pk")
-    
+    user_pk = session.get("user_pk") # Example: session
     # If no user_pk in session, user is not logged in
     if not user_pk:
         return
@@ -90,15 +99,22 @@ def load_logged_in_user():
             user.pop("user_password", None)
             
             # Add language preference from session
-            user["user_language"] = session.get("lan", "english")
+            user["user_language"] = session.get("lan", "english") # Example: session
             
             # Store user in Flask global g object
             # Now available in all routes and templates as g.user
             g.user = user
     finally:
         # Always close database connections
+        """
+            # Close cursor/db only if they exist.
+            # If an error happens before the database connection is created,
+            # "cursor" or "db" may not exist. Using `if "cursor" in locals()` prevents
+            # NameError and ensures safe cleanup in all cases.
+        """
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
 
 
 
@@ -127,8 +143,14 @@ def view_index(lan="english"):
 
 # -------------------- SIGNUP -------------------- #
 ############## SIGNUP ################
+"""
+    Handles both GET (show signup form) and POST (create a new user).
+    On success:
+    - Creates the user in the database with a verification key
+    - Sends a verification email
+    - Shows a toast and redirects to login """
 @app.route("/signup", methods=["GET", "POST"])
-@app.route("/signup/<lan>", methods=["GET", "POST"])
+@app.route("/signup/<lan>", methods=["GET", "POST"]) # Example: language (translation) in URL
 def signup(lan = "english"):
     # Validate language parameter
     if lan not in x.allowed_languages: 
@@ -159,7 +181,7 @@ def signup(lan = "english"):
             created_at = int(time.time())
 
             # Hash password before storing (NEVER store plain text passwords!)
-            user_hashed_password = generate_password_hash(user_password)
+            user_hashed_password = generate_password_hash(user_password) # Example: Hash password
 
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -177,6 +199,8 @@ def signup(lan = "english"):
 
 
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
+
+            # Example: f-string (multi-line) + Redirect uses url_for("login") to return a rediret to login page
             return f"""<browser mix-bottom="#toast">{ toast_ok }</browser>
                 <browser mix-redirect="{ url_for('login', lan=lan) }"></browser>
             """, 200
@@ -187,20 +211,20 @@ def signup(lan = "english"):
             # User validation errors
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # Database duplicate entry errors
             if "Duplicate entry" in str(ex) and user_email in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("email_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             if "Duplicate entry" in str(ex) and user_username in str(ex): 
                 toast_error = render_template("___toast_error.html", message=x.lans("username_already_registered"))
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
             # System or developer error
             toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
-            return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
@@ -210,7 +234,10 @@ def signup(lan = "english"):
 
 
 # -------------------- VERIFY ACCOUNT -------------------- #
-############## VERIFY ACCOUNT ################
+############## VERIFY ACCOUNT ################ 
+"""
+    Verifies a user based on the email verification key in the URL.
+    If the key is valid: mark user as verified and redirect to login. """
 @app.route("/verify-account", methods=["GET"])
 def verify_account():
     try:
@@ -228,6 +255,7 @@ def verify_account():
         if cursor.rowcount != 1: 
             raise Exception("Invalid key", 400)
         
+        # Example: Redirect uses url_for("login") to return a rediret to login page
         return redirect(url_for('login'))
         
     except Exception as ex:
@@ -252,13 +280,13 @@ def verify_account():
 ############## LOGIN ################
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
-@x.no_cache 
+# @x.no_cache # dont need this here
 def login(lan = "english"):
-    # Validate language parameter
+    # Validate language from the URL (fallback to english)
     if lan not in x.allowed_languages: 
         lan = "english"
     
-    # Set default language in x module
+    # Keep x.default_language in sync with the current request language
     x.default_language = lan
 
     if request.method == "GET":
@@ -298,7 +326,7 @@ def login(lan = "english"):
 
             # Store only user_pk in session (not entire user object)
             # This is more secure and efficient
-            session["user_pk"] = user["user_pk"]
+            session["user_pk"] = user["user_pk"] # Example: session
             session["lan"] = lan
             
             # Redirect to home page
@@ -310,7 +338,7 @@ def login(lan = "english"):
             # User errors (validation, wrong password, etc.)
             if len(ex.args) > 1 and ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
 
             # System or developer error (database down, etc.)
             toast_error = render_template("___toast_error.html", message=x.lans("system_maintenance"))
@@ -325,6 +353,10 @@ def login(lan = "english"):
 
 # -------------------- FORGOT PASSWORD -------------------- #
 ############# FORGOT PASSWORD #################
+"""
+    Starts the "forgot password" flow:
+    - User submits email
+    - We generate a reset key and send a reset email """
 @app.route("/forgot-password", methods=["GET", "POST"])
 @app.route("/forgot-password/<lan>", methods=["GET", "POST"])
 def forgot_password(lan = "english"):
@@ -362,23 +394,38 @@ def forgot_password(lan = "english"):
             # passing the email, subject and template to the send_email function.
             x.send_email(user_email=user_email, subject=f"{x.lans('update_password')}", template=email_forgot_password)
             
-            #toast_ok = render_template("___toast_ok.html", message="Check your email" ) #message="Check your email"
+            
             toast_ok = render_template("___toast_ok.html", message=f"{x.lans('check_your_email')}")
-            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>"""
-
+            return f"""<browser mix-bottom=#toast>{ toast_ok }</browser>""", 200
 
     except Exception as ex:
         ic(ex)
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
-############# CREATE NEW PASSWORD #################
-@app.route("/create-new-password", methods=["GET", "POST"])
-def create_new_password():
-    try:
 
+############# CREATE NEW PASSWORD #################
+"""
+    Finishes the "forgot password" flow:
+    - Validates the reset key from URL/form
+    - On POST: updates the password and clears the reset key """
+@app.route("/create-new-password", methods=["GET", "POST"])
+@app.route("/create-new-password/<lan>", methods=["GET", "POST"])
+def create_new_password(lan = "english"):
+    try:
+        # Validate language parameter
+        if lan not in x.allowed_languages: 
+            lan = "english"
+        
+        # Set default language in x module
+        x.default_language = lan
+
+        
         # getting the key from the url or the form
         key = request.args.get("key") or request.form.get("key")
 
@@ -402,7 +449,7 @@ def create_new_password():
         if request.method == "POST":
             user_password = x.validate_user_password()
 
-            user_hashed_password = generate_password_hash(user_password)
+            user_hashed_password = generate_password_hash(user_password) # Example: Hash new pqssword
 
             # We update the user_password and set the user_password_reset key back to 0
             q = """
@@ -418,7 +465,9 @@ def create_new_password():
 
     except Exception as ex:
         ic(ex)
-        return "Server error", 500   #
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -430,8 +479,13 @@ def create_new_password():
 # -------------------- HOME --------------------
 
 ############## HOME - GET ################
+"""
+    Home feed:
+    - Shows random posts with like/bookmark-state for the current user
+    - Hides blocked users/posts for non-admins
+    - Also loads random trends and user-suggestions """
 @app.route("/home", methods=["GET"])
-@app.route("/home/<lan>", methods=["GET"]) 
+@app.route("/home/<lan>", methods=["GET"]) # Example: Friendly URL with <lan>
 @x.no_cache # prevents showing cached content after logout / "back" button
 def home(lan = "english"):
     # Validate language parameter
@@ -440,13 +494,14 @@ def home(lan = "english"):
 
     try:
         # Check if user is logged in (g.user set by @app.before_request)
+        # Example: session - Protected page pattern (uses g.user from session)
         if not g.user: 
             return redirect(url_for("login"))
         
         db, cursor = x.db()
         
         # Get random posts with user data (JOIN)
-
+        # Example: session
         is_admin = g.user["user_admin"]
 
         # Base query (same for everyone)
@@ -509,12 +564,14 @@ def home(lan = "english"):
         suggestions = cursor.fetchall()
         ic(suggestions)
 
-
+        # Example: Render full page (the whole home page) (render_template)
         return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions)
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -523,11 +580,12 @@ def home(lan = "english"):
 
 ############## HOME COMP ################
 @app.get("/home-comp")
+@x.no_cache
 def home_comp():
     try:
         # If no user in g, the session is probably expired or user not logged in
         if not g.user:
-            return "error"
+            return "invalid user", 400
 
         db, cursor = x.db()
 
@@ -568,13 +626,12 @@ def home_comp():
         cursor.execute(base_query, (g.user["user_pk"], g.user["user_pk"])) # Pass g.user["user_pk"] twice in queries (once for likes, once for bookmarks)
         tweets = cursor.fetchall()
 
-        html = render_template("_home_comp.html", tweets=tweets)
-        return f"""<browser mix-update="main">{ html }</browser>"""
+        html = render_template("_home_comp.html", tweets=tweets) # Example: Render components/partials (render_template)
+        return f"""<browser mix-update="main">{ html }</browser>""" # Example: returns updated component
 
     except Exception as ex:
         ic(ex)
-        # Show a user-friendly toast instead of just returning "error"
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -584,17 +641,17 @@ def home_comp():
 
 
 # -------------------- LOGOUT -------------------- #
-
+# Example: simple get route
 ############## LOGOUT - GET ################
 @app.get("/logout")
 def logout():
     try:
-        session.clear()
-        return redirect(url_for("login"))
+        # removes everything from session (user_pk + lan)
+        session.clear() # Example: clear session after logging out
+        return redirect(url_for("login")) # Example: redirect
     except Exception as ex:
         ic(ex)
-        # Show a user-friendly toast instead of just returning "error"
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         pass
@@ -604,12 +661,17 @@ def logout():
 
 # -------------------- PROFILE -------------------- #
 ############### PROFILE - GET ###############
+"""
+    Profile page:
+    - Shows either the user's own posts or their bookmarks
+    - Uses the 'tab' query parameter to switch between views """
 @app.get("/profile")
+@x.no_cache
 def profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         db, cursor = x.db()
 
@@ -684,19 +746,23 @@ def profile():
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
+
 ############### EDIT PROFILE ###############
+# Example: try / except / finally + db cleanup
 @app.get("/edit_profile")
 def edit_profile():
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -710,7 +776,8 @@ def edit_profile():
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -718,6 +785,11 @@ def edit_profile():
 
 
 ############## API UPDATE PROFILE ################
+"""
+    Updates basic profile fields (email, username, name).
+    Returns:
+        - Toast message
+        - Live DOM updates of the profile tag in the UI """
 @app.route("/api-update-profile", methods=["POST"])
 def api_update_profile():
     try:
@@ -743,7 +815,7 @@ def api_update_profile():
         db.commit()
 
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Profile updated successfully")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('profile_updated_successfully')}")
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="#profile_tag .name">{user_name}</browser>
@@ -756,20 +828,20 @@ def api_update_profile():
         # User validation errors
         if len(ex.args) > 1 and ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # Database duplicate errors
         if "Duplicate entry" in str(ex) and user_email in str(ex): 
-            toast_error = render_template("___toast_error.html", message="Email already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('email_already_registered')}")
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
             
         if "Duplicate entry" in str(ex) and user_username in str(ex): 
-            toast_error = render_template("___toast_error.html", message="Username already registered")
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('username_already_registered')}")
+            return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -780,24 +852,20 @@ def api_update_profile():
 ############### IMAGES (AVATARS) ###############
 ## Serve images from static/images/avatars folder
 # Required for avatar images to display
+# Example: /images/avatars/a1b2c3d4e5f6.jpg
 @app.route('/images/avatars/<path:filename>')
 def serve_image(filename):
-    """
-    Serves avatar images from the static/images/avatars folder
-    Example: /images/avatars/a1b2c3d4e5f6.jpg
-    """
     return send_from_directory(os.path.join('static', 'images', 'avatars'), filename)
 
 
 
 ############################## 
-@app.template_filter('avatar')
-def avatar_filter(avatar_path):
-    """
+"""
     Ensures avatar path works in HTML
     - I alle templates kan vi bare skrive {{ user.user_avatar_path | avatar }}
-    - Ingen kompliceret if/else logik i templates
-    """
+    - Ingen kompliceret if/else logik i templates """
+@app.template_filter('avatar')
+def avatar_filter(avatar_path):
     # returnerer default billede hvis ingen avatar
     if not avatar_path:
         return "/static/images/avatars/6f77ec71b2f84b68a5b20efffbaedec4.png"
@@ -815,11 +883,15 @@ def avatar_filter(avatar_path):
 
 
 ############## API UPLOAD AVATAR ################
+"""
+    Uploads and updates the user's avatar:
+    - Validates the uploaded file (extension, size etc.)
+    - Deletes the old avatar file if it exists
+    - Saves the new file to AVATAR_FOLDER
+    - Stores only the relative path in the database
+    - Updates avatar in navbar and profile via <browser> DOM updates """
 @app.route("/api-upload-avatar", methods=["POST"])
 def api_upload_avatar():
-    """
-    Handles avatar/profile picture upload
-    """
     try:
         # Check if user is logged in
         if not g.user: 
@@ -865,13 +937,13 @@ def api_upload_avatar():
         g.user["user_avatar_path"] = db_path
         
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Avatar updated successfully!")
+        toast_ok = render_template("___toast_ok.html", message=""f"{x.lans('avatar_updated_successfully')}")
         
         return f"""
         <browser mix-bottom="#toast">{toast_ok}</browser>
         <browser mix-replace="#current_avatar"><img id="current_avatar" src="/{db_path}" alt="Current avatar" class="profile-avatar"></browser>
         <browser mix-replace="#nav_avatar"><img src="/{db_path}" alt="Profile" id="nav_avatar"></browser>
-         """, 200
+        """, 200
         
     except Exception as ex:
         ic(f"Exception: {ex}")
@@ -890,7 +962,7 @@ def api_upload_avatar():
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message=f"Could not upload avatar: {str(ex)}")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_upload_avatar')}: {str(ex)}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
         
     finally:
@@ -912,7 +984,7 @@ def delete_profile(lan = "english"):
     try:
         # Check if user is logged in
         if not g.user: 
-            return "error"
+            return "invalid user", 400
         
         # Fetch fresh user data from database
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -926,7 +998,11 @@ def delete_profile(lan = "english"):
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
+        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     
     finally:
         if "cursor" in locals(): cursor.close()
@@ -952,7 +1028,7 @@ def api_delete_profile(lan = "english"):
         cursor.execute(q, (g.user["user_pk"],))
         db.commit()
 
-        session.clear()
+        session.clear() # Example: Clear session on delete profile 
 
         # Redirect to index page
         return f"""<browser mix-redirect="/"></browser>"""
@@ -960,8 +1036,10 @@ def api_delete_profile(lan = "english"):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('system_under_maintenance')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1023,8 +1101,10 @@ def api_get_users_posts():
 
     except Exception as ex:
         ic(ex)
-        toast_error = render_template("___toast_error.html", message="Could not load posts")
+        # System error
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_posts')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1083,7 +1163,7 @@ def api_get_bookmarks():
 
     except Exception as ex:
         ic(ex)
-        toast_error = render_template("___toast_error.html", message="Could not load bookmarks")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_bookmarks')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1093,8 +1173,14 @@ def api_get_bookmarks():
 
 # -------------------- POST/TWEET -------------------- #
 
-############### API CREATE POST/TWEET ###############
-# TODO: add translation
+############### API CREATE POST/TWEET ############### Post CRUD (create/edit/delete)
+"""
+    Creates a new post:
+    - Accepts text, optional media file, or both
+    - Validates text and media
+    - Saves media to disk if present
+    - Inserts post into DB with counters set to 0
+    - Returns HTML for the new post + toast via <browser> tags """
 @app.route("/api-create-post", methods=["POST"])
 def api_create_post():
     try:
@@ -1107,7 +1193,7 @@ def api_create_post():
         user_pk = g.user["user_pk"]
         
         # Get post text (CAN BE EMPTY if there's media)
-        post_message = request.form.get("post", "").strip()
+        post_message = request.form.get("post", "").strip() # Example: POST form data of request.form.get
         
         # Validate uploaded media (if any)
         file = None
@@ -1121,7 +1207,7 @@ def api_create_post():
         
         # Must have either text or media
         if not post_message and not file:
-            toast_error = render_template("___toast_error.html", message="Post must contain text or media")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_must_contain_text_or_media')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # Validate text ONLY if there is text
@@ -1156,6 +1242,7 @@ def api_create_post():
         
         # Insert post into DB
         db, cursor = x.db()
+        # Example of %s placeholders (parameterzed SQL)
         q = """INSERT INTO posts VALUES(
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
@@ -1167,9 +1254,9 @@ def api_create_post():
         db.commit()
         
         # Prepare response
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post!") # TODO: translate
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('the_world_is_reading_your_post')}!")
         
-        # Dictionary
+        # Example og dictionary
         tweet = {
             "post_pk": post_pk,
             "post_user_fk": user_pk,
@@ -1194,7 +1281,7 @@ def api_create_post():
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#posts">{html_post}</browser>
             <browser mix-replace="#post_container">{html_post_container}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1230,16 +1317,17 @@ def edit_post(post_pk):
     try:
         # check if user is logged in
         if not g.user:
-            return "error", 400
+            return "invalid user", 400
         
         # get post from db
         db, cursor = x.db()
+        # Example of %s placeholders (parameterzed SQL)
         q = "SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
         cursor.execute(q, (post_pk, g.user["user_pk"]))
         post = cursor.fetchone()
 
         if not post:
-            toast_error = render_template("___toast_error.html", message="Post not found or you don't have permission")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_not_found_or_you_dont_have_permission')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 403
         
         edit_post_html = render_template("_edit_post.html", post=post)
@@ -1247,9 +1335,8 @@ def edit_post(post_pk):
     except Exception as ex:
         ic(ex) 
             
-        toast_error = render_template("___toast_error.html", message="Could not load post")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_load_posts')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
-        
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1257,7 +1344,12 @@ def edit_post(post_pk):
 
 
 
-############### API EDIT POST - POST ############### 
+############### API EDIT POST ############### 
+"""
+    Updates the text of an existing post:
+    - Only allows the post owner to edit
+    - Requires non-empty text
+    - Updates 'updated_at' and re-renders the home component """
 @app.route("/api-update-post/<post_pk>", methods=["POST"])
 def api_update_post(post_pk):
     try:
@@ -1270,7 +1362,7 @@ def api_update_post(post_pk):
         
         # Validate: must have text (can't be empty for edit)
         if not post_message:
-            toast_error = render_template("___toast_error.html", message="Post cannot be empty")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_cannot_be_empty')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # Validate post length
@@ -1284,7 +1376,7 @@ def api_update_post(post_pk):
         q = "UPDATE posts SET post_message = %s, updated_at = %s WHERE post_pk = %s AND post_user_fk = %s AND deleted_at IS NULL"
         
         cursor.execute(q, (post_message, updated_at, post_pk, g.user["user_pk"]))
-        db.commit()
+        db.commit() # commit to the db
         
         # Check if update was successful
         if cursor.rowcount != 1:
@@ -1329,16 +1421,17 @@ def api_update_post(post_pk):
         cursor.execute(q, (post_pk,))
         tweets = cursor.fetchall()
 
-        
         # Send success response
-        toast_ok = render_template("___toast_ok.html", message="Post updated successfully!")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('post_updated_successfully')}!")
         # tweet_html = render_template("_tweet.html", tweet=tweets)
         home_html = render_template("_home_comp.html", tweets=tweets)
         # <browser mix-replace="#post_container_{post_pk}">{tweet_html}</browser>
+
+        # Example: mixhtml responses - toast + update main
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="main">{home_html}</browser>
-        """
+        """, 200
         
     except Exception as ex:
         ic(ex)
@@ -1352,7 +1445,7 @@ def api_update_post(post_pk):
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
         
         # System error
-        toast_error = render_template("___toast_error.html", message="Could not update post")
+        toast_error = render_template("___toast_error.html", message=f"{x.lans('could_not_update_post')}")
         return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
 
     finally:
@@ -1363,27 +1456,24 @@ def api_update_post(post_pk):
 
 
 ############### API DELETE POST ###############
-# @app.route("/api-delete-post", methods=["GET", "DELETE"])
-# question: skal vi have language her??
 @app.route("/api-delete-post/<post_pk>", methods=["DELETE"])
 def api_delete_post(post_pk):
     try:
         # Check if user is logged in
         if not g.user:
-            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
+            return "invalid user", 400
 
         db, cursor = x.db()
-
 
         # Delete post from database IF its the users post
         q = "DELETE FROM posts WHERE post_pk = %s and post_user_fk = %s"
         cursor.execute(q, (post_pk, g.user["user_pk"],))
         db.commit()
 
-        toast_ok = render_template("___toast_ok.html", message="Your post has been deleted") #TODO: Translate
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('your_post_has_been_deleted')}")
         
         # Remove the post from the DOM + show toast
-        # return "ok"
+        # Example: Remove element from DOM (mix-remove)
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-remove="#post_container_{post_pk}"></browser>
@@ -1392,8 +1482,8 @@ def api_delete_post(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally: 
         if "cursor" in locals(): cursor.close()
@@ -1402,13 +1492,17 @@ def api_delete_post(post_pk):
 
 
 ############## SINGLE POST/TWEET ################
-# TODO: add translation
+"""
+    Shows a single post with:
+    - Full like/bookmark state for the current user
+    - All comments for that post (newest first) """
 @app.get("/single-post/<post_pk>")
+@x.no_cache
 def view_single_post(post_pk):
     # Check if user is logged in
     try:
         if not g.user:
-            return "invalid user", 400 ## TODO: add a HTTP requests på de andre
+            return "invalid user", 400
 
         db, cursor = x.db() # Question: hvorfor skal linjen være her?
 
@@ -1443,7 +1537,6 @@ def view_single_post(post_pk):
         if not tweet:
             return "Post not found", 404
 
-
         # Get comments on a post
         q = """
         SELECT
@@ -1467,10 +1560,11 @@ def view_single_post(post_pk):
         return f"""<browser mix-update="main">{ single_post_html }</browser>"""
 
     except Exception as ex:
-        
+        ic(ex)
         # SYSTEM ERROR
-        toast_error = render_template("___toast_error.html", message="Error") # TODO: lav en message der passer til error
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1478,7 +1572,11 @@ def view_single_post(post_pk):
 
 
 ############## CREATE COMMENT ON POST/TWEET ################
-# TODO: add translation
+"""
+    Creates a new comment on a post:
+    - Validates the comment text
+    - Inserts into DB
+    - Returns a toast and the new comment HTML to prepend to the list """
 @app.route("/api-create-comment/<post_pk>", methods=["POST"])
 def api_create_comment(post_pk):
     try:
@@ -1501,9 +1599,6 @@ def api_create_comment(post_pk):
         q = """INSERT INTO comments VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"""
         cursor.execute(q, (comment_pk, comment_user_fk, comment_post_fk, comment_message, comment_is_blocked, created_at, None, None,),)
         db.commit()
-
-        # Prepare response
-        # toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
         
         comment = {
             "comment_pk": comment_pk,
@@ -1516,7 +1611,7 @@ def api_create_comment(post_pk):
         }
 
         # Render templates
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your comment!")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('the_world_is_reading_your_comment')}")
         html_comment_container = render_template("___comment_container.html", post_pk=post_pk)
         html_comment = render_template("_comment.html", comment=comment)
         
@@ -1524,35 +1619,8 @@ def api_create_comment(post_pk):
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-top="#comments">{html_comment}</browser>
             <browser mix-replace="#comment_container">{html_comment_container}</browser>
-        """
-
-        # Success
-        return redirect(url_for("view_single_post", post_pk=post_pk))
-        # Get all comments again, so the list will get updated
-        q = """
-        SELECT
-            comments.*,
-            users.user_name,
-            users.user_username,
-            users.user_avatar_path
-        FROM comments
-        JOIN users ON users.user_pk = comments.comment_user_fk
-        WHERE comments.comment_post_fk = %s
-        ORDER BY comments.created_at DESC
-        """
-        # ORDER BY comments.created_at DESC (means: Show the newest comments first)
-
-        cursor.execute(q, (post_pk,))
-        comments = cursor.fetchall()
-
-        comments_html = render_template("___comments_list.html", comments=comments)
-        toast_ok = render_template("___toast_ok.html", message="Comment posted")
-
-        return f"""
-            <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-replace="#post-comments">{comments_html}</browser>
-            <browser mix-reset="#comment_frm"></browser> 
         """, 200
+        # kan også skrive return f"<browser mix-bottom='#toast'>{toast_ok}</browser>" + f"<browser mix-top='#comments'>{html_comment}</browser>" + f"<browser mix-replace='#comment_container'>{html_comment_container}</browser>", 200
 
     except Exception as ex:
         ic(ex)
@@ -1567,8 +1635,8 @@ def api_create_comment(post_pk):
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 400
 
         # SYSTEM ERROR
-        toast_error = render_template("___toast_error.html", message="Cannot post comment")
-        return f"""<browser mix-bottom="#toast">{toast_error}</browser>""", 500
+        toast_error = render_template("___toast_error.html", message=x.lans("cannot_post_comment"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1602,14 +1670,16 @@ def api_like_tweet(post_pk):
         # Render the unlike button HTML
         button_unlike_tweet = render_template("___button_unlike_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_unlike_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1641,14 +1711,16 @@ def api_unlike_tweet(post_pk):
         # Render the like button HTML
         button_like_tweet = render_template("___button_like_tweet.html", tweet=tweet)
         return f"""
-            <mixhtml mix-replace="#button_like_container_{post_pk}">
+            <browser mix-replace="#button_like_container_{post_pk}">
                 {button_like_tweet}
-            </mixhtml>
+            </browser>
         """
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1663,8 +1735,6 @@ def api_bookmark_tweet(post_pk):
         if not g.user:
             return "invalid user", 400
 
-        
-        
         bookmark_user_fk = g.user["user_pk"]    # The user who is bookmarking the tweet
         bookmark_post_fk = post_pk              # The tweet/post being bookmarked
         created_at = int(time.time())           # Get the current timestamp
@@ -1693,7 +1763,9 @@ def api_bookmark_tweet(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        return "error", 500
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1736,7 +1808,9 @@ def api_unbookmark_tweet(post_pk):
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
-        return "error", 500
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1746,6 +1820,10 @@ def api_unbookmark_tweet(post_pk):
 
 # -------------------- FOLLOW -------------------- #
 ############## FOLLOW USER ################
+"""
+    Creates a follow relationship:
+    - Current user follows the given user
+    - Re-renders the follow button to 'Unfollow' """
 @app.post("/follow-user/<user_pk>")
 def follow_user(user_pk):
     try:
@@ -1776,6 +1854,10 @@ def follow_user(user_pk):
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1812,13 +1894,22 @@ def unfollow_user(user_pk):
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
 ############## ALL USER FOLLOWERS ################
+"""
+    Shows a list of all users who follow the current user.
+    Also includes a flag 'followed_by_user' so the UI can show
+    either Follow or Unfollow buttons. """
 @app.get("/all-user-followers")
+@x.no_cache
 def view_all_user_followers():
     try:
         user_pk = g.user["user_pk"]
@@ -1852,6 +1943,10 @@ def view_all_user_followers():
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1860,6 +1955,7 @@ def view_all_user_followers():
 
 ############## ALL USER FOLLOWS ################
 @app.get("/all-user-follows")
+@x.no_cache
 def view_all_user_follows():
     try:
         # Get the current logged-in user's primary key
@@ -1887,6 +1983,10 @@ def view_all_user_follows():
 
     except Exception as ex:
         ic(ex)
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1895,10 +1995,16 @@ def view_all_user_follows():
 
 # -------------------- SEARCH -------------------- #
 ############## API SEARCH ################
+"""
+    Live search for users and posts:
+    - Searches users by username/name and includes follow-state
+    - Searches posts using FULLTEXT search on post_message
+    - Returns a dropdown with mixed results (users + posts) """
 @app.post("/api-search")
 def api_search():
     try:
-        search_for = request.form.get("search_for", "").strip()
+        # Example: POST form data of request.form.get
+        search_for = request.form.get("search_for", "").strip() 
 
         # If empty field → hide dropdown
         if not search_for:
@@ -1909,9 +2015,11 @@ def api_search():
             """
 
         user_pk = g.user["user_pk"]
+        
+        # Example: F-string used in search LIKE pattern
         part_of_query = f"%{search_for}%"
 
-        db, cursor = x.db()
+        db, cursor = x.db() # connect to the db
 
         # Search users WITH follow-state
         q = """
@@ -1929,6 +2037,7 @@ def api_search():
             AND user_is_blocked = 0
             LIMIT 10
         """
+        # Example: Multiple placeholders (%s)
         cursor.execute(q, (user_pk, part_of_query, part_of_query))
         users = cursor.fetchall()
 
@@ -1946,7 +2055,7 @@ def api_search():
         return f"""
         <browser mix-replace="#search_results">
             <div id="search_results"
-                 class="p-absolute top-9 left-0 w-full bg-c-white h-auto pa-4
+                class="p-absolute top-9 left-0 w-full bg-c-white h-auto pa-4
                         border-1 border-c-gray:+50 rounded-sm shadow-md">
                 {search_results_html}
             </div>
@@ -1963,13 +2072,15 @@ def api_search():
 
 
 
-
-
-
 # -------------------- ADMIN -------------------- #
 
 ############# ADMIN #################
+"""
+    Admin dashboard:
+    - Lists all users grouped into blocked and unblocked
+    - Used to manage user and post status """
 @app.get("/admin")
+@x.no_cache
 def view_admin():
     try:
         
@@ -1991,13 +2102,21 @@ def view_admin():
         return f"""<browser mix-update="main">{ admin_html }</browser>"""
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
 
 ############# ADMIN-BLOCK-USER #################
+"""
+    Toggles a user's blocked state:
+    - Updates user_is_blocked in the database
+    - Sends an email to the user about block/unblock
+    - Re-renders the admin panel and the specific row """
 @app.post("/admin-block-user/<user_pk>")
 def admin_block_user(user_pk):
     try:
@@ -2032,19 +2151,24 @@ def admin_block_user(user_pk):
         
         # Send an email to the user depending on their new blocked status
         if row["user_is_blocked"]:
-            x.send_email(user_email=user_email, subject="You have been blocked from X", template=email_user_is_blocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_blocked')}", template=email_user_is_blocked) # Example: F-string used in email subject
         else:
-            x.send_email(user_email=user_email, subject="You have been unblocked from X", template=email_user_is_unblocked)     
+            x.send_email(user_email=user_email, subject=f"{x.lans('you_have_been_unblocked')}", template=email_user_is_unblocked)     
 
         block_unblock_html = render_template("___block_unblock_user.html", row=row)
         admin_html = render_template("_admin.html", rows=rows, blocked_rows=blocked_rows)
+        
         return f"""
         <browser mix-replace="#block_unblock_user_{user_pk}">{block_unblock_html}</browser>
         <browser mix-update="main">{ admin_html }</browser>
         """
+    
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -2052,6 +2176,11 @@ def admin_block_user(user_pk):
 
 
 ############# ADMIN-BLOCK-POST #################
+"""
+    Toggles a post's blocked state:
+    - Updates post_is_blocked
+    - Notifies the post owner by email
+    - Re-renders both the admin row and the tweet in the feed """
 @app.post("/admin-block-post/<post_pk>")
 def admin_block_post(post_pk):
     try:
@@ -2086,9 +2215,9 @@ def admin_block_post(post_pk):
 
         # Send an email to the user
         if tweet["post_is_blocked"]:
-            x.send_email(user_email=user_email, subject="Your post has been blocked", template=email_post_is_blocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('post_has_been_blocked')}", template=email_post_is_blocked)
         else:
-            x.send_email(user_email=user_email, subject="Your post has been unblocked", template=email_post_is_unblocked)
+            x.send_email(user_email=user_email, subject=f"{x.lans('post_has_been_unblocked')}", template=email_post_is_unblocked)
 
 
         block_unblock_html = render_template("___block_unblock_post.html", tweet=tweet)
@@ -2099,7 +2228,9 @@ def admin_block_post(post_pk):
         """
     except Exception as ex:
         ic(ex)
-        return "error"
+        # SYSTEM ERROR
+        toast_error = render_template("___toast_error.html", message=x.lans("system_under_maintenance"))
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()  
@@ -2107,15 +2238,16 @@ def admin_block_post(post_pk):
 
 
 
-
-
 # -------------------- DICTIONARY -------------------- #
 ############# GET DATA FROM SHEET #################
+"""
+    Syncs translation data from a Google Sheet:
+    - Downloads the sheet as CSV
+    - Builds a dict: key -> {english, danish, spanish}
+    - Writes everything to dictionary.json for use in the app """
 @app.get("/get-data-from-sheet")
 def get_data_from_sheet():
-    try:
-        # TODO: Check if admin is running this endpoint
-        
+    try:    
         # Fetch Google Sheet data as CSV
         url = f"https://docs.google.com/spreadsheets/d/{x.google_spread_sheet_key}/export?format=csv&id={x.google_spread_sheet_key}"
         res = requests.get(url=url)
@@ -2140,13 +2272,14 @@ def get_data_from_sheet():
         with open("dictionary.json", 'w', encoding='utf-8') as f:
             f.write(json_data)
 
-        toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
+        toast_ok = render_template("___toast_ok.html", message=f"{x.lans('dictionary_updated')}")
         return f"""
                 <browser mix-bottom="#toast">{toast_ok}</browser>
-                """
+                """, 200
         
     except Exception as ex:
         ic(ex)
         return str(ex)
+
     finally: 
         pass
